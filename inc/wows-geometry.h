@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+// Garbage from the .splash file
+
 typedef struct {
     uint32_t name_len;
     char *name;
