@@ -50,3 +50,39 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# vim
+*.swp
+*.swo
+
+# binary
+wows-geometry-cli
+wows-geometry-test
+
+# coverage stuff
+coverage.base
+coverage/
+
+
+# CMake stuff
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+hashmap-test
+coverage.info
+
+# Doxygen stuff
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+Doxyfile
+html/
+inc/html/
+inc/latex/
+latex/
+docs/doxygen-awesome-css
