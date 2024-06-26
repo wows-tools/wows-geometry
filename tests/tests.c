@@ -4,7 +4,7 @@
 #include "wows-geometry.h"
 
 void test_wows_parse_geometry_fp(void) {
-	return;
+    return;
 }
 
 int main() {

@@ -1,3 +1,7 @@
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
+#define _XOPEN_SOURCE 500
+// TODO clean-up this mess
 #include <string.h>
 #include <stddef.h>
 #include <assert.h>
@@ -14,97 +18,108 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <endian.h>
+
+#if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
+#include <fcntl.h>
+#include <io.h>
+#define SET_BINARY_MODE(file) setmode(fileno(file), O_BINARY)
+#else
+#define SET_BINARY_MODE(file)
+#endif
 
 #include "wows-geometry.h"
 #include "hashmap.h"
 
-int geometry_entry_compare(const void *a, const void *b, void *udata) {
-    const wows_geometry_entry *ea = *(wows_geometry_entry **)a;
-    const wows_geometry_entry *eb = *(wows_geometry_entry **)b;
-    return strcmp(ea->name, eb->name);
-}
-
-uint64_t geometry_entry_hash(const void *item, uint64_t seed0, uint64_t seed1) {
-    const wows_geometry_entry *entry = *(wows_geometry_entry **)item;
-    return hashmap_sip(entry->name, strlen(entry->name), seed0, seed1);
-}
-
-int wows_geometry_entry_print(wows_geometry_entry *entry) {
-    printf("* name_len: %d\n", entry->name_len);
-    printf("* name:     %s\n", entry->name);
-    printf("* x:        %f\n", entry->x);
-    printf("* y:        %f\n", entry->y);
-    printf("* z:        %f\n", entry->z);
-    printf("* dx:       %f\n", entry->dx);
-    printf("* dy:       %f\n", entry->dy);
-    printf("* dz:       %f\n", entry->dz);
-    return 0;
-}
-
-int wows_geometry_print(wows_geometry *geometry) {
-    printf("* number_entries: %d\n", geometry->entry_count);
-    for (int i = 0; i < geometry->entry_count; i++) {
-        printf("====================\n");
-        wows_geometry_entry_print(geometry->entries[i]);
+void wows_geometry_header_print(const wows_geometry_header *header) {
+    if (header == NULL) {
+        printf("Invalid header: NULL pointer.\n");
+        return;
     }
-    return 0;
+    printf("wows_geometry_header values:\n");
+    printf("n_vertex_types:    %u\n", header->n_ver_type);
+    printf("n_index_types:     %u\n", header->n_ind_type);
+    printf("n_vertex_blocs:    %u\n", header->n_ver_bloc);
+    printf("n_index_blocs:     %u\n", header->n_ind_bloc);
+    printf("n_collision_blocs: %u\n", header->n_col_bloc);
+    printf("n_armor_blocs:     %u\n", header->n_arm_bloc);
 }
 
-int wows_parse_geometry_fp(FILE *fp, wows_geometry **geometry_content) {
+void wows_geometry_print(wows_geometry *geometry) {
+    if (geometry == NULL) {
+        printf("Invalid geometry: NULL pointer.\n");
+        return;
+    }
+    wows_geometry_header_print(geometry->header);
+}
+
+// Context init function
+WOWS_GEOMETRY_CONTEXT *wows_init_geometry_context(uint8_t debug_level) {
+    WOWS_GEOMETRY_CONTEXT *context = calloc(sizeof(WOWS_GEOMETRY_CONTEXT), 1);
+    context->debug_level = debug_level;
+    context->is_le = true;
+    return context;
+}
+
+uint32_t datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+    uint32_t *ret = (uint32_t *)(data + offset);
+    if (context->is_le) {
+        return le32toh(*ret);
+    } else {
+        return be32toh(*ret);
+    }
+}
+
+uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+    uint64_t *ret = (uint64_t *)(data + offset);
+    if (context->is_le) {
+        return le64toh(*ret);
+    } else {
+        return be64toh(*ret);
+    }
+}
+
+int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **geometry_content) {
     // TODO error handling in case the file is sketchy
 
-    int ret = 0;
-
+    WOWS_GEOMETRY_CONTEXT *context = wows_init_geometry_context(10);
     wows_geometry *geometry = calloc(sizeof(wows_geometry), 1);
+    wows_geometry_header *header = calloc(sizeof(wows_geometry_header), 1);
+    header->n_ver_type = datatoh32(contents, 0, context);
+    header->n_ind_type = datatoh32(contents, 4, context);
+    header->n_ver_bloc = datatoh32(contents, 8, context);
+    header->n_ind_bloc = datatoh32(contents, 12, context);
+    header->n_col_bloc = datatoh32(contents, 16, context);
+    header->n_arm_bloc = datatoh32(contents, 20, context);
 
-    fread(&(geometry->entry_count), sizeof(uint32_t), 1, fp);
-
-    geometry->entry_map =
-        hashmap_new(sizeof(wows_geometry_entry **), 0, 0, 0, geometry_entry_hash, geometry_entry_compare, NULL, NULL);
-
-    geometry->entries = calloc(sizeof(wows_geometry_entry), geometry->entry_count);
-
-    for (int i = 0; i < geometry->entry_count; i++) {
-        wows_geometry_entry *entry = calloc(sizeof(wows_geometry_entry), 1);
-        fread(&(entry->name_len), sizeof(uint32_t), 1, fp);
-        entry->name = calloc(sizeof(char), entry->name_len + 1);
-        fread(entry->name, sizeof(char), entry->name_len, fp);
-        fread(&(entry->x), sizeof(float), 1, fp);
-        fread(&(entry->y), sizeof(float), 1, fp);
-        fread(&(entry->z), sizeof(float), 1, fp);
-        fread(&(entry->dx), sizeof(float), 1, fp);
-        fread(&(entry->dy), sizeof(float), 1, fp);
-        fread(&(entry->dz), sizeof(float), 1, fp);
-        hashmap_set(geometry->entry_map, &entry);
-        geometry->entries[i] = entry;
-    }
-
-    ret = feof(fp);
+    geometry->header = header;
     *geometry_content = geometry;
-    return ret;
+    return 0;
 }
 
 int wows_parse_geometry(char *input, wows_geometry **geometry_content) {
     int ret = 0;
 
     // Open the index file
-    FILE *fp = fopen(input, "ro");
-    if (fp <= 0) {
+    int fd = open(input, O_RDONLY);
+    ;
+    if (fd <= 0) {
         return -1;
     }
-    ret = wows_parse_geometry_fp(fp, geometry_content);
-    fclose(fp);
+    // Recover the file size
+    struct stat s;
+    fstat(fd, &s);
+
+    /* index content size */
+    size_t length = s.st_size;
+    char *contents = mmap(0, length, PROT_READ, MAP_PRIVATE, fd, 0);
+    ret = wows_parse_geometry_buffer(contents, length, geometry_content);
+    close(fd);
     return ret;
 }
 
 int wows_geometry_free(wows_geometry *geometry) {
-    for (int i = 0; i < geometry->entry_count; i++) {
-        wows_geometry_entry *entry = geometry->entries[i];
-        free(entry->name);
-        free(entry);
-    }
-    free(geometry->entries);
-    hashmap_free(geometry->entry_map);
+    free(geometry->header);
     free(geometry);
     return 0;
 }
