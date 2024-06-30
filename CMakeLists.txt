@@ -84,7 +84,7 @@ file(GLOB WOWS_SOURCES lib/*.c)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
 set_target_properties(
   wows-geometry PROPERTIES VERSION ${wows-geometry_VERSION}
-                         SOVERSION ${wows-geometry_VERSION_MAJOR})
+                           SOVERSION ${wows-geometry_VERSION_MAJOR})
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
