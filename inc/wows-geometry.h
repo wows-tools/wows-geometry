@@ -13,12 +13,22 @@ typedef struct {
 } wows_geometry_vertex_entry;
 
 typedef struct {
-    uint32_t n_ver_type;
-    uint32_t n_ind_type;
-    uint32_t n_ver_bloc;
-    uint32_t n_ind_bloc;
-    uint32_t n_col_bloc;
-    uint32_t n_arm_bloc;
+    uint32_t n_ver_type; // number of vertice type
+    uint32_t n_ind_type; // number of index type
+    uint32_t n_ver_bloc; // number of vertice blocs
+    uint32_t n_ind_bloc; // number of index blocs
+
+    uint32_t n_col_bloc; // number of collision blocs
+    uint32_t n_arm_bloc; // number of armor blocs
+    uint64_t offset_1;   // offset to data beginning (always 72/0x48)
+
+    uint64_t unk_1;
+    uint64_t unk_2;
+
+    uint64_t unk_3;
+    uint64_t unk_4;
+
+    uint64_t unk_5;
 } wows_geometry_header;
 
 typedef struct {

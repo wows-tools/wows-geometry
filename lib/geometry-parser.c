@@ -37,12 +37,18 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
         return;
     }
     printf("wows_geometry_header values:\n");
-    printf("n_vertex_types:    %u\n", header->n_ver_type);
-    printf("n_index_types:     %u\n", header->n_ind_type);
-    printf("n_vertex_blocs:    %u\n", header->n_ver_bloc);
-    printf("n_index_blocs:     %u\n", header->n_ind_bloc);
-    printf("n_collision_blocs: %u\n", header->n_col_bloc);
-    printf("n_armor_blocs:     %u\n", header->n_arm_bloc);
+    printf("n_vertex_types:    %7u (0x%08x)\n", header->n_ver_type, header->n_ver_type);
+    printf("n_index_types:     %7u (0x%08x)\n", header->n_ind_type, header->n_ind_type);
+    printf("n_vertex_blocs:    %7u (0x%08x)\n", header->n_ver_bloc, header->n_ver_bloc);
+    printf("n_index_blocs:     %7u (0x%08x)\n", header->n_ind_bloc, header->n_ind_bloc);
+    printf("n_collision_blocs: %7u (0x%08x)\n", header->n_col_bloc, header->n_col_bloc);
+    printf("n_armor_blocs:     %7u (0x%08x)\n", header->n_arm_bloc, header->n_arm_bloc);
+    printf("offset_1:          %7lu (0x%08lx)\n", header->offset_1, header->offset_1);
+    printf("unk_1:             %7lu (0x%08lx)\n", header->unk_1, header->unk_1);
+    printf("unk_2:             %7lu (0x%08lx)\n", header->unk_2, header->unk_2);
+    printf("unk_3:             %7lu (0x%08lx)\n", header->unk_3, header->unk_3);
+    printf("unk_4:             %7lu (0x%08lx)\n", header->unk_4, header->unk_4);
+    printf("unk_5:             %7lu (0x%08lx)\n", header->unk_5, header->unk_5);
 }
 
 void wows_geometry_print(wows_geometry *geometry) {
@@ -80,7 +86,7 @@ uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
 }
 
 int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **geometry_content) {
-    // TODO error handling in case the file is sketchy
+    // TODO FIXME add size control
 
     WOWS_GEOMETRY_CONTEXT *context = wows_init_geometry_context(10);
     wows_geometry *geometry = calloc(sizeof(wows_geometry), 1);
@@ -91,6 +97,12 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_ind_bloc = datatoh32(contents, 12, context);
     header->n_col_bloc = datatoh32(contents, 16, context);
     header->n_arm_bloc = datatoh32(contents, 20, context);
+    header->offset_1 = datatoh64(contents, 24, context);
+    header->unk_1 = datatoh64(contents, 32, context);
+    header->unk_2 = datatoh64(contents, 40, context);
+    header->unk_3 = datatoh64(contents, 48, context);
+    header->unk_4 = datatoh64(contents, 56, context);
+    header->unk_5 = datatoh64(contents, 64, context);
 
     geometry->header = header;
     *geometry_content = geometry;
