@@ -36,7 +36,7 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
         printf("Invalid header: NULL pointer.\n");
         return;
     }
-    printf("wows_geometry_header values:\n");
+    printf("== Header ==\n");
     printf("n_vertex_types:    %7u (0x%08x)\n", header->n_ver_type, header->n_ver_type);
     printf("n_index_types:     %7u (0x%08x)\n", header->n_ind_type, header->n_ind_type);
     printf("n_vertex_blocs:    %7u (0x%08x)\n", header->n_ver_bloc, header->n_ver_bloc);
@@ -51,12 +51,38 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_arm_unk_5:       %7lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
 }
 
+void print_geometry_sections(const wows_geometry *geometry) {
+    printf("== Section 1 ==\n");
+    wows_bloc_info *section = geometry->section_1;
+
+    for (uint32_t i = 0; i < geometry->header->n_ver_bloc; i++) {
+        printf("-- Entry %u --\n", i);
+        printf("id_unk_6:          %16u\n", section[i].id_unk_6);
+        printf("type_unk_7:        %16u\n", section[i].type_unk_7);
+        printf("id_unk_8:          %16u\n", section[i].id_unk_8);
+        printf("n_unk_9:           %16u\n", section[i].n_unk_9);
+        printf("n_unk_10:          %16u\n", section[i].n_unk_10);
+    }
+
+    printf("== Section 2 ==\n");
+    section = geometry->section_2;
+    for (uint32_t i = 0; i < geometry->header->n_ind_bloc; i++) {
+        printf("-- Entry %u --\n", i);
+        printf("id_unk_6:          %16u\n", section[i].id_unk_6);
+        printf("type_unk_7:        %16u\n", section[i].type_unk_7);
+        printf("id_unk_8:          %16u\n", section[i].id_unk_8);
+        printf("n_unk_9:           %16u\n", section[i].n_unk_9);
+        printf("n_unk_10:          %16u\n", section[i].n_unk_10);
+    }
+}
+
 void wows_geometry_print(wows_geometry *geometry) {
     if (geometry == NULL) {
         printf("Invalid geometry: NULL pointer.\n");
         return;
     }
     wows_geometry_header_print(geometry->header);
+    print_geometry_sections(geometry);
 }
 
 // Context init function
@@ -65,6 +91,15 @@ WOWS_GEOMETRY_CONTEXT *wows_init_geometry_context(uint8_t debug_level) {
     context->debug_level = debug_level;
     context->is_le = true;
     return context;
+}
+
+uint16_t datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+    uint16_t *ret = (uint16_t *)(data + offset);
+    if (context->is_le) {
+        return le16toh(*ret);
+    } else {
+        return be16toh(*ret);
+    }
 }
 
 uint32_t datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
@@ -105,6 +140,33 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_arm_unk_5 = datatoh64(contents, 64, context);
 
     geometry->header = header;
+
+    wows_bloc_info *section_1 = calloc(sizeof(wows_bloc_info), header->n_ver_bloc);
+    wows_bloc_info *section_2 = calloc(sizeof(wows_bloc_info), header->n_ind_bloc);
+
+    geometry->section_1 = section_1;
+    geometry->section_2 = section_2;
+
+    contents += header->off_sec_1;
+
+    for (int i = 0; i < header->n_ver_bloc; i++) {
+        section_1[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
+        section_1[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
+        section_1[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
+        section_1[i].n_unk_9 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8, context);
+        section_1[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
+    }
+
+    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
+
+    for (int i = 0; i < header->n_ind_bloc; i++) {
+        section_2[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
+        section_2[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
+        section_2[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
+        section_2[i].n_unk_9 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8, context);
+        section_2[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
+    }
+
     *geometry_content = geometry;
     return 0;
 }

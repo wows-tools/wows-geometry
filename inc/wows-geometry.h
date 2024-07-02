@@ -12,6 +12,7 @@ typedef struct {
     float dz;
 } wows_geometry_vertex_entry;
 
+#define WOWS_HEADER_SIZE 72
 typedef struct {
     uint32_t n_ver_type; // number of vertice type
     uint32_t n_ind_type; // number of index type
@@ -31,17 +32,20 @@ typedef struct {
     uint64_t n_arm_unk_5;
 } wows_geometry_header;
 
+#define WOWS_BLOC_INFO_SIZE 16
+
 typedef struct {
     uint32_t id_unk_6;
     uint16_t type_unk_7;
     uint16_t id_unk_8;
     uint32_t n_unk_9;
     uint32_t n_unk_10;
-} wows_section_1;
+} wows_bloc_info;
 
 typedef struct {
     wows_geometry_header *header;
-    wows_section_1 **wows_section_1;
+    wows_bloc_info *section_1;
+    wows_bloc_info *section_2;
     wows_geometry_vertex_entry **entries; // array of entries
 } wows_geometry;
 
