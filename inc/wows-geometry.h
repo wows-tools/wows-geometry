@@ -20,19 +20,28 @@ typedef struct {
 
     uint32_t n_col_bloc; // number of collision blocs
     uint32_t n_arm_bloc; // number of armor blocs
-    uint64_t offset_1;   // offset to data beginning (always 72/0x48)
+    uint64_t off_sec_1;  // offset to data beginning (always 72/0x48)
 
-    uint64_t unk_1;
-    uint64_t unk_2;
+    uint64_t off_unk_1;
+    uint64_t off_unk_2;
 
-    uint64_t unk_3;
-    uint64_t unk_4;
+    uint64_t n_unk_3;
+    uint64_t n_col_unk_4;
 
-    uint64_t unk_5;
+    uint64_t n_arm_unk_5;
 } wows_geometry_header;
 
 typedef struct {
+    uint32_t id_unk_6;
+    uint16_t type_unk_7;
+    uint16_t id_unk_8;
+    uint32_t n_unk_9;
+    uint32_t n_unk_10;
+} wows_section_1;
+
+typedef struct {
     wows_geometry_header *header;
+    wows_section_1 **wows_section_1;
     wows_geometry_vertex_entry **entries; // array of entries
 } wows_geometry;
 

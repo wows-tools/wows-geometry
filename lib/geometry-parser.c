@@ -43,12 +43,12 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_index_blocs:     %7u (0x%08x)\n", header->n_ind_bloc, header->n_ind_bloc);
     printf("n_collision_blocs: %7u (0x%08x)\n", header->n_col_bloc, header->n_col_bloc);
     printf("n_armor_blocs:     %7u (0x%08x)\n", header->n_arm_bloc, header->n_arm_bloc);
-    printf("offset_1:          %7lu (0x%08lx)\n", header->offset_1, header->offset_1);
-    printf("unk_1:             %7lu (0x%08lx)\n", header->unk_1, header->unk_1);
-    printf("unk_2:             %7lu (0x%08lx)\n", header->unk_2, header->unk_2);
-    printf("unk_3:             %7lu (0x%08lx)\n", header->unk_3, header->unk_3);
-    printf("unk_4:             %7lu (0x%08lx)\n", header->unk_4, header->unk_4);
-    printf("unk_5:             %7lu (0x%08lx)\n", header->unk_5, header->unk_5);
+    printf("off_sec_1:         %7lu (0x%08lx)\n", header->off_sec_1, header->off_sec_1);
+    printf("off_unk_1:         %7lu (0x%08lx)\n", header->off_unk_1, header->off_unk_1);
+    printf("off_unk_2:         %7lu (0x%08lx)\n", header->off_unk_2, header->off_unk_2);
+    printf("n_unk_3:           %7lu (0x%08lx)\n", header->n_unk_3, header->n_unk_3);
+    printf("n_col_unk_4:       %7lu (0x%08lx)\n", header->n_col_unk_4, header->n_col_unk_4);
+    printf("n_arm_unk_5:       %7lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
 }
 
 void wows_geometry_print(wows_geometry *geometry) {
@@ -97,12 +97,12 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_ind_bloc = datatoh32(contents, 12, context);
     header->n_col_bloc = datatoh32(contents, 16, context);
     header->n_arm_bloc = datatoh32(contents, 20, context);
-    header->offset_1 = datatoh64(contents, 24, context);
-    header->unk_1 = datatoh64(contents, 32, context);
-    header->unk_2 = datatoh64(contents, 40, context);
-    header->unk_3 = datatoh64(contents, 48, context);
-    header->unk_4 = datatoh64(contents, 56, context);
-    header->unk_5 = datatoh64(contents, 64, context);
+    header->off_sec_1 = datatoh64(contents, 24, context);
+    header->off_unk_1 = datatoh64(contents, 32, context);
+    header->off_unk_2 = datatoh64(contents, 40, context);
+    header->n_unk_3 = datatoh64(contents, 48, context);
+    header->n_col_unk_4 = datatoh64(contents, 56, context);
+    header->n_arm_unk_5 = datatoh64(contents, 64, context);
 
     geometry->header = header;
     *geometry_content = geometry;
