@@ -36,43 +36,42 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
         printf("Invalid header: NULL pointer.\n");
         return;
     }
-    printf("== Header ==\n");
-    printf("n_vertex_types:    %7u (0x%08x)\n", header->n_ver_type, header->n_ver_type);
-    printf("n_index_types:     %7u (0x%08x)\n", header->n_ind_type, header->n_ind_type);
-    printf("n_vertex_blocs:    %7u (0x%08x)\n", header->n_ver_bloc, header->n_ver_bloc);
-    printf("n_index_blocs:     %7u (0x%08x)\n", header->n_ind_bloc, header->n_ind_bloc);
-    printf("n_collision_blocs: %7u (0x%08x)\n", header->n_col_bloc, header->n_col_bloc);
-    printf("n_armor_blocs:     %7u (0x%08x)\n", header->n_arm_bloc, header->n_arm_bloc);
-    printf("off_sec_1:         %7lu (0x%08lx)\n", header->off_sec_1, header->off_sec_1);
-    printf("off_unk_1:         %7lu (0x%08lx)\n", header->off_unk_1, header->off_unk_1);
-    printf("off_unk_2:         %7lu (0x%08lx)\n", header->off_unk_2, header->off_unk_2);
-    printf("n_unk_3:           %7lu (0x%08lx)\n", header->n_unk_3, header->n_unk_3);
-    printf("n_col_unk_4:       %7lu (0x%08lx)\n", header->n_col_unk_4, header->n_col_unk_4);
-    printf("n_arm_unk_5:       %7lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
+
+    printf("---------------- Header ------------------\n");
+    printf("n_vertex_types:    %10u (0x%08x)\n", header->n_ver_type, header->n_ver_type);
+    printf("n_index_types:     %10u (0x%08x)\n", header->n_ind_type, header->n_ind_type);
+    printf("n_vertex_blocs:    %10u (0x%08x)\n", header->n_ver_bloc, header->n_ver_bloc);
+    printf("n_index_blocs:     %10u (0x%08x)\n", header->n_ind_bloc, header->n_ind_bloc);
+    printf("n_collision_blocs: %10u (0x%08x)\n", header->n_col_bloc, header->n_col_bloc);
+    printf("n_armor_blocs:     %10u (0x%08x)\n", header->n_arm_bloc, header->n_arm_bloc);
+    printf("off_sec_1:         %10lu (0x%08lx)\n", header->off_sec_1, header->off_sec_1);
+    printf("off_unk_1:         %10lu (0x%08lx)\n", header->off_unk_1, header->off_unk_1);
+    printf("off_unk_2:         %10lu (0x%08lx)\n", header->off_unk_2, header->off_unk_2);
+    printf("n_unk_3:           %10lu (0x%08lx)\n", header->n_unk_3, header->n_unk_3);
+    printf("n_col_unk_4:       %10lu (0x%08lx)\n", header->n_col_unk_4, header->n_col_unk_4);
+    printf("n_arm_unk_5:       %10lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
 }
 
 void print_geometry_sections(const wows_geometry *geometry) {
-    printf("== Section 1 ==\n");
     wows_bloc_info *section = geometry->section_1;
 
     for (uint32_t i = 0; i < geometry->header->n_ver_bloc; i++) {
-        printf("-- Entry %u --\n", i);
-        printf("id_unk_6:          %16u\n", section[i].id_unk_6);
-        printf("type_unk_7:        %16u\n", section[i].type_unk_7);
-        printf("id_unk_8:          %16u\n", section[i].id_unk_8);
-        printf("n_unk_9:           %16u\n", section[i].n_unk_9);
-        printf("n_unk_10:          %16u\n", section[i].n_unk_10);
+        printf("--------- Section 1 - Entry %02u -----------\n", i);
+        printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
+        printf("type_unk_7:        %10u (0x%08x)\n", section[i].type_unk_7, section[i].type_unk_7);
+        printf("id_unk_8:          %10u (0x%08x)\n", section[i].id_unk_8, section[i].id_unk_8);
+        printf("n_unk_9:           %10u (0x%08x)\n", section[i].n_unk_9, section[i].n_unk_9);
+        printf("n_unk_10:          %10u (0x%08x)\n", section[i].n_unk_10, section[i].n_unk_10);
     }
 
-    printf("== Section 2 ==\n");
     section = geometry->section_2;
     for (uint32_t i = 0; i < geometry->header->n_ind_bloc; i++) {
-        printf("-- Entry %u --\n", i);
-        printf("id_unk_6:          %16u\n", section[i].id_unk_6);
-        printf("type_unk_7:        %16u\n", section[i].type_unk_7);
-        printf("id_unk_8:          %16u\n", section[i].id_unk_8);
-        printf("n_unk_9:           %16u\n", section[i].n_unk_9);
-        printf("n_unk_10:          %16u\n", section[i].n_unk_10);
+        printf("--------- Section 2 - Entry %02u -----------\n", i);
+        printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
+        printf("type_unk_7:        %10u (0x%08x)\n", section[i].type_unk_7, section[i].type_unk_7);
+        printf("id_unk_8:          %10u (0x%08x)\n", section[i].id_unk_8, section[i].id_unk_8);
+        printf("n_unk_9:           %10u (0x%08x)\n", section[i].n_unk_9, section[i].n_unk_9);
+        printf("n_unk_10:          %10u (0x%08x)\n", section[i].n_unk_10, section[i].n_unk_10);
     }
 }
 
