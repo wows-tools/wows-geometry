@@ -66,8 +66,8 @@ void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count,
 void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
-        printf("n_unk_1:           %10lu (0x%016lx)\n", section[i].n_unk_1, section[i].n_unk_1);
-        printf("n_unk_2:           %10lu (0x%016lx)\n", section[i].n_unk_2, section[i].n_unk_2);
+        printf("off_ver_bloc:      %10lu (0x%016lx)\n", section[i].off_ver_bloc, section[i].off_ver_bloc);
+        printf("n_size_type_str:   %10lu (0x%016lx)\n", section[i].n_size_type_str, section[i].n_size_type_str);
         printf("n_unk_3:           %10lu (0x%016lx)\n", section[i].n_unk_3, section[i].n_unk_3);
         printf("n_unk_4:           %10u (0x%08x)\n", section[i].n_unk_4, section[i].n_unk_4);
         printf("n_unk_5:           %10u (0x%08x)\n", section[i].n_unk_5, section[i].n_unk_5);
@@ -174,12 +174,14 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_ver_type);
     geometry->unk_1 = unk_1;
     for (int i = 0; i < header->n_ver_type; i++) {
-        unk_1[i].n_unk_1 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
-        unk_1[i].n_unk_2 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
+        unk_1[i].off_ver_bloc = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
+        unk_1[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
         unk_1[i].n_unk_3 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
         unk_1[i].n_unk_4 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
         unk_1[i].n_unk_5 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 28, context);
     }
+
+    contents += header->n_ver_type * WOWS_UNK_1_SIZE; // Move to the next section
 
     *geometry_content = geometry;
     return 0;

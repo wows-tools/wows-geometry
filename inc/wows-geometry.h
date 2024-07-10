@@ -43,12 +43,20 @@ typedef struct {
 
 #define WOWS_UNK_1_SIZE 32
 typedef struct {
-    uint64_t n_unk_1;
-    uint64_t n_unk_2;
+    uint64_t off_ver_bloc; // Seems to be the offset to the corresponding vertice section relative to this current bloc
+    uint64_t n_size_type_str; // Seems to be the size of vertice type string size (ex: set3/xyznuviiiwwtbpc)
     uint64_t n_unk_3;
     uint32_t n_unk_4;
     uint32_t n_unk_5;
 } wows_geometry_unk_1;
+
+#define WOWS_UNK_2_SIZE 32
+typedef struct {
+    char magic[4];
+    // TODO
+} wows_geometry_unk_2;
+
+
 
 typedef struct {
     wows_geometry_header *header;
