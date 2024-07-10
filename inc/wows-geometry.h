@@ -54,7 +54,7 @@ typedef struct {
     wows_geometry_header *header;
     wows_geometry_info *section_1;
     wows_geometry_info *section_2;
-    wows_geometry_unk_1 *unk1;
+    wows_geometry_unk_1 *unk_1;
     wows_geometry_vertex_entry **entries; // array of entries
 } wows_geometry;
 

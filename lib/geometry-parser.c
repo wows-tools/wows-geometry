@@ -63,6 +63,17 @@ void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count,
     }
 }
 
+void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
+    for (uint32_t i = 0; i < count; i++) {
+        printf("--------- %s - Entry %02u -----------\n", section_name, i);
+        printf("n_unk_1:           %10lu (0x%016lx)\n", section[i].n_unk_1, section[i].n_unk_1);
+        printf("n_unk_2:           %10lu (0x%016lx)\n", section[i].n_unk_2, section[i].n_unk_2);
+        printf("n_unk_3:           %10lu (0x%016lx)\n", section[i].n_unk_3, section[i].n_unk_3);
+        printf("n_unk_4:           %10u (0x%08x)\n", section[i].n_unk_4, section[i].n_unk_4);
+        printf("n_unk_5:           %10u (0x%08x)\n", section[i].n_unk_5, section[i].n_unk_5);
+    }
+}
+
 void wows_geometry_print(wows_geometry *geometry) {
     if (geometry == NULL) {
         printf("Invalid geometry: NULL pointer.\n");
@@ -71,6 +82,7 @@ void wows_geometry_print(wows_geometry *geometry) {
     wows_geometry_header_print(geometry->header);
     wows_geometry_info_print(geometry->section_1, geometry->header->n_ver_bloc, "Section 1");
     wows_geometry_info_print(geometry->section_2, geometry->header->n_ind_bloc, "Section 2");
+    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_ver_type, "Unknown 1");
 }
 
 // Context init function
@@ -113,6 +125,8 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
 
     WOWS_GEOMETRY_CONTEXT *context = wows_init_geometry_context(10);
     wows_geometry *geometry = calloc(sizeof(wows_geometry), 1);
+
+    // parsing the header
     wows_geometry_header *header = calloc(sizeof(wows_geometry_header), 1);
     header->n_ver_type = datatoh32(contents, 0, context);
     header->n_ind_type = datatoh32(contents, 4, context);
@@ -126,15 +140,11 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_unk_3 = datatoh64(contents, 48, context);
     header->n_col_unk_4 = datatoh64(contents, 56, context);
     header->n_arm_unk_5 = datatoh64(contents, 64, context);
-
     geometry->header = header;
 
+    // Parsing the Info Section 1
     wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_ver_bloc);
-    wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_ind_bloc);
-
     geometry->section_1 = section_1;
-    geometry->section_2 = section_2;
-
     contents += header->off_sec_1;
 
     for (int i = 0; i < header->n_ver_bloc; i++) {
@@ -145,7 +155,10 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         section_1[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
+    // Parsing the Info Section 1
     contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
+    wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_ind_bloc);
+    geometry->section_2 = section_2;
 
     for (int i = 0; i < header->n_ind_bloc; i++) {
         section_2[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
@@ -155,7 +168,18 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         section_2[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
+    // Parsing the Unknown_1 section
     contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
+
+    wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_ver_type);
+    geometry->unk_1 = unk_1;
+    for (int i = 0; i < header->n_ver_type; i++) {
+        unk_1[i].n_unk_1 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
+        unk_1[i].n_unk_2 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
+        unk_1[i].n_unk_3 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
+        unk_1[i].n_unk_4 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
+        unk_1[i].n_unk_5 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 28, context);
+    }
 
     *geometry_content = geometry;
     return 0;
@@ -184,6 +208,9 @@ int wows_parse_geometry(char *input, wows_geometry **geometry_content) {
 
 int wows_geometry_free(wows_geometry *geometry) {
     free(geometry->header);
+    free(geometry->section_1);
+    free(geometry->section_2);
+    free(geometry->unk_1);
     free(geometry);
     return 0;
 }
