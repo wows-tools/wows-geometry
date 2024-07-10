@@ -52,21 +52,9 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_arm_unk_5:       %10lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
 }
 
-void print_geometry_sections(const wows_geometry *geometry) {
-    wows_bloc_info *section = geometry->section_1;
-
-    for (uint32_t i = 0; i < geometry->header->n_ver_bloc; i++) {
-        printf("--------- Section 1 - Entry %02u -----------\n", i);
-        printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
-        printf("type_unk_7:        %10u (0x%08x)\n", section[i].type_unk_7, section[i].type_unk_7);
-        printf("id_unk_8:          %10u (0x%08x)\n", section[i].id_unk_8, section[i].id_unk_8);
-        printf("n_unk_9:           %10u (0x%08x)\n", section[i].n_unk_9, section[i].n_unk_9);
-        printf("n_unk_10:          %10u (0x%08x)\n", section[i].n_unk_10, section[i].n_unk_10);
-    }
-
-    section = geometry->section_2;
-    for (uint32_t i = 0; i < geometry->header->n_ind_bloc; i++) {
-        printf("--------- Section 2 - Entry %02u -----------\n", i);
+void wows_geometry_info_print(const wows_bloc_info *section, uint32_t count, const char *section_name) {
+    for (uint32_t i = 0; i < count; i++) {
+        printf("--------- %s - Entry %02u -----------\n", section_name, i);
         printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
         printf("type_unk_7:        %10u (0x%08x)\n", section[i].type_unk_7, section[i].type_unk_7);
         printf("id_unk_8:          %10u (0x%08x)\n", section[i].id_unk_8, section[i].id_unk_8);
@@ -81,7 +69,8 @@ void wows_geometry_print(wows_geometry *geometry) {
         return;
     }
     wows_geometry_header_print(geometry->header);
-    print_geometry_sections(geometry);
+    wows_geometry_info_print(geometry->section_1, geometry->header->n_ver_bloc, "Section 1");
+    wows_geometry_info_print(geometry->section_2, geometry->header->n_ind_bloc, "Section 2");
 }
 
 // Context init function
