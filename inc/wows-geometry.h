@@ -33,19 +33,28 @@ typedef struct {
 } wows_geometry_header;
 
 #define WOWS_BLOC_INFO_SIZE 16
-
 typedef struct {
     uint32_t id_unk_6;
     uint16_t type_unk_7;
     uint16_t id_unk_8;
     uint32_t n_unk_9;
     uint32_t n_unk_10;
-} wows_bloc_info;
+} wows_geometry_info;
+
+#define WOWS_UNK_1_SIZE 32
+typedef struct {
+    uint64_t n_unk_1;
+    uint64_t n_unk_2;
+    uint64_t n_unk_3;
+    uint32_t n_unk_4;
+    uint32_t n_unk_5;
+} wows_geometry_unk_1;
 
 typedef struct {
     wows_geometry_header *header;
-    wows_bloc_info *section_1;
-    wows_bloc_info *section_2;
+    wows_geometry_info *section_1;
+    wows_geometry_info *section_2;
+    wows_geometry_unk_1 *unk1;
     wows_geometry_vertex_entry **entries; // array of entries
 } wows_geometry;
 

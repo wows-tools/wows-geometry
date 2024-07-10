@@ -52,7 +52,7 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_arm_unk_5:       %10lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
 }
 
-void wows_geometry_info_print(const wows_bloc_info *section, uint32_t count, const char *section_name) {
+void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
         printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
@@ -129,8 +129,8 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
 
     geometry->header = header;
 
-    wows_bloc_info *section_1 = calloc(sizeof(wows_bloc_info), header->n_ver_bloc);
-    wows_bloc_info *section_2 = calloc(sizeof(wows_bloc_info), header->n_ind_bloc);
+    wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_ver_bloc);
+    wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_ind_bloc);
 
     geometry->section_1 = section_1;
     geometry->section_2 = section_2;
@@ -154,6 +154,8 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         section_2[i].n_unk_9 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8, context);
         section_2[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
+
+    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
 
     *geometry_content = geometry;
     return 0;
