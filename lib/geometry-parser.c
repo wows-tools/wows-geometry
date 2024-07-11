@@ -65,11 +65,13 @@ void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count,
 void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
-        printf("off_ver_bloc:      %10lu (0x%016lx)\n", section[i].off_ver_bloc, section[i].off_ver_bloc);
-        printf("n_size_type_str:   %10lu (0x%016lx)\n", section[i].n_size_type_str, section[i].n_size_type_str);
-        printf("n_unk_3:           %10lu (0x%016lx)\n", section[i].n_unk_3, section[i].n_unk_3);
-        printf("n_unk_4:           %10u (0x%08x)\n", section[i].n_unk_4, section[i].n_unk_4);
+        printf("off_ver_bloc_start:%10lu (0x%08lx)\n", section[i].off_ver_bloc_start, section[i].off_ver_bloc_start);
+        printf("n_size_type_str:   %10lu (0x%08lx)\n", section[i].n_size_type_str, section[i].n_size_type_str);
+        printf("off_ver_bloc_end:  %10lu (0x%08lx)\n", section[i].off_ver_bloc_end, section[i].off_ver_bloc_end);
+        printf("s_ver_bloc_size:   %10u (0x%08x)\n", section[i].s_ver_bloc_size, section[i].s_ver_bloc_size);
         printf("n_unk_5:           %10u (0x%08x)\n", section[i].n_unk_5, section[i].n_unk_5);
+        printf("_abs_start:        %10lu (0x%08lx)\n", section[i]._abs_start, section[i]._abs_start);
+        printf("_abs_end:          %10lu (0x%08lx)\n", section[i]._abs_end, section[i]._abs_end);
     }
 }
 
@@ -122,6 +124,7 @@ uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
 int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **geometry_content) {
     // TODO FIXME add size control
 
+    char *start = contents;
     WOWS_GEOMETRY_CONTEXT *context = wows_init_geometry_context(10);
     wows_geometry *geometry = calloc(sizeof(wows_geometry), 1);
 
@@ -155,7 +158,7 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     }
 
     // Parsing the Info Section 1
-    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
+    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE;
     wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_ind_bloc);
     geometry->section_2 = section_2;
 
@@ -168,19 +171,23 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     }
 
     // Parsing the Unknown_1 section
-    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE; // Move to the next section
+    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE;
 
     wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_ver_type);
     geometry->unk_1 = unk_1;
     for (int i = 0; i < header->n_ver_type; i++) {
-        unk_1[i].off_ver_bloc = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
+        unk_1[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
         unk_1[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
-        unk_1[i].n_unk_3 = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
-        unk_1[i].n_unk_4 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
+        unk_1[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
+        unk_1[i].s_ver_bloc_size = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
         unk_1[i].n_unk_5 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 28, context);
+
+        // Record absolute offset for conviniance
+        unk_1[i]._abs_start = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_start;
+        unk_1[i]._abs_end = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_end + 8;
     }
 
-    contents += header->n_ver_type * WOWS_UNK_1_SIZE; // Move to the next section
+    contents += header->n_ver_type * WOWS_UNK_1_SIZE;
 
     *geometry_content = geometry;
     return 0;
