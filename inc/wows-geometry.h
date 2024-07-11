@@ -56,8 +56,6 @@ typedef struct {
     // TODO
 } wows_geometry_unk_2;
 
-
-
 typedef struct {
     wows_geometry_header *header;
     wows_geometry_info *section_1;

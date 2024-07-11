@@ -98,13 +98,7 @@ if(BUILD_TESTS)
 
     include(CTest)
     add_test(NAME wows-geometry-test COMMAND wows-geometry-test)
-    add_test(NAME hashmap-test COMMAND hashmap-test)
-    add_test(NAME hashmap-bench COMMAND hashmap-test)
-    set_property(TEST hashmap-bench PROPERTY ENVIRONMENT "BENCH=1")
     add_executable(wows-geometry-test tests/tests.c)
-    add_executable(hashmap-test lib/hashmap.c)
-    set_target_properties(hashmap-test PROPERTIES COMPILE_FLAGS
-                                                  "-DHASHMAP_TEST")
     target_link_libraries(wows-geometry-test wows-geometry ${ZLIB_LIBRARIES}
                           ${PCRE_LIBRARY} ${CUNIT_LIBRARY})
 
@@ -112,7 +106,6 @@ if(BUILD_TESTS)
     add_custom_target(
       tests
       COMMAND wows-geometry-test
-      COMMAND hashmap-test
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Running tests")
     add_dependencies(tests wows-geometry-test)
@@ -129,8 +122,7 @@ if(BUILD_TESTS)
         -j
         ${n_cores}
         DEPENDENCIES
-        wows-geometry-test
-        hashmap-test)
+        wows-geometry-test)
 
       add_dependencies(coverage wows-geometry-test)
     endif(COVERAGE)

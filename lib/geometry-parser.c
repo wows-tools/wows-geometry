@@ -29,7 +29,6 @@
 #endif
 
 #include "wows-geometry.h"
-#include "hashmap.h"
 
 void wows_geometry_header_print(const wows_geometry_header *header) {
     if (header == NULL) {
