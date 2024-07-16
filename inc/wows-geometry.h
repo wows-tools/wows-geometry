@@ -3,6 +3,45 @@
 
 // Garbage from the .splash file
 
+/* Counts:
+      6 set3/xyznuv2iiiwwtbpc
+      2 set3/xyznuv2tbipc
+     88 set3/xyznuv2tbpc
+    250 set3/xyznuviiiwwpc
+     77 set3/xyznuviiiwwr
+   2189 set3/xyznuviiiwwtbpc
+   2885 set3/xyznuvpc
+   5224 set3/xyznuvrpc
+     71 set3/xyznuvtbipc
+      1 set3/xyznuvtboi
+   7720 set3/xyznuvtbpc
+*/
+
+#define VER_TYPE_00 "unknown"
+#define ID_TYPE_00 0
+#define VER_TYPE_01 "set3/xyznuv2iiiwwtbpc"
+#define ID_TYPE_01 1
+#define VER_TYPE_02 "set3/xyznuv2tbipc"
+#define ID_TYPE_02 2
+#define VER_TYPE_03 "set3/xyznuv2tbpc"
+#define ID_TYPE_03 3
+#define VER_TYPE_04 "set3/xyznuviiiwwpc"
+#define ID_TYPE_04 4
+#define VER_TYPE_05 "set3/xyznuviiiwwr"
+#define ID_TYPE_05 5
+#define VER_TYPE_06 "set3/xyznuviiiwwtbpc"
+#define ID_TYPE_06 6
+#define VER_TYPE_07 "set3/xyznuvpc"
+#define ID_TYPE_07 7
+#define VER_TYPE_08 "set3/xyznuvrpc"
+#define ID_TYPE_08 8
+#define VER_TYPE_09 "set3/xyznuvtbipc"
+#define ID_TYPE_09 9
+#define VER_TYPE_10 "set3/xyznuvtboi"
+#define ID_TYPE_10 10
+#define VER_TYPE_11 "set3/xyznuvtbpc"
+#define ID_TYPE_11 11
+
 typedef struct {
     float x;
     float y;
@@ -53,6 +92,7 @@ typedef struct {
     // parsing internals, not part of the format
     size_t _abs_start;
     size_t _abs_end;
+    uint8_t _vertex_type;
 } wows_geometry_unk_1;
 
 #define WOWS_UNK_2_SIZE 32

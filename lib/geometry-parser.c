@@ -30,6 +30,63 @@
 
 #include "wows-geometry.h"
 
+int vertex2id(const char *version_string) {
+    if (strcmp(version_string, VER_TYPE_01) == 0)
+        return ID_TYPE_01;
+    if (strcmp(version_string, VER_TYPE_02) == 0)
+        return ID_TYPE_02;
+    if (strcmp(version_string, VER_TYPE_03) == 0)
+        return ID_TYPE_03;
+    if (strcmp(version_string, VER_TYPE_04) == 0)
+        return ID_TYPE_04;
+    if (strcmp(version_string, VER_TYPE_05) == 0)
+        return ID_TYPE_05;
+    if (strcmp(version_string, VER_TYPE_06) == 0)
+        return ID_TYPE_06;
+    if (strcmp(version_string, VER_TYPE_07) == 0)
+        return ID_TYPE_07;
+    if (strcmp(version_string, VER_TYPE_08) == 0)
+        return ID_TYPE_08;
+    if (strcmp(version_string, VER_TYPE_09) == 0)
+        return ID_TYPE_09;
+    if (strcmp(version_string, VER_TYPE_10) == 0)
+        return ID_TYPE_10;
+    if (strcmp(version_string, VER_TYPE_11) == 0)
+        return ID_TYPE_11;
+    return ID_TYPE_00; // Not found
+}
+
+const char *id2vertex(int version_id) {
+    switch (version_id) {
+    case ID_TYPE_00:
+        return VER_TYPE_00;
+    case ID_TYPE_01:
+        return VER_TYPE_01;
+    case ID_TYPE_02:
+        return VER_TYPE_02;
+    case ID_TYPE_03:
+        return VER_TYPE_03;
+    case ID_TYPE_04:
+        return VER_TYPE_04;
+    case ID_TYPE_05:
+        return VER_TYPE_05;
+    case ID_TYPE_06:
+        return VER_TYPE_06;
+    case ID_TYPE_07:
+        return VER_TYPE_07;
+    case ID_TYPE_08:
+        return VER_TYPE_08;
+    case ID_TYPE_09:
+        return VER_TYPE_09;
+    case ID_TYPE_10:
+        return VER_TYPE_10;
+    case ID_TYPE_11:
+        return VER_TYPE_11;
+    default:
+        return NULL; // Not found
+    }
+}
+
 void wows_geometry_header_print(const wows_geometry_header *header) {
     if (header == NULL) {
         printf("Invalid header: NULL pointer.\n");
@@ -72,6 +129,7 @@ void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t coun
         printf("n_unk_5:           %10u (0x%08x)\n", section[i].n_unk_5, section[i].n_unk_5);
         printf("_abs_start:        %10lu (0x%08lx)\n", section[i]._abs_start, section[i]._abs_start);
         printf("_abs_end:          %10lu (0x%08lx)\n", section[i]._abs_end, section[i]._abs_end);
+        printf("_vertex_type:      %23s\n", id2vertex(section[i]._vertex_type));
     }
 }
 
@@ -185,6 +243,7 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         // Record absolute offset for conviniance
         unk_1[i]._abs_start = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_start;
         unk_1[i]._abs_end = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_end + 8;
+        unk_1[i]._vertex_type = vertex2id(start + unk_1[i]._abs_end);
     }
 
     contents += header->n_ver_type * WOWS_UNK_1_SIZE;
