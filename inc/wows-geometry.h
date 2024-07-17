@@ -43,13 +43,18 @@
 #define ID_TYPE_11 11
 
 typedef struct {
-    float x;
-    float y;
-    float z;
-    float dx;
-    float dy;
-    float dz;
-} wows_geometry_vertex_entry;
+    float x;         // Position x
+    float y;         // Position y
+    float z;         // Position z
+    uint32_t n;      // Vertex Normal for shading
+    float _nx;       // Unpacked normal.x
+    float _ny;       // Unpacked normal.y
+    float _nz;       // Unpacked normal.z
+    float u;         //
+    float v;         //
+    unsigned int tu; //
+    unsigned int tv; //
+} vertex_type_11;
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
@@ -106,7 +111,7 @@ typedef struct {
     wows_geometry_info *section_1;
     wows_geometry_info *section_2;
     wows_geometry_unk_1 *unk_1;
-    wows_geometry_vertex_entry **entries; // array of entries
+    vertex_type_11 **entries; // array of entries
 } wows_geometry;
 
 /*

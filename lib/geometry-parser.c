@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <endian.h>
+#include <math.h>
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
 #include <fcntl.h>
@@ -177,6 +178,54 @@ uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     } else {
         return be64toh(*ret);
     }
+}
+
+void normalise(float *x, float *y, float *z) {
+    float length = sqrt((*x) * (*x) + (*y) * (*y) + (*z) * (*z));
+    if (length > 0.0f) {
+        *x /= length;
+        *y /= length;
+        *z /= length;
+    }
+}
+
+float clamp(float min, float value, float max) {
+    if (value < min)
+        return min;
+    if (value > max)
+        return max;
+    return value;
+}
+
+// Normals are weirldly packed in a single uint32
+// X 11 bits, Y 11 bits, Z 10 bits.
+// unpacked values should be between [-1, 1]
+int wows_unpack_normal_old(vertex_type_11 *vertex_packed) {
+    int32_t z = (int32_t)(vertex_packed->n) >> 22;
+    int32_t y = (int32_t)(vertex_packed->n << 10) >> 21;
+    int32_t x = (int32_t)(vertex_packed->n << 21) >> 21;
+
+    vertex_packed->_nx = (float)(x) / 1023.f;
+    vertex_packed->_ny = (float)(y) / 1023.f;
+    vertex_packed->_nz = (float)(z) / 511.f;
+
+    return 0;
+}
+
+int wows_pack_normal_old(vertex_type_11 *vertex_packed) {
+    float nx = vertex_packed->_nx;
+    float ny = vertex_packed->_ny;
+    float nz = vertex_packed->_nz;
+
+    normalise(&nx, &ny, &nz);
+
+    nx = clamp(-1.0f, nx, 1.0f);
+    ny = clamp(-1.0f, ny, 1.0f);
+    nz = clamp(-1.0f, nz, 1.0f);
+
+    vertex_packed->n = (((uint32_t)(nz * 511.0f) & 0x3ff) << 22) | (((uint32_t)(ny * 1023.0f) & 0x7ff) << 11) |
+                       (((uint32_t)(nx * 1023.0f) & 0x7ff) << 0);
+    return 0;
 }
 
 int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **geometry_content) {
