@@ -31,60 +31,60 @@
 
 #include "wows-geometry.h"
 
-int vertex2id(const char *version_string) {
-    if (strcmp(version_string, VER_TYPE_01) == 0)
-        return ID_TYPE_01;
-    if (strcmp(version_string, VER_TYPE_02) == 0)
-        return ID_TYPE_02;
-    if (strcmp(version_string, VER_TYPE_03) == 0)
-        return ID_TYPE_03;
-    if (strcmp(version_string, VER_TYPE_04) == 0)
-        return ID_TYPE_04;
-    if (strcmp(version_string, VER_TYPE_05) == 0)
-        return ID_TYPE_05;
-    if (strcmp(version_string, VER_TYPE_06) == 0)
-        return ID_TYPE_06;
-    if (strcmp(version_string, VER_TYPE_07) == 0)
-        return ID_TYPE_07;
-    if (strcmp(version_string, VER_TYPE_08) == 0)
-        return ID_TYPE_08;
-    if (strcmp(version_string, VER_TYPE_09) == 0)
-        return ID_TYPE_09;
-    if (strcmp(version_string, VER_TYPE_10) == 0)
-        return ID_TYPE_10;
-    if (strcmp(version_string, VER_TYPE_11) == 0)
-        return ID_TYPE_11;
-    return ID_TYPE_00; // Not found
+int vertex2id(const char *vertex_type) {
+    if (strcmp(vertex_type, VER_UNKNOWN) == 0)
+        return ID_UNKNOWN;
+    if (strcmp(vertex_type, VER_SET3_XYNUV2IIIWWTBPC) == 0)
+        return ID_SET3_XYNUV2IIIWWTBPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUV2TBIPC) == 0)
+        return ID_SET3_XYNUV2TBIPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUV2TBPC) == 0)
+        return ID_SET3_XYNUV2TBPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWPC) == 0)
+        return ID_SET3_XYNUVIIIWWPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWR) == 0)
+        return ID_SET3_XYNUVIIIWWR;
+    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWTBPC) == 0)
+        return ID_SET3_XYNUVIIIWWTBPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVPC) == 0)
+        return ID_SET3_XYNUVPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVRPC) == 0)
+        return ID_SET3_XYNUVRPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVTBIPC) == 0)
+        return ID_SET3_XYNUVTBIPC;
+    if (strcmp(vertex_type, VER_SET3_XYNUVTBOI) == 0)
+        return ID_SET3_XYNUVTBOI;
+    if (strcmp(vertex_type, VER_SET3_XYNUVTBPC) == 0)
+        return ID_SET3_XYNUVTBPC;
+    return -1; // Invalid version string
 }
 
-const char *id2vertex(int version_id) {
-    switch (version_id) {
-    case ID_TYPE_00:
-        return VER_TYPE_00;
-    case ID_TYPE_01:
-        return VER_TYPE_01;
-    case ID_TYPE_02:
-        return VER_TYPE_02;
-    case ID_TYPE_03:
-        return VER_TYPE_03;
-    case ID_TYPE_04:
-        return VER_TYPE_04;
-    case ID_TYPE_05:
-        return VER_TYPE_05;
-    case ID_TYPE_06:
-        return VER_TYPE_06;
-    case ID_TYPE_07:
-        return VER_TYPE_07;
-    case ID_TYPE_08:
-        return VER_TYPE_08;
-    case ID_TYPE_09:
-        return VER_TYPE_09;
-    case ID_TYPE_10:
-        return VER_TYPE_10;
-    case ID_TYPE_11:
-        return VER_TYPE_11;
+const char *id2vertex(int id) {
+    switch (id) {
+    case ID_SET3_XYNUV2IIIWWTBPC:
+        return VER_SET3_XYNUV2IIIWWTBPC;
+    case ID_SET3_XYNUV2TBIPC:
+        return VER_SET3_XYNUV2TBIPC;
+    case ID_SET3_XYNUV2TBPC:
+        return VER_SET3_XYNUV2TBPC;
+    case ID_SET3_XYNUVIIIWWPC:
+        return VER_SET3_XYNUVIIIWWPC;
+    case ID_SET3_XYNUVIIIWWR:
+        return VER_SET3_XYNUVIIIWWR;
+    case ID_SET3_XYNUVIIIWWTBPC:
+        return VER_SET3_XYNUVIIIWWTBPC;
+    case ID_SET3_XYNUVPC:
+        return VER_SET3_XYNUVPC;
+    case ID_SET3_XYNUVRPC:
+        return VER_SET3_XYNUVRPC;
+    case ID_SET3_XYNUVTBIPC:
+        return VER_SET3_XYNUVTBIPC;
+    case ID_SET3_XYNUVTBOI:
+        return VER_SET3_XYNUVTBOI;
+    case ID_SET3_XYNUVTBPC:
+        return VER_SET3_XYNUVTBPC;
     default:
-        return NULL; // Not found
+        return VER_UNKNOWN;
     }
 }
 
@@ -200,7 +200,7 @@ float clamp(float min, float value, float max) {
 // Normals are weirldly packed in a single uint32
 // X 11 bits, Y 11 bits, Z 10 bits.
 // unpacked values should be between [-1, 1]
-int wows_unpack_normal_old(vertex_type_11 *vertex_packed) {
+int wows_unpack_normal_old(wows_vertex *vertex_packed) {
     int32_t z = (int32_t)(vertex_packed->n) >> 22;
     int32_t y = (int32_t)(vertex_packed->n << 10) >> 21;
     int32_t x = (int32_t)(vertex_packed->n << 21) >> 21;
@@ -212,7 +212,7 @@ int wows_unpack_normal_old(vertex_type_11 *vertex_packed) {
     return 0;
 }
 
-int wows_pack_normal_old(vertex_type_11 *vertex_packed) {
+int wows_pack_normal_old(wows_vertex *vertex_packed) {
     float nx = vertex_packed->_nx;
     float ny = vertex_packed->_ny;
     float nz = vertex_packed->_nz;

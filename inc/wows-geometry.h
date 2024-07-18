@@ -17,44 +17,62 @@
    7720 set3/xyznuvtbpc
 */
 
-#define VER_TYPE_00 "unknown"
-#define ID_TYPE_00 0
-#define VER_TYPE_01 "set3/xyznuv2iiiwwtbpc"
-#define ID_TYPE_01 1
-#define VER_TYPE_02 "set3/xyznuv2tbipc"
-#define ID_TYPE_02 2
-#define VER_TYPE_03 "set3/xyznuv2tbpc"
-#define ID_TYPE_03 3
-#define VER_TYPE_04 "set3/xyznuviiiwwpc"
-#define ID_TYPE_04 4
-#define VER_TYPE_05 "set3/xyznuviiiwwr"
-#define ID_TYPE_05 5
-#define VER_TYPE_06 "set3/xyznuviiiwwtbpc"
-#define ID_TYPE_06 6
-#define VER_TYPE_07 "set3/xyznuvpc"
-#define ID_TYPE_07 7
-#define VER_TYPE_08 "set3/xyznuvrpc"
-#define ID_TYPE_08 8
-#define VER_TYPE_09 "set3/xyznuvtbipc"
-#define ID_TYPE_09 9
-#define VER_TYPE_10 "set3/xyznuvtboi"
-#define ID_TYPE_10 10
-#define VER_TYPE_11 "set3/xyznuvtbpc"
-#define ID_TYPE_11 11
+#define VER_UNKNOWN "unknown"
+#define ID_UNKNOWN 0
+#define VER_SET3_XYNUV2IIIWWTBPC "set3/xyznuv2iiiwwtbpc"
+#define ID_SET3_XYNUV2IIIWWTBPC 1
+#define VER_SET3_XYNUV2TBIPC "set3/xyznuv2tbipc"
+#define ID_SET3_XYNUV2TBIPC 2
+#define VER_SET3_XYNUV2TBPC "set3/xyznuv2tbpc"
+#define ID_SET3_XYNUV2TBPC 3
+#define VER_SET3_XYNUVIIIWWPC "set3/xyznuviiiwwpc"
+#define ID_SET3_XYNUVIIIWWPC 4
+#define VER_SET3_XYNUVIIIWWR "set3/xyznuviiiwwr"
+#define ID_SET3_XYNUVIIIWWR 5
+#define VER_SET3_XYNUVIIIWWTBPC "set3/xyznuviiiwwtbpc"
+#define ID_SET3_XYNUVIIIWWTBPC 6
+#define VER_SET3_XYNUVPC "set3/xyznuvpc"
+#define ID_SET3_XYNUVPC 7
+#define VER_SET3_XYNUVRPC "set3/xyznuvrpc"
+#define ID_SET3_XYNUVRPC 8
+#define VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc"
+#define ID_SET3_XYNUVTBIPC 9
+#define VER_SET3_XYNUVTBOI "set3/xyznuvtboi"
+#define ID_SET3_XYNUVTBOI 10
+#define VER_SET3_XYNUVTBPC "set3/xyznuvtbpc"
+#define ID_SET3_XYNUVTBPC 11
+
+#define WOWS_VERTEX_FIELDS                                                                                             \
+    float x;    /* Position x */                                                                                       \
+    float y;    /* Position y */                                                                                       \
+    float z;    /* Position z */                                                                                       \
+    uint32_t n; /* Vertex Normal for shading */                                                                        \
+    float _nx;  /* Unpacked normal.x */                                                                                \
+    float _ny;  /* Unpacked normal.y */                                                                                \
+    float _nz;  /* Unpacked normal.z */                                                                                \
+    float u;    /* U of UV texture mapping */                                                                          \
+    float v;    /* V of UV texture mapping */
 
 typedef struct {
-    float x;         // Position x
-    float y;         // Position y
-    float z;         // Position z
-    uint32_t n;      // Vertex Normal for shading
-    float _nx;       // Unpacked normal.x
-    float _ny;       // Unpacked normal.y
-    float _nz;       // Unpacked normal.z
-    float u;         //
-    float v;         //
-    unsigned int tu; //
-    unsigned int tv; //
-} vertex_type_11;
+    WOWS_VERTEX_FIELDS
+} wows_vertex;
+
+typedef struct {
+    WOWS_VERTEX_FIELDS
+    uint32_t t; // Vertex Tagent for shading
+    float _tx;  // Unpacked tagent.x
+    float _ty;  // Unpacked tagent.y
+    float _tz;  // Unpacked tagent.z
+    uint32_t b; // Vertex Binormal for shading
+    float _bx;  // Unpacked binormal.x
+    float _by;  // Unpacked binormal.y
+    float _bz;  // Unpacked binormal.z
+} wows_vert_xyznuvtbpc;
+
+typedef struct {
+    WOWS_VERTEX_FIELDS
+    uint32_t r;
+} wows_vert_xyznuvrpc;
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
@@ -111,7 +129,7 @@ typedef struct {
     wows_geometry_info *section_1;
     wows_geometry_info *section_2;
     wows_geometry_unk_1 *unk_1;
-    vertex_type_11 **entries; // array of entries
+    wows_vert_xyznuvtbpc **entries; // array of entries
 } wows_geometry;
 
 /*
