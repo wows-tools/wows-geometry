@@ -1,7 +1,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// Garbage from the .splash file
+#define WOWS_ERROR_NOT_A_FILE 12 /**< path is not a file */
+#define WOWS_ERROR_NOT_A_DIR 13  /**< path is not a directory */
+#define WOWS_ERROR_UNKNOWN 7     /**< An unknown error occurred. */
 
 /* Counts:
       6 set3/xyznuv2iiiwwtbpc
@@ -148,5 +150,5 @@ typedef struct {
 
 int wows_parse_geometry(char *input, wows_geometry **geometry_content);
 int wows_parse_geometry_fp(FILE *input, wows_geometry **geometry_content);
-void wows_geometry_print(wows_geometry *geometry_content);
+int wows_geometry_print(wows_geometry *geometry_content);
 int wows_geometry_free(wows_geometry *geometry_content);

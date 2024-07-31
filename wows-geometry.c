@@ -70,14 +70,15 @@ int main(int argc, char **argv) {
     int ret = 0;
     argp_parse(&argp, argc, argv, 0, 0, args);
 
-    wows_geometry *content;
+    wows_geometry *content = NULL;
     if (args->input != NULL) {
         ret = wows_parse_geometry(args->input, &content);
     }
     if (args->print) {
-        wows_geometry_print(content);
+        ret = wows_geometry_print(content);
     }
-    wows_geometry_free(content);
+    if (content != NULL)
+        ret = wows_geometry_free(content);
     free(args);
     return ret;
 }

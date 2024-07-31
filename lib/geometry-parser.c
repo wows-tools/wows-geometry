@@ -88,10 +88,10 @@ const char *id2vertex(int id) {
     }
 }
 
-void wows_geometry_header_print(const wows_geometry_header *header) {
+int wows_geometry_header_print(const wows_geometry_header *header) {
     if (header == NULL) {
         printf("Invalid header: NULL pointer.\n");
-        return;
+        return WOWS_ERROR_UNKNOWN; // TODO
     }
 
     printf("---------------- Header ------------------\n");
@@ -107,9 +107,10 @@ void wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_unk_3:           %10lu (0x%08lx)\n", header->n_unk_3, header->n_unk_3);
     printf("n_col_unk_4:       %10lu (0x%08lx)\n", header->n_col_unk_4, header->n_col_unk_4);
     printf("n_arm_unk_5:       %10lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
+    return 0;
 }
 
-void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count, const char *section_name) {
+int wows_geometry_info_print(const wows_geometry_info *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
         printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
@@ -118,9 +119,10 @@ void wows_geometry_info_print(const wows_geometry_info *section, uint32_t count,
         printf("n_unk_9:           %10u (0x%08x)\n", section[i].n_unk_9, section[i].n_unk_9);
         printf("n_unk_10:          %10u (0x%08x)\n", section[i].n_unk_10, section[i].n_unk_10);
     }
+    return 0;
 }
 
-void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
+int wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
         printf("off_ver_bloc_start:%10lu (0x%08lx)\n", section[i].off_ver_bloc_start, section[i].off_ver_bloc_start);
@@ -132,17 +134,19 @@ void wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t coun
         printf("_abs_end:          %10lu (0x%08lx)\n", section[i]._abs_end, section[i]._abs_end);
         printf("_vertex_type:      %23s\n", id2vertex(section[i]._vertex_type));
     }
+    return 0;
 }
 
-void wows_geometry_print(wows_geometry *geometry) {
+int wows_geometry_print(wows_geometry *geometry) {
     if (geometry == NULL) {
         printf("Invalid geometry: NULL pointer.\n");
-        return;
+        return WOWS_ERROR_UNKNOWN;
     }
     wows_geometry_header_print(geometry->header);
     wows_geometry_info_print(geometry->section_1, geometry->header->n_ver_bloc, "Section 1");
     wows_geometry_info_print(geometry->section_2, geometry->header->n_ind_bloc, "Section 2");
     wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_ver_type, "Unknown 1");
+    return 0;
 }
 
 // Context init function
@@ -306,9 +310,8 @@ int wows_parse_geometry(char *input, wows_geometry **geometry_content) {
 
     // Open the index file
     int fd = open(input, O_RDONLY);
-    ;
     if (fd <= 0) {
-        return -1;
+        return WOWS_ERROR_NOT_A_FILE;
     }
     // Recover the file size
     struct stat s;
