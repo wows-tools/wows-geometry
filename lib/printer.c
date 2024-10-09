@@ -39,12 +39,12 @@ int wows_geometry_header_print(const wows_geometry_header *header) {
     }
 
     printf("---------------- Header ------------------\n");
-    printf("n_vertex_types:    %10u (0x%08x)\n", header->n_ver_type, header->n_ver_type);
-    printf("n_index_types:     %10u (0x%08x)\n", header->n_ind_type, header->n_ind_type);
-    printf("n_vertex_blocs:    %10u (0x%08x)\n", header->n_ver_bloc, header->n_ver_bloc);
-    printf("n_index_blocs:     %10u (0x%08x)\n", header->n_ind_bloc, header->n_ind_bloc);
-    printf("n_collision_blocs: %10u (0x%08x)\n", header->n_col_bloc, header->n_col_bloc);
-    printf("n_armor_blocs:     %10u (0x%08x)\n", header->n_arm_bloc, header->n_arm_bloc);
+    printf("n_vertex_types:    %10u (0x%08x)\n", header->n_vertex_type, header->n_vertex_type);
+    printf("n_index_types:     %10u (0x%08x)\n", header->n_index_type, header->n_index_type);
+    printf("n_vertex_blocs:    %10u (0x%08x)\n", header->n_vertex_bloc, header->n_vertex_bloc);
+    printf("n_index_blocs:     %10u (0x%08x)\n", header->n_index_bloc, header->n_index_bloc);
+    printf("n_collision_blocs: %10u (0x%08x)\n", header->n_collision_bloc, header->n_collision_bloc);
+    printf("n_armor_blocs:     %10u (0x%08x)\n", header->n_armor_bloc, header->n_armor_bloc);
     printf("off_sec_1:         %10lu (0x%08lx)\n", header->off_sec_1, header->off_sec_1);
     printf("off_unk_1:         %10lu (0x%08lx)\n", header->off_unk_1, header->off_unk_1);
     printf("off_unk_2:         %10lu (0x%08lx)\n", header->off_unk_2, header->off_unk_2);
@@ -87,8 +87,8 @@ int wows_geometry_print(wows_geometry *geometry) {
         return WOWS_ERROR_UNKNOWN;
     }
     wows_geometry_header_print(geometry->header);
-    wows_geometry_info_print(geometry->section_1, geometry->header->n_ver_bloc, "Section 1");
-    wows_geometry_info_print(geometry->section_2, geometry->header->n_ind_bloc, "Section 2");
-    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_ver_type, "Unknown 1");
+    wows_geometry_info_print(geometry->section_1, geometry->header->n_vertex_bloc, "Section 1");
+    wows_geometry_info_print(geometry->section_2, geometry->header->n_index_bloc, "Section 2");
+    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_vertex_type, "Unknown 1");
     return 0;
 }

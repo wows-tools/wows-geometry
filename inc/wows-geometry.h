@@ -78,14 +78,15 @@ typedef struct {
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
-    uint32_t n_ver_type; // number of vertice type
-    uint32_t n_ind_type; // number of index type
-    uint32_t n_ver_bloc; // number of vertice blocs
-    uint32_t n_ind_bloc; // number of index blocs
+    uint32_t n_vertex_type; // number of vertice type
+    uint32_t n_index_type;  // number of index type
+    uint32_t n_vertex_bloc;
+    ;                      // number of vertice blocs
+    uint32_t n_index_bloc; // number of index blocs
 
-    uint32_t n_col_bloc; // number of collision blocs
-    uint32_t n_arm_bloc; // number of armor blocs
-    uint64_t off_sec_1;  // offset to data beginning (always 72/0x48)
+    uint32_t n_collision_bloc; // number of collision blocs
+    uint32_t n_armor_bloc;     // number of armor blocs
+    uint64_t off_sec_1;        // offset to data beginning (always 72/0x48)
 
     uint64_t off_unk_1;
     uint64_t off_unk_2;

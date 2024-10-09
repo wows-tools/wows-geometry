@@ -49,12 +49,12 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
 
     // parsing the header
     wows_geometry_header *header = calloc(sizeof(wows_geometry_header), 1);
-    header->n_ver_type = datatoh32(contents, 0, context);
-    header->n_ind_type = datatoh32(contents, 4, context);
-    header->n_ver_bloc = datatoh32(contents, 8, context);
-    header->n_ind_bloc = datatoh32(contents, 12, context);
-    header->n_col_bloc = datatoh32(contents, 16, context);
-    header->n_arm_bloc = datatoh32(contents, 20, context);
+    header->n_vertex_type = datatoh32(contents, 0, context);
+    header->n_index_type = datatoh32(contents, 4, context);
+    header->n_vertex_bloc = datatoh32(contents, 8, context);
+    header->n_index_bloc = datatoh32(contents, 12, context);
+    header->n_collision_bloc = datatoh32(contents, 16, context);
+    header->n_armor_bloc = datatoh32(contents, 20, context);
     header->off_sec_1 = datatoh64(contents, 24, context);
     header->off_unk_1 = datatoh64(contents, 32, context);
     header->off_unk_2 = datatoh64(contents, 40, context);
@@ -64,11 +64,11 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     geometry->header = header;
 
     // Parsing the Info Section 1
-    wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_ver_bloc);
+    wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_vertex_bloc);
     geometry->section_1 = section_1;
     contents += header->off_sec_1;
 
-    for (int i = 0; i < header->n_ver_bloc; i++) {
+    for (int i = 0; i < header->n_vertex_bloc; i++) {
         section_1[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
         section_1[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
         section_1[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
@@ -77,11 +77,11 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     }
 
     // Parsing the Info Section 1
-    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE;
-    wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_ind_bloc);
+    contents += header->n_vertex_bloc * WOWS_BLOC_INFO_SIZE;
+    wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_index_bloc);
     geometry->section_2 = section_2;
 
-    for (int i = 0; i < header->n_ind_bloc; i++) {
+    for (int i = 0; i < header->n_index_bloc; i++) {
         section_2[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
         section_2[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
         section_2[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
@@ -90,11 +90,11 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     }
 
     // Parsing the Unknown_1 section
-    contents += header->n_ver_bloc * WOWS_BLOC_INFO_SIZE;
+    contents += header->n_vertex_bloc * WOWS_BLOC_INFO_SIZE;
 
-    wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_ver_type);
+    wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_vertex_type);
     geometry->unk_1 = unk_1;
-    for (int i = 0; i < header->n_ver_type; i++) {
+    for (int i = 0; i < header->n_vertex_type; i++) {
         unk_1[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
         unk_1[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
         unk_1[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
@@ -107,7 +107,7 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         unk_1[i]._vertex_type = vertex2id(start + unk_1[i]._abs_end);
     }
 
-    contents += header->n_ver_type * WOWS_UNK_1_SIZE;
+    contents += header->n_vertex_type * WOWS_UNK_1_SIZE;
 
     *geometry_content = geometry;
     return 0;
