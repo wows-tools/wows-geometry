@@ -123,8 +123,11 @@ typedef struct {
 #define WOWS_UNK_2_SIZE 32
 typedef struct {
     char magic[4];
-    // TODO
-} wows_geometry_unk_2;
+    uint32_t n_unk_6;
+    wows_vertex *vertices;
+    uint8_t _vertex_type;
+    uint32_t _vertex_count;
+} wows_geometry_vertex_section;
 
 typedef struct {
     wows_geometry_header *header;
