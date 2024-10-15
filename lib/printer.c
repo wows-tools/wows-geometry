@@ -87,8 +87,8 @@ int wows_geometry_print(wows_geometry *geometry) {
         return WOWS_ERROR_UNKNOWN;
     }
     wows_geometry_header_print(geometry->header);
-    wows_geometry_info_print(geometry->section_1, geometry->header->n_vertex_bloc, "Section 1");
-    wows_geometry_info_print(geometry->section_2, geometry->header->n_index_bloc, "Section 2");
-    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_vertex_type, "Unknown 1");
+    wows_geometry_info_print(geometry->section_1, geometry->header->n_vertex_bloc, "Vertex Bloc Metadata");
+    wows_geometry_info_print(geometry->section_2, geometry->header->n_index_bloc, "Index Bloc Metadata");
+    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_vertex_type, "Vertex Section Metadata");
     return 0;
 }
