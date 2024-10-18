@@ -4,38 +4,7 @@
 
 TODO
 
-## Convention
-
-A **byte/8 bits** is represented as follows:
-```
-+====+
-| XX |
-+====+
-```
-
-A **variable length field** (ex: strings) is represented as follows:
-
-```
-|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-|           Field            |
-|~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-```
-
-The boundary between two fields is marked as follows:
-
-```
-...=++=...
-    ||
-...=++=...
-```
-
-
 ## Format
-
-```csvtable
-test,value
-name, 1
-```
 
 ### Header
 
