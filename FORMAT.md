@@ -34,10 +34,7 @@ The boundary between two fields is marked as follows:
 ### Header
 
 ```mermaid
----
-title: "Header"
----
-%%{init: { 'theme': 'helpers', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
+%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
 packet-beta
 0-31: "n_vertex_type"
 32-63: "n_index_type"
