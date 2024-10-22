@@ -80,9 +80,8 @@ typedef struct {
 typedef struct {
     uint32_t n_vertex_type; // number of vertice type
     uint32_t n_index_type;  // number of index type
-    uint32_t n_vertex_bloc;
-    ;                      // number of vertice blocs
-    uint32_t n_index_bloc; // number of index blocs
+    uint32_t n_vertex_bloc; // number of vertice blocs
+    uint32_t n_index_bloc;  // number of index blocs
 
     uint32_t n_collision_bloc; // number of collision blocs
     uint32_t n_armor_bloc;     // number of armor blocs
