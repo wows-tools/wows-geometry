@@ -63,7 +63,7 @@ packet-beta
 
 ### Metadata 2
 
-```
+```mermaid
 %%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
 packet-beta
 0-63: "off_ver_bloc_start (uint64_t)"
