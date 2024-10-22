@@ -25,8 +25,6 @@ packet-beta
 512-575: "unknow_5"
 ```
 
-#### Field descriptions
-
 | Field                      | Size    | Description                                                                                     |
 |----------------------------|---------|-------------------------------------------------------------------------------------------------|
 | `n_vertex_type`            | 32 bits | Number of vertex types                                                                          |
@@ -41,4 +39,48 @@ packet-beta
 | `unknown_3`                | 64 bits | Large value (few thousands to millions) | vertex count?                                         |
 | `unknown_4`                | 64 bits | Large value (few thousands to millions), 0 if no collision bloc | vertex count collision block? |
 | `unknown_5`                | 64 bits | Large value (few thousands to millions), 0 if no armor bloc     | vertex count armor block?     |
+
+### Metadata
+
+```mermaid
+%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
+packet-beta
+0-31: "id_unk_6 (uint32_t)"
+32-47: "type_unk_7 (uint16_t)"
+48-63: "id_unk_8 (uint16_t)"
+64-95: "n_unk_9 (uint32_t)"
+96-127: "n_unk_10 (uint32_t)"
+```
+
+| Field           | Size      | Description                              |
+|-----------------|-----------|------------------------------------------|
+| `id_unk_6`      | 32 bits   | Unknown field, possibly an identifier    |
+| `type_unk_7`    | 16 bits   | Unknown field, possibly a type value     |
+| `id_unk_8`      | 16 bits   | Unknown field, possibly an identifier    |
+| `n_unk_9`       | 32 bits   | Unknown field, related to count or index |
+| `n_unk_10`      | 32 bits   | Unknown field, related to count or index |
+
+
+### Metadata 2
+
+```
+%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
+packet-beta
+0-63: "off_ver_bloc_start (uint64_t)"
+64-127: "n_size_type_str (uint64_t)"
+128-191: "off_ver_bloc_end (uint64_t)"
+192-223: "s_ver_bloc_size (uint32_t)"
+224-255: "n_unk_5 (uint32_t)"
+```
+
+| Field                | Size      | Description                                                                         |
+|----------------------|-----------|-------------------------------------------------------------------------------------|
+| `off_ver_bloc_start` | 64 bits   | Offset to the corresponding vertex section relative to this current block           |
+| `n_size_type_str`    | 64 bits   | Size of the vertex type string (e.g., len(set3/xyznuviiiwwtbpc))                    |
+| `off_ver_bloc_end`   | 64 bits   | Offset to the end of the corresponding vertex block                                 |
+| `s_ver_bloc_size`    | 32 bits   | Size of the vertex block                                                            |
+| `n_unk_5`            | 32 bits   | Unknown field                                                                       |
+
+### Metadata 3
+
 

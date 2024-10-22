@@ -82,17 +82,13 @@ typedef struct {
     uint32_t n_index_type;  // number of index type
     uint32_t n_vertex_bloc; // number of vertice blocs
     uint32_t n_index_bloc;  // number of index blocs
-
     uint32_t n_collision_bloc; // number of collision blocs
     uint32_t n_armor_bloc;     // number of armor blocs
     uint64_t off_sec_1;        // offset to data beginning (always 72/0x48)
-
     uint64_t off_unk_1;
     uint64_t off_unk_2;
-
     uint64_t n_unk_3;
     uint64_t n_col_unk_4;
-
     uint64_t n_arm_unk_5;
 } wows_geometry_header;
 
@@ -122,7 +118,7 @@ typedef struct {
 
 #define WOWS_UNK_2_SIZE 32
 typedef struct {
-    char magic[4];
+    char magic[4]; // Always ENCD
     uint32_t n_unk_6;
     wows_vertex *vertices;
     uint8_t _vertex_type;
