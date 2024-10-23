@@ -92,19 +92,24 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     // Parsing the Unknown_1 section
     contents += header->n_vertex_bloc * WOWS_BLOC_INFO_SIZE;
 
-    wows_geometry_unk_1 *unk_1 = calloc(sizeof(wows_geometry_unk_1), header->n_vertex_type);
-    geometry->unk_1 = unk_1;
+    wows_geometry_vertex_section_metadata *vertex_meta_sections =
+        calloc(sizeof(wows_geometry_vertex_section_metadata), header->n_vertex_type);
+    geometry->vertex_meta_sections = vertex_meta_sections;
     for (int i = 0; i < header->n_vertex_type; i++) {
-        unk_1[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
-        unk_1[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
-        unk_1[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
-        unk_1[i].s_ver_bloc_size = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
-        unk_1[i].n_unk_5 = datatoh32(contents, i * WOWS_UNK_1_SIZE + 28, context);
+        vertex_meta_sections[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
+        vertex_meta_sections[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
+        vertex_meta_sections[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
+        vertex_meta_sections[i].s_ver_bloc_size = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
+        vertex_meta_sections[i].s_vertex_size = datatoh16(contents, i * WOWS_UNK_1_SIZE + 28, context);
+        vertex_meta_sections[i].b_flag_1 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 30, context);
+        vertex_meta_sections[i].b_flag_2 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 31, context);
 
         // Record absolute offset for conviniance
-        unk_1[i]._abs_start = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_start;
-        unk_1[i]._abs_end = contents + i * WOWS_UNK_1_SIZE - start + unk_1[i].off_ver_bloc_end + 8;
-        unk_1[i]._vertex_type = vertex2id(start + unk_1[i]._abs_end);
+        vertex_meta_sections[i]._abs_start =
+            contents + i * WOWS_UNK_1_SIZE - start + vertex_meta_sections[i].off_ver_bloc_start;
+        vertex_meta_sections[i]._abs_end =
+            contents + i * WOWS_UNK_1_SIZE - start + vertex_meta_sections[i].off_ver_bloc_end + 8;
+        vertex_meta_sections[i]._vertex_type = vertex2id(start + vertex_meta_sections[i]._abs_end);
     }
 
     contents += header->n_vertex_type * WOWS_UNK_1_SIZE;
@@ -137,7 +142,7 @@ int wows_geometry_free(wows_geometry *geometry) {
     free(geometry->header);
     free(geometry->section_1);
     free(geometry->section_2);
-    free(geometry->unk_1);
+    free(geometry->vertex_meta_sections);
     free(geometry);
     return 0;
 }

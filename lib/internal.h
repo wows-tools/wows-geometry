@@ -1,5 +1,6 @@
 int vertex2id(const char *vertex_type);
 const char *id2vertex(int id);
+uint8_t datatoh8(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context);
 uint16_t datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context);
 uint32_t datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context);
 uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context);

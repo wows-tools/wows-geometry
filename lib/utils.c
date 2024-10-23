@@ -89,6 +89,11 @@ const char *id2vertex(int id) {
     }
 }
 
+uint8_t datatoh8(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+    // Endianness doesn't matter for 8-bit values, simply return the byte at the given offset
+    return (uint8_t)data[offset];
+}
+
 uint16_t datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     uint16_t *ret = (uint16_t *)(data + offset);
     if (context->is_le) {

@@ -37,6 +37,7 @@
 #define ID_SET3_XYNUVPC 7
 #define VER_SET3_XYNUVRPC "set3/xyznuvrpc"
 #define ID_SET3_XYNUVRPC 8
+#define SIZE_XYNUVRPC 28
 #define VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc"
 #define ID_SET3_XYNUVTBIPC 9
 #define VER_SET3_XYNUVTBOI "set3/xyznuvtboi"
@@ -78,10 +79,10 @@ typedef struct {
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
-    uint32_t n_vertex_type; // number of vertice type
-    uint32_t n_index_type;  // number of index type
-    uint32_t n_vertex_bloc; // number of vertice blocs
-    uint32_t n_index_bloc;  // number of index blocs
+    uint32_t n_vertex_type;    // number of vertice type
+    uint32_t n_index_type;     // number of index type
+    uint32_t n_vertex_bloc;    // number of vertice blocs
+    uint32_t n_index_bloc;     // number of index blocs
     uint32_t n_collision_bloc; // number of collision blocs
     uint32_t n_armor_bloc;     // number of armor blocs
     uint64_t off_sec_1;        // offset to data beginning (always 72/0x48)
@@ -108,13 +109,15 @@ typedef struct {
     uint64_t n_size_type_str; // Seems to be the size of vertice type string size (ex: set3/xyznuviiiwwtbpc)
     uint64_t off_ver_bloc_end;
     uint32_t s_ver_bloc_size;
-    uint32_t n_unk_5;
+    uint16_t s_vertex_size;
+    uint8_t b_flag_1;
+    uint8_t b_flag_2;
 
     // parsing internals, not part of the format
     size_t _abs_start;
     size_t _abs_end;
     uint8_t _vertex_type;
-} wows_geometry_unk_1;
+} wows_geometry_vertex_section_metadata;
 
 #define WOWS_UNK_2_SIZE 32
 typedef struct {
@@ -129,8 +132,8 @@ typedef struct {
     wows_geometry_header *header;
     wows_geometry_info *section_1;
     wows_geometry_info *section_2;
-    wows_geometry_unk_1 *unk_1;
-    wows_vert_xyznuvtbpc **entries; // array of entries
+    wows_geometry_vertex_section_metadata *vertex_meta_sections;
+    wows_geometry_vertex_section **vertexes;
 } wows_geometry;
 
 /*

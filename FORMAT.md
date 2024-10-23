@@ -70,7 +70,9 @@ packet-beta
 64-127: "n_size_type_str (uint64_t)"
 128-191: "off_ver_bloc_end (uint64_t)"
 192-223: "s_ver_bloc_size (uint32_t)"
-224-255: "n_unk_5 (uint32_t)"
+224-239: "s_vertex_size (uint16_t)"
+240-247: "b_flag_1 (uint8_t)"
+248-255: "b_flag_2 (uint8_t)"
 ```
 
 | Field                | Size      | Description                                                                         |
@@ -79,8 +81,24 @@ packet-beta
 | `n_size_type_str`    | 64 bits   | Size of the vertex type string (e.g., len(set3/xyznuviiiwwtbpc))                    |
 | `off_ver_bloc_end`   | 64 bits   | Offset to the end of the corresponding vertex block                                 |
 | `s_ver_bloc_size`    | 32 bits   | Size of the vertex block                                                            |
-| `n_unk_5`            | 32 bits   | Unknown field                                                                       |
+| `s_vertex_size`      | 16 bits   | Vertex Size                                                                         |
+| `b_flag_1`           | 8 bits    | Boolean flag (maybe float packing format?                                           |
+| `b_flag_2`           | 8 bits    | Boolean flag                                                                        |
 
-### Metadata 3
+### Vertex Types
+
+| vertex type           | count | vertex size | flag 1 | flag 2 |
+|-----------------------|-------|-------------|--------|--------|
+| set3/xyznuvpc         | 3012  | 20          | 0      | 0      |
+| set3/xyznuvrpc        | 6689  | 24          | 0      | 0      |
+| set3/xyznuvtbpc       | 81930 | 28          | 0      | 1      |
+| set3/xyznuviiiwwpc    | 272   | 28          | 1      | 0      |
+| set3/xyznuv2tbpc      | 666   | 32          | 0      | 1      |
+| set3/xyznuvtbipc      | 300   | 32          | 0      | 1      |
+| set3/xyznuvtboi       | 1     | 32          | 0      | 1      |
+| set3/xyznuviiiwwr     | 88    | 32          | 1      | 0      |
+| set3/xyznuv2tbipc     | 4     | 36          | 0      | 1      |
+| set3/xyznuviiiwwtbpc  | 4502  | 36          | 1      | 1      |
+| set3/xyznuv2iiiwwtbpc | 14    | 40          | 1      | 1      |
 
 

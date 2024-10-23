@@ -66,14 +66,17 @@ int wows_geometry_info_print(const wows_geometry_info *section, uint32_t count, 
     return 0;
 }
 
-int wows_geometry_unk_1_print(const wows_geometry_unk_1 *section, uint32_t count, const char *section_name) {
+int wows_geometry_vertex_section_metadata_print(const wows_geometry_vertex_section_metadata *section, uint32_t count,
+                                                const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
         printf("off_ver_bloc_start:%10lu (0x%08lx)\n", section[i].off_ver_bloc_start, section[i].off_ver_bloc_start);
         printf("n_size_type_str:   %10lu (0x%08lx)\n", section[i].n_size_type_str, section[i].n_size_type_str);
         printf("off_ver_bloc_end:  %10lu (0x%08lx)\n", section[i].off_ver_bloc_end, section[i].off_ver_bloc_end);
         printf("s_ver_bloc_size:   %10u (0x%08x)\n", section[i].s_ver_bloc_size, section[i].s_ver_bloc_size);
-        printf("n_unk_5:           %10u (0x%08x)\n", section[i].n_unk_5, section[i].n_unk_5);
+        printf("s_vertex_size:     %10u (0x%04x)\n", section[i].s_vertex_size, section[i].s_vertex_size);
+        printf("b_flag_1:          %10u (0x%02x)\n", section[i].b_flag_1, section[i].b_flag_1);
+        printf("b_flag_2:          %10u (0x%02x)\n", section[i].b_flag_2, section[i].b_flag_2);
         printf("_abs_start:        %10lu (0x%08lx)\n", section[i]._abs_start, section[i]._abs_start);
         printf("_abs_end:          %10lu (0x%08lx)\n", section[i]._abs_end, section[i]._abs_end);
         printf("_vertex_type:      %23s\n", id2vertex(section[i]._vertex_type));
@@ -89,6 +92,7 @@ int wows_geometry_print(wows_geometry *geometry) {
     wows_geometry_header_print(geometry->header);
     wows_geometry_info_print(geometry->section_1, geometry->header->n_vertex_bloc, "Vertex Bloc Metadata");
     wows_geometry_info_print(geometry->section_2, geometry->header->n_index_bloc, "Index Bloc Metadata");
-    wows_geometry_unk_1_print(geometry->unk_1, geometry->header->n_vertex_type, "Vertex Section Metadata");
+    wows_geometry_vertex_section_metadata_print(geometry->vertex_meta_sections, geometry->header->n_vertex_type,
+                                                "Vertex Section Metadata");
     return 0;
 }
