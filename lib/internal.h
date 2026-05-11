@@ -8,3 +8,6 @@ void normalise(float *x, float *y, float *z);
 float clamp(float min, float value, float max);
 int wows_unpack_normal_old(wows_vertex *vertex_packed);
 int wows_pack_normal_old(wows_vertex *vertex_packed);
+float f16_to_f32(uint16_t h);
+void wows_unpack_normal(uint32_t packed, float *nx, float *ny, float *nz);
+void wows_unpack_uv(uint32_t packed, float *u, float *v);

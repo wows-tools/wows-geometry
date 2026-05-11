@@ -20,6 +20,7 @@
 #include <sys/mman.h>
 #include <endian.h>
 #include <math.h>
+#include <meshoptimizer.h>
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
 #include <fcntl.h>
@@ -31,6 +32,8 @@
 
 #include "wows-geometry.h"
 #include "internal.h"
+
+#define ENCD_MAGIC 0x44434E45u
 
 // Context init function
 WOWS_GEOMETRY_CONTEXT *wows_init_geometry_context(uint8_t debug_level) {
@@ -63,12 +66,12 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_arm_unk_5 = datatoh64(contents, 64, context);
     geometry->header = header;
 
-    // Parsing the Info Section 1
+    // Parsing the vertex bloc mapping table (section_1)
     wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_vertex_bloc);
     geometry->section_1 = section_1;
     contents += header->off_sec_1;
 
-    for (int i = 0; i < header->n_vertex_bloc; i++) {
+    for (int i = 0; i < (int)header->n_vertex_bloc; i++) {
         section_1[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
         section_1[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
         section_1[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
@@ -76,12 +79,12 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         section_1[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
-    // Parsing the Info Section 1
+    // Parsing the index bloc mapping table (section_2)
     contents += header->n_vertex_bloc * WOWS_BLOC_INFO_SIZE;
     wows_geometry_info *section_2 = calloc(sizeof(wows_geometry_info), header->n_index_bloc);
     geometry->section_2 = section_2;
 
-    for (int i = 0; i < header->n_index_bloc; i++) {
+    for (int i = 0; i < (int)header->n_index_bloc; i++) {
         section_2[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
         section_2[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
         section_2[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
@@ -89,13 +92,13 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         section_2[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
-    // Parsing the Unknown_1 section
-    contents += header->n_vertex_bloc * WOWS_BLOC_INFO_SIZE;
+    // Parsing the vertex type metadata (merged_vertices array)
+    contents += header->n_index_bloc * WOWS_BLOC_INFO_SIZE;
 
     wows_geometry_vertex_section_metadata *vertex_meta_sections =
         calloc(sizeof(wows_geometry_vertex_section_metadata), header->n_vertex_type);
     geometry->vertex_meta_sections = vertex_meta_sections;
-    for (int i = 0; i < header->n_vertex_type; i++) {
+    for (int i = 0; i < (int)header->n_vertex_type; i++) {
         vertex_meta_sections[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
         vertex_meta_sections[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
         vertex_meta_sections[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
@@ -104,7 +107,7 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         vertex_meta_sections[i].b_flag_1 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 30, context);
         vertex_meta_sections[i].b_flag_2 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 31, context);
 
-        // Record absolute offset for conviniance
+        // Record absolute offset of the ENCD block and vertex type string
         vertex_meta_sections[i]._abs_start =
             contents + i * WOWS_UNK_1_SIZE - start + vertex_meta_sections[i].off_ver_bloc_start;
         vertex_meta_sections[i]._abs_end =
@@ -112,6 +115,123 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         vertex_meta_sections[i]._vertex_type = vertex2id(start + vertex_meta_sections[i]._abs_end);
     }
 
+    // Parsing the index type metadata (merged_indices array) at header->n_unk_3
+    wows_geometry_index_section_metadata *index_meta_sections =
+        calloc(sizeof(wows_geometry_index_section_metadata), header->n_index_type);
+    geometry->index_meta_sections = index_meta_sections;
+    char *idx_meta_ptr = start + header->n_unk_3;
+    for (int i = 0; i < (int)header->n_index_type; i++) {
+        size_t struct_base = (idx_meta_ptr + i * WOWS_INDEX_META_SIZE) - start;
+        // data_relptr is a signed 64-bit relative pointer from struct base to ENCD block
+        int64_t relptr;
+        uint64_t raw = datatoh64(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 0, context);
+        memcpy(&relptr, &raw, sizeof(relptr));
+        index_meta_sections[i].data_relptr = relptr;
+        index_meta_sections[i].s_idx_bloc_size = datatoh32(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 8, context);
+        index_meta_sections[i]._reserved = datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 12, context);
+        index_meta_sections[i].s_index_size = datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 14, context);
+        index_meta_sections[i]._abs_start = (size_t)((int64_t)struct_base + relptr);
+    }
+
+    // Decode vertex ENCD blocks using meshoptimizer
+    geometry->vertexes = calloc(sizeof(wows_geometry_vertex_section *), header->n_vertex_type);
+    for (int i = 0; i < (int)header->n_vertex_type; i++) {
+        size_t abs_start = vertex_meta_sections[i]._abs_start;
+        uint32_t bloc_size = vertex_meta_sections[i].s_ver_bloc_size;
+        uint16_t stride = vertex_meta_sections[i].s_vertex_size;
+
+        wows_geometry_vertex_section *vs = calloc(sizeof(wows_geometry_vertex_section), 1);
+        vs->_vertex_type = vertex_meta_sections[i]._vertex_type;
+        geometry->vertexes[i] = vs;
+
+        if (abs_start + bloc_size > length || stride == 0 || bloc_size < 8) {
+            continue;
+        }
+
+        uint32_t magic;
+        memcpy(&magic, start + abs_start, 4);
+        magic = le32toh(magic);
+        if (magic != ENCD_MAGIC) {
+            // Raw (uncompressed) vertex data
+            vs->vertex_count = bloc_size / stride;
+            vs->raw_data = malloc(bloc_size);
+            memcpy(vs->raw_data, start + abs_start, bloc_size);
+            continue;
+        }
+
+        uint32_t element_count;
+        memcpy(&element_count, start + abs_start + 4, 4);
+        element_count = le32toh(element_count);
+
+        const unsigned char *payload = (const unsigned char *)(start + abs_start + 8);
+        size_t payload_size = bloc_size - 8;
+
+        vs->vertex_count = element_count;
+        vs->raw_data = malloc((size_t)element_count * stride);
+        if (meshopt_decodeVertexBuffer(vs->raw_data, element_count, stride, payload, payload_size) != 0) {
+            free(vs->raw_data);
+            vs->raw_data = NULL;
+            vs->vertex_count = 0;
+        }
+    }
+
+    // Decode index ENCD blocks using meshoptimizer
+    geometry->indexes = calloc(sizeof(wows_geometry_index_section *), header->n_index_type);
+    for (int i = 0; i < (int)header->n_index_type; i++) {
+        size_t abs_start = index_meta_sections[i]._abs_start;
+        uint32_t bloc_size = index_meta_sections[i].s_idx_bloc_size;
+        uint16_t index_size = index_meta_sections[i].s_index_size;
+
+        wows_geometry_index_section *is = calloc(sizeof(wows_geometry_index_section), 1);
+        is->index_size = index_size;
+        geometry->indexes[i] = is;
+
+        if (abs_start + bloc_size > length || index_size == 0 || bloc_size < 8) {
+            continue;
+        }
+
+        uint32_t magic;
+        memcpy(&magic, start + abs_start, 4);
+        magic = le32toh(magic);
+        if (magic != ENCD_MAGIC) {
+            // Raw (uncompressed) index data
+            is->index_count = bloc_size / index_size;
+            is->raw_data = malloc(bloc_size);
+            memcpy(is->raw_data, start + abs_start, bloc_size);
+            continue;
+        }
+
+        uint32_t element_count;
+        memcpy(&element_count, start + abs_start + 4, 4);
+        element_count = le32toh(element_count);
+
+        const unsigned char *payload = (const unsigned char *)(start + abs_start + 8);
+        size_t payload_size = bloc_size - 8;
+
+        // meshopt_decodeIndexBuffer always decodes to uint32; then downcast to index_size if needed
+        uint32_t *tmp = malloc((size_t)element_count * sizeof(uint32_t));
+        if (meshopt_decodeIndexBuffer(tmp, element_count, sizeof(uint32_t), payload, payload_size) != 0) {
+            free(tmp);
+            is->raw_data = NULL;
+            is->index_count = 0;
+            continue;
+        }
+
+        is->index_count = element_count;
+        if (index_size == 2) {
+            is->raw_data = malloc((size_t)element_count * 2);
+            uint16_t *dst = (uint16_t *)is->raw_data;
+            for (uint32_t j = 0; j < element_count; j++) {
+                dst[j] = (uint16_t)tmp[j];
+            }
+        } else {
+            is->raw_data = malloc((size_t)element_count * 4);
+            memcpy(is->raw_data, tmp, (size_t)element_count * 4);
+        }
+        free(tmp);
+    }
+
+    free(context);
     contents += header->n_vertex_type * WOWS_UNK_1_SIZE;
 
     *geometry_content = geometry;
@@ -138,11 +258,55 @@ int wows_parse_geometry(char *input, wows_geometry **geometry_content) {
     return ret;
 }
 
+int wows_parse_geometry_fp(FILE *input, wows_geometry **geometry_content) {
+    if (input == NULL) {
+        return WOWS_ERROR_NOT_A_FILE;
+    }
+    fseek(input, 0, SEEK_END);
+    long length = ftell(input);
+    fseek(input, 0, SEEK_SET);
+    if (length <= 0) {
+        return WOWS_ERROR_NOT_A_FILE;
+    }
+    char *contents = malloc((size_t)length);
+    if (contents == NULL) {
+        return WOWS_ERROR_UNKNOWN;
+    }
+    if (fread(contents, 1, (size_t)length, input) != (size_t)length) {
+        free(contents);
+        return WOWS_ERROR_UNKNOWN;
+    }
+    int ret = wows_parse_geometry_buffer(contents, (size_t)length, geometry_content);
+    free(contents);
+    return ret;
+}
+
 int wows_geometry_free(wows_geometry *geometry) {
+    uint32_t n_vertex_type = geometry->header ? geometry->header->n_vertex_type : 0;
+    uint32_t n_index_type = geometry->header ? geometry->header->n_index_type : 0;
     free(geometry->header);
     free(geometry->section_1);
     free(geometry->section_2);
     free(geometry->vertex_meta_sections);
+    free(geometry->index_meta_sections);
+    if (geometry->vertexes) {
+        for (uint32_t i = 0; i < n_vertex_type; i++) {
+            if (geometry->vertexes[i]) {
+                free(geometry->vertexes[i]->raw_data);
+                free(geometry->vertexes[i]);
+            }
+        }
+        free(geometry->vertexes);
+    }
+    if (geometry->indexes) {
+        for (uint32_t i = 0; i < n_index_type; i++) {
+            if (geometry->indexes[i]) {
+                free(geometry->indexes[i]->raw_data);
+                free(geometry->indexes[i]);
+            }
+        }
+        free(geometry->indexes);
+    }
     free(geometry);
     return 0;
 }

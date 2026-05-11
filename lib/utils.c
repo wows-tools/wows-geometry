@@ -168,3 +168,48 @@ int wows_pack_normal_old(wows_vertex *vertex_packed) {
                        (((uint32_t)(nx * 1023.0f) & 0x7ff) << 0);
     return 0;
 }
+
+// Convert IEEE 754 float16 to float32.
+float f16_to_f32(uint16_t h) {
+    uint32_t s = (uint32_t)(h >> 15) << 31;
+    uint32_t e = (h >> 10) & 0x1fu;
+    uint32_t m = h & 0x3ffu;
+    uint32_t f;
+
+    if (e == 0) {
+        if (m == 0) {
+            f = s;
+        } else {
+            e = 1;
+            while (!(m & 0x400u)) { m <<= 1; e--; }
+            m &= 0x3ffu;
+            f = s | ((e + 112u) << 23) | (m << 13);
+        }
+    } else if (e == 31) {
+        f = s | 0x7f800000u | (m << 13);
+    } else {
+        f = s | ((e + 112u) << 23) | (m << 13);
+    }
+
+    float result;
+    memcpy(&result, &f, sizeof(f));
+    return result;
+}
+
+// Unpack 4-byte packed normal: 4 signed bytes each mapped [-127,127] -> [-1,1].
+void wows_unpack_normal(uint32_t packed, float *nx, float *ny, float *nz) {
+    int8_t bytes[4];
+    memcpy(bytes, &packed, 4);
+    *nx = bytes[0] / 127.0f;
+    *ny = bytes[1] / 127.0f;
+    *nz = bytes[2] / 127.0f;
+}
+
+// Unpack 4-byte packed UV: 2 x float16 stored as actual_uv - 0.5.
+void wows_unpack_uv(uint32_t packed, float *u, float *v) {
+    uint16_t u_bits, v_bits;
+    memcpy(&u_bits, (uint8_t *)&packed + 0, 2);
+    memcpy(&v_bits, (uint8_t *)&packed + 2, 2);
+    *u = f16_to_f32(u_bits) + 0.5f;
+    *v = f16_to_f32(v_bits) + 0.5f;
+}

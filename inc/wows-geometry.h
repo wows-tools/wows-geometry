@@ -119,21 +119,35 @@ typedef struct {
     uint8_t _vertex_type;
 } wows_geometry_vertex_section_metadata;
 
-#define WOWS_UNK_2_SIZE 32
 typedef struct {
-    char magic[4]; // Always ENCD
-    uint32_t n_unk_6;
-    wows_vertex *vertices;
-    uint8_t _vertex_type;
-    uint32_t _vertex_count;
+    uint8_t *raw_data;     // decoded vertex bytes (vertex_count * stride bytes)
+    uint32_t vertex_count; // number of vertices (element_count from ENCD header)
+    uint8_t _vertex_type;  // vertex type ID
 } wows_geometry_vertex_section;
+
+#define WOWS_INDEX_META_SIZE 16
+typedef struct {
+    int64_t data_relptr;       // relative pointer from struct base to ENCD block
+    uint32_t s_idx_bloc_size;  // total ENCD block size (includes 8-byte ENCD header)
+    uint16_t _reserved;
+    uint16_t s_index_size;     // bytes per index: 2 (uint16) or 4 (uint32)
+    size_t _abs_start;         // absolute file offset of ENCD block
+} wows_geometry_index_section_metadata;
+
+typedef struct {
+    uint8_t *raw_data;    // decoded index bytes (index_count * index_size bytes)
+    uint32_t index_count; // number of indices (element_count from ENCD header)
+    uint16_t index_size;  // bytes per index: 2 or 4
+} wows_geometry_index_section;
 
 typedef struct {
     wows_geometry_header *header;
     wows_geometry_info *section_1;
     wows_geometry_info *section_2;
     wows_geometry_vertex_section_metadata *vertex_meta_sections;
+    wows_geometry_index_section_metadata *index_meta_sections;
     wows_geometry_vertex_section **vertexes;
+    wows_geometry_index_section **indexes;
 } wows_geometry;
 
 /*
