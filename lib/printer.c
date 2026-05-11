@@ -75,6 +75,11 @@ int wows_geometry_vertex_section_metadata_print(const wows_geometry_vertex_secti
         printf("off_ver_bloc_end:  %10lu (0x%08lx)\n", section[i].off_ver_bloc_end, section[i].off_ver_bloc_end);
         printf("s_ver_bloc_size:   %10u (0x%08x)\n", section[i].s_ver_bloc_size, section[i].s_ver_bloc_size);
         printf("s_vertex_size:     %10u (0x%04x)\n", section[i].s_vertex_size, section[i].s_vertex_size);
+        unsigned int vertex_count = (section[i].s_ver_bloc_size - 4) / (section[i].s_vertex_size + 4);
+        unsigned int remainder = (section[i].s_ver_bloc_size - 4) % (section[i].s_vertex_size + 4);
+
+        printf("vertex_count:      %10u (s_ver_bloc_size / s_vertex_size)\n", vertex_count);
+        printf("remainder:         %10u (s_ver_bloc_size %% s_vertex_size)\n", remainder);
         printf("b_flag_1:          %10u (0x%02x)\n", section[i].b_flag_1, section[i].b_flag_1);
         printf("b_flag_2:          %10u (0x%02x)\n", section[i].b_flag_2, section[i].b_flag_2);
         printf("_abs_start:        %10lu (0x%08lx)\n", section[i]._abs_start, section[i]._abs_start);
