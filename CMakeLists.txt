@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 find_library(CUNIT_LIBRARY cunit)
 find_library(MESHOPTIMIZER_LIBRARY meshoptimizer)
+find_library(TINYGLTF_LIBRARY tinygltf)
 
 set(wows-geometry_VERSION
     ${wows-geometry_VERSION_MAJOR}.${wows-geometry_VERSION_MINOR}.${wows-geometry_VERSION_PATCH}
@@ -81,7 +82,7 @@ link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/)
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
                     /usr/include/ /sw/include/)
 
-file(GLOB WOWS_SOURCES lib/*.c)
+file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
 set_target_properties(
   wows-geometry PROPERTIES VERSION ${wows-geometry_VERSION}
@@ -89,7 +90,7 @@ set_target_properties(
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
-target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY})
+target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY})
 
 target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
                       ${PCRE_LIBRARY})
