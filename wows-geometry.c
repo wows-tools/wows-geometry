@@ -8,7 +8,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <zlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -25,8 +24,6 @@
 #define SET_BINARY_MODE(file)
 #endif
 
-#define CHUNK 16384
-
 const char *argp_program_version = BFD_VERSION;
 
 const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/issues";
@@ -34,31 +31,30 @@ const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/iss
 static char doc[] = "\nWorld of Warships .geometry debug tool";
 
 static struct argp_option options[] = {
-    {"input", 'i', "INPUT_SPLASH", 0, "Input geometry file"}, {"print", 'p', NULL, 0, "Print All files"}, {0}};
+    {"input",   'i', "INPUT_FILE",  0, "Input .geometry file"},
+    {"print",   'p', NULL,          0, "Print parsed data"},
+    {"verbose", 'v', NULL,          0, "Print all vertices (use with -p)"},
+    {"glb",     'g', "OUTPUT_FILE", 0, "Export to binary glTF (.glb)"},
+    {0}
+};
 
-/* A description of the arguments we accept. */
-static char args_doc[] = "<-i INPUT_FILE | -I INPUT_DIR | -W WOWS_BASE_DIR>";
+static char args_doc[] = "-i INPUT_FILE [-p] [-g OUTPUT_FILE]";
 
 struct arguments {
-    char *args[2]; /* arg1 & arg2 */
     char *input;
-    bool print;
+    char *glb_output;
+    bool  print;
+    bool  verbose;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    /* Get the input argument from argp_parse, which we
-       know is a pointer to our arguments structure. */
     struct arguments *arguments = (struct arguments *)state->input;
-
     switch (key) {
-    case 'i':
-        arguments->input = arg;
-        break;
-    case 'p':
-        arguments->print = true;
-        break;
-    default:
-        return ARGP_ERR_UNKNOWN;
+    case 'i': arguments->input      = arg;  break;
+    case 'p': arguments->print      = true; break;
+    case 'v': arguments->verbose    = true; break;
+    case 'g': arguments->glb_output = arg;  break;
+    default:  return ARGP_ERR_UNKNOWN;
     }
     return 0;
 }
@@ -70,15 +66,34 @@ int main(int argc, char **argv) {
     int ret = 0;
     argp_parse(&argp, argc, argv, 0, 0, args);
 
+    if (!args->input) {
+        fprintf(stderr, "Error: -i INPUT_FILE is required\n");
+        free(args);
+        return 1;
+    }
+
     wows_geometry *content = NULL;
-    if (args->input != NULL) {
-        ret = wows_parse_geometry(args->input, &content);
+    ret = wows_parse_geometry(args->input, &content);
+    if (ret != 0) {
+        fprintf(stderr, "Error: failed to parse %s (code %d)\n", args->input, ret);
+        free(args);
+        return ret;
     }
+
     if (args->print) {
-        ret = wows_geometry_print(content);
+        ret = wows_geometry_print(content, args->verbose);
     }
+
+    if (args->glb_output) {
+        ret = wows_geometry_to_glb(content, args->glb_output);
+        if (ret != 0)
+            fprintf(stderr, "Error: failed to write GLB to %s (code %d)\n", args->glb_output, ret);
+        else
+            printf("Wrote %s\n", args->glb_output);
+    }
+
     if (content != NULL)
-        ret = wows_geometry_free(content);
+        wows_geometry_free(content);
     free(args);
     return ret;
 }

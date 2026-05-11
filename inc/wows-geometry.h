@@ -79,30 +79,30 @@ typedef struct {
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
-    uint32_t n_vertex_type;    // number of vertice type
-    uint32_t n_index_type;     // number of index type
-    uint32_t n_vertex_bloc;    // number of vertice blocs
-    uint32_t n_index_bloc;     // number of index blocs
-    uint32_t n_collision_bloc; // number of collision blocs
-    uint32_t n_armor_bloc;     // number of armor blocs
-    uint64_t off_sec_1;        // offset to data beginning (always 72/0x48)
-    uint64_t off_unk_1;
-    uint64_t off_unk_2;
-    uint64_t n_unk_3;
-    uint64_t n_col_unk_4;
-    uint64_t n_arm_unk_5;
+    uint32_t n_vertex_type;         // number of merged vertex buffers
+    uint32_t n_index_type;          // number of merged index buffers
+    uint32_t n_vertex_bloc;         // number of vertex mapping entries
+    uint32_t n_index_bloc;          // number of index mapping entries
+    uint32_t n_collision_bloc;      // number of collision models
+    uint32_t n_armor_bloc;          // number of armor models
+    uint64_t off_vertices_mapping;  // offset to vertices mapping table (always 72/0x48)
+    uint64_t off_indices_mapping;   // offset to indices mapping table
+    uint64_t off_merged_vertices;   // offset to merged vertex buffers array
+    uint64_t off_merged_indices;    // offset to merged index buffers array
+    uint64_t off_collision_models;  // offset to collision models array
+    uint64_t off_armor_models;      // offset to armor models array
 } wows_geometry_header;
 
 #define WOWS_BLOC_INFO_SIZE 16
 typedef struct {
-    uint32_t id_unk_6;
-    uint16_t type_unk_7;
-    uint16_t id_unk_8;
-    uint32_t n_unk_9;
-    uint32_t n_unk_10;
+    uint32_t mapping_id;            // draw call identifier
+    uint16_t merged_buffer_index;   // index into merged vertex or index buffer array
+    uint16_t packed_texel_density;  // matches vertex and index mapping entries together
+    uint32_t items_offset;          // first element within the merged buffer
+    uint32_t items_count;           // number of elements for this draw call
 } wows_geometry_info;
 
-#define WOWS_UNK_1_SIZE 32
+#define WOWS_VERTEX_META_SIZE 32
 typedef struct {
     uint64_t
         off_ver_bloc_start; // Seems to be the offset to the corresponding vertice section relative to this current bloc
@@ -166,5 +166,6 @@ typedef struct {
 
 int wows_parse_geometry(char *input, wows_geometry **geometry_content);
 int wows_parse_geometry_fp(FILE *input, wows_geometry **geometry_content);
-int wows_geometry_print(wows_geometry *geometry_content);
+int wows_geometry_print(wows_geometry *geometry_content, bool verbose);
 int wows_geometry_free(wows_geometry *geometry_content);
+int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path);

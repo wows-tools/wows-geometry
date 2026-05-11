@@ -45,23 +45,23 @@ int wows_geometry_header_print(const wows_geometry_header *header) {
     printf("n_index_blocs:     %10u (0x%08x)\n", header->n_index_bloc, header->n_index_bloc);
     printf("n_collision_blocs: %10u (0x%08x)\n", header->n_collision_bloc, header->n_collision_bloc);
     printf("n_armor_blocs:     %10u (0x%08x)\n", header->n_armor_bloc, header->n_armor_bloc);
-    printf("off_sec_1:         %10lu (0x%08lx)\n", header->off_sec_1, header->off_sec_1);
-    printf("off_unk_1:         %10lu (0x%08lx)\n", header->off_unk_1, header->off_unk_1);
-    printf("off_unk_2:         %10lu (0x%08lx)\n", header->off_unk_2, header->off_unk_2);
-    printf("n_unk_3:           %10lu (0x%08lx)\n", header->n_unk_3, header->n_unk_3);
-    printf("n_col_unk_4:       %10lu (0x%08lx)\n", header->n_col_unk_4, header->n_col_unk_4);
-    printf("n_arm_unk_5:       %10lu (0x%08lx)\n", header->n_arm_unk_5, header->n_arm_unk_5);
+    printf("off_vertices_mapping: %10lu (0x%08lx)\n", header->off_vertices_mapping, header->off_vertices_mapping);
+    printf("off_indices_mapping:  %10lu (0x%08lx)\n", header->off_indices_mapping,  header->off_indices_mapping);
+    printf("off_merged_vertices:  %10lu (0x%08lx)\n", header->off_merged_vertices,  header->off_merged_vertices);
+    printf("off_merged_indices:   %10lu (0x%08lx)\n", header->off_merged_indices,   header->off_merged_indices);
+    printf("off_collision_models: %10lu (0x%08lx)\n", header->off_collision_models, header->off_collision_models);
+    printf("off_armor_models:     %10lu (0x%08lx)\n", header->off_armor_models,     header->off_armor_models);
     return 0;
 }
 
 int wows_geometry_info_print(const wows_geometry_info *section, uint32_t count, const char *section_name) {
     for (uint32_t i = 0; i < count; i++) {
         printf("--------- %s - Entry %02u -----------\n", section_name, i);
-        printf("id_unk_6:          %10u (0x%08x)\n", section[i].id_unk_6, section[i].id_unk_6);
-        printf("type_unk_7:        %10u (0x%08x)\n", section[i].type_unk_7, section[i].type_unk_7);
-        printf("id_unk_8:          %10u (0x%08x)\n", section[i].id_unk_8, section[i].id_unk_8);
-        printf("n_unk_9:           %10u (0x%08x)\n", section[i].n_unk_9, section[i].n_unk_9);
-        printf("n_unk_10:          %10u (0x%08x)\n", section[i].n_unk_10, section[i].n_unk_10);
+        printf("mapping_id:           %10u (0x%08x)\n", section[i].mapping_id,           section[i].mapping_id);
+        printf("merged_buffer_index:  %10u (0x%08x)\n", section[i].merged_buffer_index,  section[i].merged_buffer_index);
+        printf("packed_texel_density: %10u (0x%08x)\n", section[i].packed_texel_density, section[i].packed_texel_density);
+        printf("items_offset:         %10u (0x%08x)\n", section[i].items_offset,         section[i].items_offset);
+        printf("items_count:          %10u (0x%08x)\n", section[i].items_count,          section[i].items_count);
     }
     return 0;
 }
@@ -97,7 +97,7 @@ int wows_geometry_index_section_metadata_print(const wows_geometry_index_section
 }
 
 int wows_geometry_vertex_sections_print(wows_geometry_vertex_section **vertexes, uint32_t count,
-                                        const wows_geometry_vertex_section_metadata *meta) {
+                                        const wows_geometry_vertex_section_metadata *meta, bool verbose) {
     for (uint32_t i = 0; i < count; i++) {
         const wows_geometry_vertex_section *vs = vertexes[i];
         printf("--------- Vertex Section %02u -----------\n", i);
@@ -109,7 +109,7 @@ int wows_geometry_vertex_sections_print(wows_geometry_vertex_section **vertexes,
         }
 
         uint16_t stride = meta[i].s_vertex_size;
-        uint32_t print_count = vs->vertex_count < 4 ? vs->vertex_count : 4;
+        uint32_t print_count = verbose ? vs->vertex_count : (vs->vertex_count < 4 ? vs->vertex_count : 4);
         for (uint32_t j = 0; j < print_count; j++) {
             uint8_t *v = vs->raw_data + (size_t)j * stride;
             float x, y, z;
@@ -127,7 +127,7 @@ int wows_geometry_vertex_sections_print(wows_geometry_vertex_section **vertexes,
             printf("  v[%u]: pos=(%.4f, %.4f, %.4f)  n=(%.3f, %.3f, %.3f)  uv=(%.4f, %.4f)\n",
                    j, x, y, z, nx, ny, nz, u, vcoord);
         }
-        if (vs->vertex_count > print_count) {
+        if (!verbose && vs->vertex_count > print_count) {
             printf("  ... (%u more vertices)\n", vs->vertex_count - print_count);
         }
     }
@@ -162,7 +162,7 @@ int wows_geometry_index_sections_print(wows_geometry_index_section **indexes, ui
     return 0;
 }
 
-int wows_geometry_print(wows_geometry *geometry) {
+int wows_geometry_print(wows_geometry *geometry, bool verbose) {
     if (geometry == NULL) {
         printf("Invalid geometry: NULL pointer.\n");
         return WOWS_ERROR_UNKNOWN;
@@ -176,7 +176,7 @@ int wows_geometry_print(wows_geometry *geometry) {
                                                "Index Section Metadata");
     if (geometry->vertexes) {
         wows_geometry_vertex_sections_print(geometry->vertexes, geometry->header->n_vertex_type,
-                                            geometry->vertex_meta_sections);
+                                            geometry->vertex_meta_sections, verbose);
     }
     if (geometry->indexes) {
         wows_geometry_index_sections_print(geometry->indexes, geometry->header->n_index_type);

@@ -58,25 +58,25 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     header->n_index_bloc = datatoh32(contents, 12, context);
     header->n_collision_bloc = datatoh32(contents, 16, context);
     header->n_armor_bloc = datatoh32(contents, 20, context);
-    header->off_sec_1 = datatoh64(contents, 24, context);
-    header->off_unk_1 = datatoh64(contents, 32, context);
-    header->off_unk_2 = datatoh64(contents, 40, context);
-    header->n_unk_3 = datatoh64(contents, 48, context);
-    header->n_col_unk_4 = datatoh64(contents, 56, context);
-    header->n_arm_unk_5 = datatoh64(contents, 64, context);
+    header->off_vertices_mapping = datatoh64(contents, 24, context);
+    header->off_indices_mapping  = datatoh64(contents, 32, context);
+    header->off_merged_vertices  = datatoh64(contents, 40, context);
+    header->off_merged_indices   = datatoh64(contents, 48, context);
+    header->off_collision_models = datatoh64(contents, 56, context);
+    header->off_armor_models     = datatoh64(contents, 64, context);
     geometry->header = header;
 
     // Parsing the vertex bloc mapping table (section_1)
     wows_geometry_info *section_1 = calloc(sizeof(wows_geometry_info), header->n_vertex_bloc);
     geometry->section_1 = section_1;
-    contents += header->off_sec_1;
+    contents += header->off_vertices_mapping;
 
     for (int i = 0; i < (int)header->n_vertex_bloc; i++) {
-        section_1[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
-        section_1[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
-        section_1[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
-        section_1[i].n_unk_9 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8, context);
-        section_1[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
+        section_1[i].mapping_id           = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE,      context);
+        section_1[i].merged_buffer_index  = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4,  context);
+        section_1[i].packed_texel_density = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6,  context);
+        section_1[i].items_offset         = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8,  context);
+        section_1[i].items_count          = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
     // Parsing the index bloc mapping table (section_2)
@@ -85,11 +85,11 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     geometry->section_2 = section_2;
 
     for (int i = 0; i < (int)header->n_index_bloc; i++) {
-        section_2[i].id_unk_6 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE, context);
-        section_2[i].type_unk_7 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4, context);
-        section_2[i].id_unk_8 = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6, context);
-        section_2[i].n_unk_9 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8, context);
-        section_2[i].n_unk_10 = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
+        section_2[i].mapping_id           = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE,      context);
+        section_2[i].merged_buffer_index  = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 4,  context);
+        section_2[i].packed_texel_density = datatoh16(contents, i * WOWS_BLOC_INFO_SIZE + 6,  context);
+        section_2[i].items_offset         = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 8,  context);
+        section_2[i].items_count          = datatoh32(contents, i * WOWS_BLOC_INFO_SIZE + 12, context);
     }
 
     // Parsing the vertex type metadata (merged_vertices array)
@@ -99,27 +99,27 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
         calloc(sizeof(wows_geometry_vertex_section_metadata), header->n_vertex_type);
     geometry->vertex_meta_sections = vertex_meta_sections;
     for (int i = 0; i < (int)header->n_vertex_type; i++) {
-        vertex_meta_sections[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_UNK_1_SIZE + 0, context);
-        vertex_meta_sections[i].n_size_type_str = datatoh64(contents, i * WOWS_UNK_1_SIZE + 8, context);
-        vertex_meta_sections[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_UNK_1_SIZE + 16, context);
-        vertex_meta_sections[i].s_ver_bloc_size = datatoh32(contents, i * WOWS_UNK_1_SIZE + 24, context);
-        vertex_meta_sections[i].s_vertex_size = datatoh16(contents, i * WOWS_UNK_1_SIZE + 28, context);
-        vertex_meta_sections[i].b_flag_1 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 30, context);
-        vertex_meta_sections[i].b_flag_2 = datatoh8(contents, i * WOWS_UNK_1_SIZE + 31, context);
+        vertex_meta_sections[i].off_ver_bloc_start = datatoh64(contents, i * WOWS_VERTEX_META_SIZE + 0, context);
+        vertex_meta_sections[i].n_size_type_str = datatoh64(contents, i * WOWS_VERTEX_META_SIZE + 8, context);
+        vertex_meta_sections[i].off_ver_bloc_end = datatoh64(contents, i * WOWS_VERTEX_META_SIZE + 16, context);
+        vertex_meta_sections[i].s_ver_bloc_size = datatoh32(contents, i * WOWS_VERTEX_META_SIZE + 24, context);
+        vertex_meta_sections[i].s_vertex_size = datatoh16(contents, i * WOWS_VERTEX_META_SIZE + 28, context);
+        vertex_meta_sections[i].b_flag_1 = datatoh8(contents, i * WOWS_VERTEX_META_SIZE + 30, context);
+        vertex_meta_sections[i].b_flag_2 = datatoh8(contents, i * WOWS_VERTEX_META_SIZE + 31, context);
 
         // Record absolute offset of the ENCD block and vertex type string
         vertex_meta_sections[i]._abs_start =
-            contents + i * WOWS_UNK_1_SIZE - start + vertex_meta_sections[i].off_ver_bloc_start;
+            contents + i * WOWS_VERTEX_META_SIZE - start + vertex_meta_sections[i].off_ver_bloc_start;
         vertex_meta_sections[i]._abs_end =
-            contents + i * WOWS_UNK_1_SIZE - start + vertex_meta_sections[i].off_ver_bloc_end + 8;
+            contents + i * WOWS_VERTEX_META_SIZE - start + vertex_meta_sections[i].off_ver_bloc_end + 8;
         vertex_meta_sections[i]._vertex_type = vertex2id(start + vertex_meta_sections[i]._abs_end);
     }
 
-    // Parsing the index type metadata (merged_indices array) at header->n_unk_3
+    // Parsing the index type metadata (merged_indices array) at header->off_merged_indices
     wows_geometry_index_section_metadata *index_meta_sections =
         calloc(sizeof(wows_geometry_index_section_metadata), header->n_index_type);
     geometry->index_meta_sections = index_meta_sections;
-    char *idx_meta_ptr = start + header->n_unk_3;
+    char *idx_meta_ptr = start + header->off_merged_indices;
     for (int i = 0; i < (int)header->n_index_type; i++) {
         size_t struct_base = (idx_meta_ptr + i * WOWS_INDEX_META_SIZE) - start;
         // data_relptr is a signed 64-bit relative pointer from struct base to ENCD block
@@ -232,7 +232,7 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
     }
 
     free(context);
-    contents += header->n_vertex_type * WOWS_UNK_1_SIZE;
+    contents += header->n_vertex_type * WOWS_VERTEX_META_SIZE;
 
     *geometry_content = geometry;
     return 0;
