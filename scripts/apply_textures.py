@@ -178,6 +178,7 @@ def apply_textures_to_glb(
     geom_path_to_mapping_ids: dict[str, list[int]],
     geom_path_to_mesh_index: dict[str, int],
     material_map: dict[int, dict],
+    allowed_mapping_ids: Optional[set[int]] = None,
 ) -> tuple[dict, bytes]:
     """
     Patch a merged GLB's JSON and binary to add textures and material assignments.
@@ -185,6 +186,8 @@ def apply_textures_to_glb(
     geom_path_to_mapping_ids: {geom_path: [mapping_id, ...]}  (primitive order)
     geom_path_to_mesh_index:  {geom_path: mesh_index_in_merged_json}
     material_map:             {vertices_mapping_id: {"stem", "albedo_png"}}
+    allowed_mapping_ids:      when set, primitives with mapping_ids NOT in this
+                              set are removed from their mesh (LOD filtering).
     """
     binary = bytearray(binary)
 
@@ -271,19 +274,26 @@ def apply_textures_to_glb(
         if stem in stem_to_mat_idx:
             mid_to_mat[mid] = stem_to_mat_idx[stem]
 
-    # Assign materials to primitives in each mesh
+    # Assign materials to primitives in each mesh, optionally filtering by LOD
     meshes: list[dict] = json_dict.get("meshes", [])
     for geom_path, mesh_idx in geom_path_to_mesh_index.items():
         if mesh_idx >= len(meshes):
             continue
         mapping_ids = geom_path_to_mapping_ids.get(geom_path, [])
         mesh = meshes[mesh_idx]
+        kept_prims = []
         for prim_idx, prim in enumerate(mesh.get("primitives", [])):
             if prim_idx < len(mapping_ids):
                 mid = mapping_ids[prim_idx]
+                if allowed_mapping_ids is not None and mid not in allowed_mapping_ids:
+                    continue  # skip this primitive (wrong LOD)
                 mat_idx = mid_to_mat.get(mid)
                 if mat_idx is not None:
                     prim["material"] = mat_idx
+                kept_prims.append(prim)
+            else:
+                kept_prims.append(prim)
+        mesh["primitives"] = kept_prims
 
     # Declare the KHR_texture_transform extension as used
     out_json = dict(json_dict)
@@ -322,13 +332,14 @@ def texture_hull_glb(
     hull_model_path: str,
     game_dir: str,
     max_texture_size: int = 2048,
+    lod_level: int = 0,
 ) -> tuple[dict, bytes]:
     """
-    Apply textures to a merged hull GLB.
+    Apply textures to a merged hull+turret GLB and filter to a single LOD level.
 
-    hull_geom_paths: ordered list of geometry file paths (same order as meshes
-                     in the GLB — hull parts only, no turrets).
+    hull_geom_paths: ordered list of geometry file paths (same order as meshes in the GLB).
     hull_model_path: unused (kept for API compatibility).
+    lod_level: 0 = highest detail, 1/2/3 = lower. Primitives from other LODs are removed.
     """
     if Image is None:
         print("  Warning: Pillow not installed — cannot apply textures.", file=sys.stderr)
@@ -339,13 +350,14 @@ def texture_hull_glb(
         parse_assets_bin, parse_visual, VISUAL_ITEM_SIZE, VISUAL_BLOB_INDEX,
     )
 
-    print("\nApplying textures from assets.bin …", file=sys.stderr)
+    print(f"\nApplying textures from assets.bin (LOD {lod_level}) …", file=sys.stderr)
 
     db = parse_assets_bin(assets_bin_path)
 
-    # Load one visual per geometry file; merge all material maps.
-    # vertices_mapping_id values are globally unique hashes — no collisions.
+    # Load one visual per geometry file; merge material maps and allowed LOD mapping_ids.
     material_map: dict[int, dict] = {}
+    allowed_mapping_ids: set[int] = set()
+
     for geom_path in hull_geom_paths:
         if not os.path.isfile(geom_path):
             continue
@@ -359,8 +371,11 @@ def texture_hull_glb(
             continue
         record_data = db.get_prototype_data(blob_idx, rec_idx, VISUAL_ITEM_SIZE)
         visual = parse_visual(record_data)
-        print(f"  Visual: {full_path} ({len(visual.render_sets)} render sets)", file=sys.stderr)
+        lod_info = f"LOD{lod_level}/{visual.lod_count}" if visual.lod_count else "no LODs"
+        print(f"  Visual: {full_path} ({len(visual.render_sets)} render sets, {lod_info})",
+              file=sys.stderr)
         material_map.update(build_material_map(db, visual, game_dir))
+        allowed_mapping_ids.update(visual.lod_indices_mapping_ids(lod_level))
 
     if not material_map:
         print("  Warning: no textures resolved.", file=sys.stderr)
@@ -377,12 +392,15 @@ def texture_hull_glb(
         geom_to_mapping_ids[geom_path] = mapping_ids
         geom_to_mesh_idx[geom_path]    = mesh_idx
 
-        matched = sum(1 for mid in mapping_ids if mid in material_map)
-        print(f"  {os.path.basename(geom_path)}: {len(mapping_ids)} prims, "
-              f"{matched} textured", file=sys.stderr)
+        kept    = sum(1 for mid in mapping_ids if mid in allowed_mapping_ids)
+        total   = len(mapping_ids)
+        textured = sum(1 for mid in mapping_ids if mid in material_map and mid in allowed_mapping_ids)
+        print(f"  {os.path.basename(geom_path)}: {total} prims total, "
+              f"{kept} in LOD{lod_level}, {textured} textured", file=sys.stderr)
 
     return apply_textures_to_glb(
         glb_json, glb_binary,
         geom_to_mapping_ids, geom_to_mesh_idx,
         material_map,
+        allowed_mapping_ids=allowed_mapping_ids,
     )

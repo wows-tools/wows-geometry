@@ -472,10 +472,25 @@ class VisualNodes:
 
 
 class VisualPrototype:
-    def __init__(self, nodes: VisualNodes, merged_geometry_path_id: int, render_sets: list | None = None):
+    def __init__(self, nodes: VisualNodes, merged_geometry_path_id: int,
+                 render_sets: list | None = None,
+                 lods: list[list[int]] | None = None):
         self.nodes                   = nodes
         self.merged_geometry_path_id = merged_geometry_path_id
         self.render_sets: list[RenderSet] = render_sets or []
+        # lods[i] = list of indices_mapping_ids for LOD level i (0=highest detail)
+        self.lods: list[list[int]] = lods or []
+
+    def lod_indices_mapping_ids(self, lod_level: int) -> set[int]:
+        """Return the set of indices_mapping_ids that belong to the given LOD level."""
+        if not self.lods or lod_level >= len(self.lods):
+            # Fall back: return all render set indices_mapping_ids
+            return {rs.indices_mapping_id for rs in self.render_sets}
+        return set(self.lods[lod_level])
+
+    @property
+    def lod_count(self) -> int:
+        return len(self.lods)
 
     def find_node_index_by_name(self, name: str, strings: StringsSection) -> Optional[int]:
         for i, name_id in enumerate(self.nodes.name_map_name_ids):
@@ -538,9 +553,11 @@ def parse_visual(record_data: bytes) -> VisualPrototype:
     merged_geom_path_id  = _u64(record_data, 48)
     # +56: underwater_model u8, abovewater_model u8, render_sets_count u16, lods_count u8, 3×pad
     render_sets_count = _u16(record_data, 58)
+    lods_count        = record_data[60]
     # BoundingBox at +64 (32 bytes)
     # render_sets_relptr at +96 (i64), lods_relptr at +104 (i64)
     render_sets_rp = _i64(record_data, 96)
+    lods_rp        = _i64(record_data, 104)
 
     base = 0
 
@@ -580,7 +597,32 @@ def parse_visual(record_data: bytes) -> VisualPrototype:
         rs_off = _resolve(base, render_sets_rp)
         render_sets = _parse_render_sets(record_data, rs_off, render_sets_count)
 
-    return VisualPrototype(nodes, merged_geom_path_id, render_sets)
+    # Build name_id → render_set lookup for LOD parsing
+    name_to_rs = {rs.name_id: rs for rs in render_sets}
+
+    # LOD table: each entry is 16 bytes
+    #   [0..3]  float dist_threshold
+    #   [4..5]  u16 unknown
+    #   [6..7]  u16 rs_count  (number of render set name IDs in this LOD)
+    #   [8..15] i64 rs_names_relptr (relative from THIS entry's base offset)
+    lods: list[list[int]] = []
+    if lods_count > 0:
+        lods_off = _resolve(base, lods_rp)
+        for i in range(lods_count):
+            entry_base = lods_off + i * 16
+            rs_cnt     = _u16(record_data, entry_base + 6)
+            rp         = _i64(record_data, entry_base + 8)
+            names_off  = entry_base + rp
+            name_ids   = struct.unpack_from(f"<{rs_cnt}I", record_data, names_off)
+            # Resolve name IDs → indices_mapping_ids
+            mid_list = [
+                name_to_rs[nid].indices_mapping_id
+                for nid in name_ids
+                if nid in name_to_rs
+            ]
+            lods.append(mid_list)
+
+    return VisualPrototype(nodes, merged_geom_path_id, render_sets, lods)
 
 
 # ---------------------------------------------------------------------------

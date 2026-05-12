@@ -111,6 +111,22 @@ def _write_glb(json_dict: dict, binary: bytes, path: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Matrix helpers
+# ---------------------------------------------------------------------------
+
+def _mat4_mul_col(a: list[float], b: list[float]) -> list[float]:
+    """Multiply two 4×4 column-major matrices: result = a × b."""
+    out = [0.0] * 16
+    for col in range(4):
+        for row in range(4):
+            s = 0.0
+            for k in range(4):
+                s += a[k * 4 + row] * b[col * 4 + k]
+            out[col * 4 + row] = s
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Multi-GLB merger
 # ---------------------------------------------------------------------------
 
@@ -235,9 +251,15 @@ def find_hull_geometry_files(hull_model_path: str, game_dir: str) -> list[str]:
     ship_dir = os.path.dirname(geom_path)
     base_name = os.path.splitext(os.path.basename(geom_path))[0]
 
-    # Find all .geometry files in the directory whose name starts with the base name
+    # Find all .geometry files whose name starts with base_name but skip the
+    # bare base file (e.g. JSB007_Kongo_1942.geometry) — it's a low-poly LOD
+    # placeholder; the detailed sub-parts (_Bow, _MidFront, …) are the real mesh.
     all_geoms = glob.glob(os.path.join(ship_dir, "*.geometry"))
-    hull_parts = sorted(p for p in all_geoms if os.path.basename(p).startswith(base_name))
+    hull_parts = sorted(
+        p for p in all_geoms
+        if os.path.basename(p).startswith(base_name)
+        and os.path.splitext(os.path.basename(p))[0] != base_name
+    )
     return hull_parts
 
 
@@ -295,6 +317,7 @@ def stitch_ship(
     assets_bin_path: Optional[str] = None,
     with_textures: bool = False,
     max_texture_size: int = 2048,
+    lod_level: int = 0,
 ) -> None:
     print(f"Loading GameParams …", file=sys.stderr)
     gp = load_game_params(gameparams_path)
@@ -361,17 +384,25 @@ def stitch_ship(
     for g in hull_geoms:
         print(f"  {g}", file=sys.stderr)
 
-    # Load HP transforms from assets.bin (if available and turrets requested)
+    # Load HP transforms from assets.bin (if available and turrets requested).
+    # Weapon hardpoints live in sub-part visuals (Bow, MidFront, etc.), not the
+    # main hull visual, so we query each hull part visual and merge results.
     hp_transforms: dict[str, Optional[list[float]]] = {}
     if with_turrets and assets_bin_path:
-        visual_suffix = model_path_to_visual_suffix(hull_model)
         print(f"\nLoading HP transforms from assets.bin …", file=sys.stderr)
-        print(f"  Visual suffix: {visual_suffix}", file=sys.stderr)
-        try:
-            hp_transforms = get_hp_transforms(assets_bin_path, visual_suffix)
-            print(f"  Found {len(hp_transforms)} HP_ transforms.", file=sys.stderr)
-        except Exception as e:
-            print(f"  Warning: could not load HP transforms: {e}", file=sys.stderr)
+        total_hp = 0
+        for geom_path in hull_geoms:
+            visual = geom_path.replace(".geometry", ".visual")
+            parts = visual.replace("\\", "/").split("/")
+            suffix = "/".join(parts[-2:]) if len(parts) >= 2 else parts[-1]
+            try:
+                part_hp = get_hp_transforms(assets_bin_path, suffix)
+                hp_transforms.update(part_hp)
+                total_hp += len(part_hp)
+                print(f"  {os.path.basename(suffix)}: {len(part_hp)} HP_ nodes", file=sys.stderr)
+            except Exception as e:
+                print(f"  Warning: could not load HP transforms from {suffix}: {e}", file=sys.stderr)
+        print(f"  Total: {len(hp_transforms)} HP_ transforms.", file=sys.stderr)
 
     # Locate turret geometry files (if requested)
     turret_geoms: dict[str, Optional[str]] = {}
@@ -411,13 +442,28 @@ def stitch_ship(
             print("No hull parts could be converted.", file=sys.stderr)
             sys.exit(1)
 
-        # Turret models — place at HP_ world-space transform if available
+        # Turret models — place at HP_ world-space transform if available.
+        # All turret/gun models face stern (+Z in game space) but the ship faces
+        # bow (-Z), so we apply a 180° Y-axis rotation on top of the HP transform.
+        _ROT180Y = [
+            -1.0,  0.0, 0.0, 0.0,
+             0.0,  1.0, 0.0, 0.0,
+             0.0,  0.0,-1.0, 0.0,
+             0.0,  0.0, 0.0, 1.0,
+        ]  # column-major
+
         if with_turrets:
             for hp_name, geom_path in sorted(turret_geoms.items()):
                 if not geom_path:
                     continue
 
-                transform = hp_transforms.get(hp_name)  # None → origin
+                hp_mat = hp_transforms.get(hp_name)
+                if hp_mat is not None:
+                    # Compose: first rotate 180° around Y, then translate to HP position.
+                    # result = hp_mat * ROT180Y  (in column-major, right-multiply)
+                    transform = _mat4_mul_col(hp_mat, _ROT180Y)
+                else:
+                    transform = None
 
                 part_name = os.path.splitext(os.path.basename(geom_path))[0]
                 label     = f"{part_name} ({hp_name})"
@@ -435,7 +481,7 @@ def stitch_ship(
         print(f"\nMerging {len(glb_parts)} parts …", file=sys.stderr)
         merged_json, merged_binary = merge_glbs(glb_parts)
 
-        # Apply textures to all meshes (hull + turrets)
+        # Apply textures to all meshes (hull + turrets), filtered to chosen LOD
         if with_textures and assets_bin_path:
             merged_json, merged_binary = texture_hull_glb(
                 merged_json,
@@ -445,6 +491,7 @@ def stitch_ship(
                 hull_model,
                 game_dir,
                 max_texture_size=max_texture_size,
+                lod_level=lod_level,
             )
 
         _write_glb(merged_json, merged_binary, output_glb)
@@ -505,6 +552,8 @@ Notes:
                     help="Embed DDS textures as PNG in the output GLB (requires assets.bin)")
     ap.add_argument("--texture-size", metavar="N", type=int, default=2048,
                     help="Max texture dimension in pixels (default: 2048)")
+    ap.add_argument("--lod", metavar="N", type=int, default=0,
+                    help="LOD level to export: 0=highest detail (default), 1/2/3=lower")
     args = ap.parse_args()
 
     # Auto-detect CLI binary
@@ -545,6 +594,7 @@ Notes:
         assets_bin_path=assets_bin,
         with_textures=args.textures,
         max_texture_size=args.texture_size,
+        lod_level=args.lod,
     )
 
 
