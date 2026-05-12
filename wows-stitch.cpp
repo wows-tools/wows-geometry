@@ -29,6 +29,7 @@ extern "C" {
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <regex>
 #include <set>
 #include <string>
 #include <vector>
@@ -37,6 +38,9 @@ extern "C" {
 #include <stb/stb_image_write.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize2.h>
+
+static bool g_verbose = false;
+#define vlog(...) do { if (g_verbose) fprintf(stderr, __VA_ARGS__); } while(0)
 
 /* ── embedded game_params.py ─────────────────────────────────────── */
 
@@ -274,30 +278,51 @@ static bool load_hull_info(const char *gameparams_path,
     Py_DECREF(gp);
     if (!root) { PyErr_Print(); return false; }
 
-    /* find ship: exact match first, then case-insensitive substring */
+    /* find ship: exact match first, then case-insensitive word-pattern regex */
     std::string found_name = ship_name;
     PyObject *ship_data = PyDict_GetItemString(root, ship_name);
     if (!ship_data) {
-        std::string needle = ship_name;
-        for (auto &c : needle) c = (char)tolower((unsigned char)c);
+        /* build ".*word1.*word2.*" from space/dot/underscore/dash-separated words */
+        std::string pat = ".*";
+        std::string word;
+        for (unsigned char c : std::string(ship_name)) {
+            if (c == ' ' || c == '.' || c == '_' || c == '-') {
+                if (!word.empty()) { pat += word + ".*"; word.clear(); }
+            } else {
+                word += (char)tolower(c);
+            }
+        }
+        if (!word.empty()) pat += word + ".*";
+        std::regex re(pat, std::regex::icase);
+        /* collect all matches that are actual ships (have ShipUpgradeInfo) */
+        std::vector<std::pair<std::string,PyObject*>> hits;
         PyObject *pk, *pv;
         Py_ssize_t pos = 0;
         while (PyDict_Next(root, &pos, &pk, &pv)) {
             std::string k = py_str(pk);
-            std::string kl = k;
-            for (auto &c : kl) c = (char)tolower((unsigned char)c);
-            if (kl.find(needle) != std::string::npos) {
-                ship_data = pv;
-                found_name = k;
-                break;
-            }
+            if (!std::regex_match(k, re)) continue;
+            if (!PyDict_Check(pv)) continue;
+            if (!PyDict_GetItemString(pv, "ShipUpgradeInfo")) continue;
+            hits.push_back({k, pv});
+        }
+        if (hits.size() == 1) {
+            found_name = hits[0].first;
+            ship_data  = hits[0].second;
+        } else if (hits.size() > 1) {
+            fprintf(stderr, "Ambiguous ship pattern '%s' matches:\n", ship_name);
+            for (auto &h : hits) fprintf(stderr, "  %s\n", h.first.c_str());
+            fprintf(stderr, "Use a more specific name.\n");
+            Py_DECREF(root);
+            return false;
         }
     }
     if (!ship_data) {
         fprintf(stderr, "Ship '%s' not found in GameParams.\n", ship_name);
-        Py_DECREF(root); Py_DECREF(mod);
+        Py_DECREF(root);
         return false;
     }
+    if (found_name != ship_name)
+        fprintf(stderr, "Matched ship: %s\n", found_name.c_str());
 
     /* extract_ship(name, data) */
     PyObject *info = PyObject_CallMethod(mod, "extract_ship", "sO",
@@ -329,12 +354,14 @@ static bool load_hull_info(const char *gameparams_path,
             Py_DECREF(info); return false;
         }
     } else {
-        /* first upgrade in sorted order */
+        /* last upgrade in sorted order (= highest hull letter, e.g. C > B > A) */
         PyObject *keys = PyDict_Keys(upgrades);
         PyList_Sort(keys);
-        if (PyList_Size(keys) > 0) {
-            PyObject *k = PyList_GetItem(keys, 0);
+        Py_ssize_t nk = PyList_Size(keys);
+        if (nk > 0) {
+            PyObject *k = PyList_GetItem(keys, nk - 1);
             upg_data = PyDict_GetItem(upgrades, k);
+            vlog("  Hull upgrade: %s\n", py_str(k).c_str());
         }
         Py_DECREF(keys);
         if (!upg_data) {
@@ -996,7 +1023,7 @@ static void apply_textures(tinygltf::Model &model,
                 clod=best_lod(vi,dmg,tc);
             } else { clod=std::max(0,lod_level); }
 
-            fprintf(stderr,"  Visual %s: LOD%d/%zu, %zu render sets\n",
+            vlog("  Visual %s: LOD%d/%zu, %zu render sets\n",
                     path_basename(gp).c_str(),clod,vi->lod_count,vi->rs_count);
 
             if(vi->lod_count>0&&(size_t)clod<vi->lod_count)
@@ -1023,15 +1050,15 @@ static void apply_textures(tinygltf::Model &model,
 
                 std::string dds=find_texture(tdir,tstem,"_a");
                 if(dds.empty()){
-                    fprintf(stderr,"    no albedo: %s\n",tstem.c_str()); continue;
+                    vlog("    no albedo: %s\n",tstem.c_str()); continue;
                 }
                 std::vector<uint8_t> png=dds_to_png(dds,max_tex);
                 if(png.empty()){
-                    fprintf(stderr,"    decode fail: %s\n",path_basename(dds).c_str()); continue;
+                    vlog("    decode fail: %s\n",path_basename(dds).c_str()); continue;
                 }
                 int mat=ensure_mat(tstem,png);
                 gt.mid_mat[mid]=mat;
-                fprintf(stderr,"    %s → mat%d (%zuKB)\n",
+                vlog("    %s → mat%d (%zuKB)\n",
                         path_basename(dds).c_str(),mat,png.size()/1024);
             }
             assets_bin_visual_info_free(vi);
@@ -1073,15 +1100,16 @@ static char doc[] =
 static struct argp_option options[] = {
     {"gameparams",   'g', "FILE",  0, "GameParams.data (auto-detected from -d if omitted)"},
     {"game-dir",     'd', "DIR",   0, "Root game directory"},
-    {"ship",         's', "NAME",  0, "Ship name or substring (e.g. PJSB007, Kongo)"},
+    {"ship",         's', "NAME",  0, "Ship name / pattern (words joined as .*word1.*word2.*, case-insensitive)"},
     {"output",       'o', "FILE",  0, "Output .glb file"},
-    {"hull",         'H', "UPG",   0, "Hull upgrade name substring (default: first)"},
-    {"with-turrets", 't', nullptr, 0, "Include turret / mounted-component models"},
+    {"hull",         'H', "UPG",   0, "Hull upgrade name substring (default: latest)"},
+    {"no-turrets",   't', nullptr, 0, "Exclude turret / mounted-component models (default: included)"},
     {"assets-bin",   'a', "FILE",  0, "assets.bin (auto-detected from -d if omitted)"},
-    {"textures",     'T', nullptr, 0, "Apply DDS textures (requires assets.bin)"},
+    {"no-textures",  'T', nullptr, 0, "Skip DDS texture application (default: applied)"},
     {"texture-size", 'Z', "N",     0, "Max texture dimension in pixels (default: 2048)"},
     {"lod",          'L', "N",     0, "LOD level to export (-1=auto, default: -1)"},
     {"damage",       'D', nullptr, 0, "Include damage/crack geometry (default: excluded)"},
+    {"verbose",      'v', nullptr, 0, "Verbose progress output"},
     {0}
 };
 
@@ -1092,11 +1120,12 @@ struct Args {
     char *output       = nullptr;
     char *hull         = nullptr;
     char *assets_bin   = nullptr;
-    bool  with_turrets = false;
-    bool  textures     = false;
+    bool  with_turrets = true;
+    bool  textures     = true;
     int   tex_size     = 2048;
     int   lod          = -1;
     bool  damage       = false;
+    bool  verbose      = false;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -1108,11 +1137,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'o': a->output       = arg; break;
     case 'H': a->hull         = arg; break;
     case 'a': a->assets_bin   = arg; break;
-    case 't': a->with_turrets = true; break;
-    case 'T': a->textures     = true; break;
+    case 't': a->with_turrets = false; break;
+    case 'T': a->textures     = false; break;
     case 'Z': a->tex_size     = atoi(arg); break;
     case 'L': a->lod          = atoi(arg); break;
     case 'D': a->damage       = true; break;
+    case 'v': a->verbose      = true; break;
     default:  return ARGP_ERR_UNKNOWN;
     }
     return 0;
@@ -1125,6 +1155,7 @@ static struct argp argp = {options, parse_opt, nullptr, doc};
 int main(int argc, char **argv) {
     Args args;
     argp_parse(&argp, argc, argv, 0, nullptr, &args);
+    g_verbose = args.verbose;
 
     if (!args.game_dir || !args.ship || !args.output) {
         fprintf(stderr, "Error: -d, -s, and -o are required.\n");
@@ -1144,7 +1175,7 @@ int main(int argc, char **argv) {
                     game_dir.c_str());
             return 1;
         }
-        fprintf(stderr, "Auto-detected GameParams: %s\n", gameparams_path.c_str());
+        vlog("Auto-detected GameParams: %s\n", gameparams_path.c_str());
     }
 
     /* ── auto-detect assets.bin ─── */
@@ -1152,10 +1183,10 @@ int main(int argc, char **argv) {
     if (assets_bin_path.empty()) {
         assets_bin_path = find_game_file(game_dir, "assets.bin");
         if (!assets_bin_path.empty())
-            fprintf(stderr, "Auto-detected assets.bin: %s\n", assets_bin_path.c_str());
+            vlog("Auto-detected assets.bin: %s\n", assets_bin_path.c_str());
     }
 
-    fprintf(stderr, "Loading GameParams …\n");
+    vlog("Loading GameParams …\n");
     Py_Initialize();
 
     HullInfo hull;
@@ -1166,8 +1197,8 @@ int main(int argc, char **argv) {
 
     Py_Finalize();
 
-    fprintf(stderr, "Hull model: %s\n", hull.hull_model.c_str());
-    fprintf(stderr, "Mounts:     %zu\n", hull.mounts.size());
+    vlog("Hull model: %s\n", hull.hull_model.c_str());
+    vlog("Mounts:     %zu\n", hull.mounts.size());
 
     /* ── hull geometry files ─── */
     std::vector<std::string> hull_geoms = find_hull_geoms(hull.hull_model, game_dir);
@@ -1176,14 +1207,14 @@ int main(int argc, char **argv) {
                 hull.hull_model.c_str());
         return 1;
     }
-    fprintf(stderr, "Hull parts: %zu\n", hull_geoms.size());
+    vlog("Hull parts: %zu\n", hull_geoms.size());
 
     /* ── HP transforms and BlendBone corrections ─── */
     std::map<std::string, Mat16d> hp_transforms;
     std::map<std::string, Mat16d> bb_corrections;
 
     if (args.with_turrets && !assets_bin_path.empty()) {
-        fprintf(stderr, "Loading HP transforms from assets.bin …\n");
+        vlog("Loading HP transforms from assets.bin …\n");
 
         for (const auto &gp : hull_geoms) {
             std::string suffix = geom_to_visual_suffix(gp);
@@ -1196,7 +1227,7 @@ int main(int argc, char **argv) {
             }
             assets_bin_hp_list_free(hp);
         }
-        fprintf(stderr, "  %zu HP_ transforms.\n", hp_transforms.size());
+        vlog("  %zu HP_ transforms.\n", hp_transforms.size());
 
         /* unique turret model paths */
         std::vector<std::string> unique_models;
@@ -1224,7 +1255,7 @@ int main(int argc, char **argv) {
 
     /* hull parts — no transform */
     for (const auto &gp : hull_geoms) {
-        fprintf(stderr, "  Hull part: %s …\n", path_basename(gp).c_str());
+        vlog("  Hull part: %s …\n", path_basename(gp).c_str());
         GlbPart part;
         part.mesh_name = stem(path_basename(gp));
         part.geom_path = gp;
@@ -1269,7 +1300,7 @@ int main(int argc, char **argv) {
             }
 
             std::string label = stem(path_basename(geom_path)) + " (" + m.hp_name + ")";
-            fprintf(stderr, "  Turret: %s …\n", label.c_str());
+            vlog("  Turret: %s …\n", label.c_str());
 
             GlbPart part;
             part.mesh_name = label;
@@ -1281,13 +1312,13 @@ int main(int argc, char **argv) {
     }
 
     /* ── merge ─── */
-    fprintf(stderr, "Merging %zu part(s) …\n", parts.size());
+    vlog("Merging %zu part(s) …\n", parts.size());
     tinygltf::Model merged = merge_parts(parts);
 
     /* ── textures ─── */
     if (args.textures && !assets_bin_path.empty()) {
-        fprintf(stderr, "Applying textures (size=%d, lod=%d, damage=%s) …\n",
-                args.tex_size, args.lod, args.damage ? "yes" : "no");
+        vlog("Applying textures (size=%d, lod=%d, damage=%s) …\n",
+             args.tex_size, args.lod, args.damage ? "yes" : "no");
         assets_bin_pdb_t *pdb = assets_bin_pdb_open(assets_bin_path.c_str());
         if (!pdb) {
             fprintf(stderr, "Warning: failed to open assets.bin for textures.\n");
@@ -1299,7 +1330,7 @@ int main(int argc, char **argv) {
             assets_bin_pdb_free(pdb);
         }
     } else if (args.textures) {
-        fprintf(stderr, "Warning: --textures requires assets.bin (use -a or -d).\n");
+        fprintf(stderr, "Warning: --no-textures skipped; assets.bin not found (use -a or -d).\n");
     }
 
     /* ── write output ─── */
