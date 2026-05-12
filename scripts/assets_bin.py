@@ -418,7 +418,8 @@ def parse_assets_bin(path: str) -> PrototypeDatabase:
 RENDER_SET_SIZE = 0x28
 
 class RenderSet:
-    __slots__ = ("name_id", "mat_name_id", "vertices_mapping_id", "indices_mapping_id", "mfm_path_id")
+    __slots__ = ("name_id", "mat_name_id", "vertices_mapping_id", "indices_mapping_id",
+                 "mfm_path_id", "node_name_id")
 
     def __init__(
         self,
@@ -427,12 +428,14 @@ class RenderSet:
         vertices_mapping_id: int,
         indices_mapping_id: int,
         mfm_path_id: int,
+        node_name_id: int = 0,
     ):
         self.name_id              = name_id
         self.mat_name_id          = mat_name_id
         self.vertices_mapping_id  = vertices_mapping_id
         self.indices_mapping_id   = indices_mapping_id
         self.mfm_path_id          = mfm_path_id
+        self.node_name_id         = node_name_id
 
 
 def _parse_render_sets(record_data: bytes, offset: int, count: int) -> list[RenderSet]:
@@ -445,7 +448,15 @@ def _parse_render_sets(record_data: bytes, offset: int, count: int) -> list[Rend
         indices_mapping_id   = _u32(record_data, base + 12)
         mfm_path_id          = _u64(record_data, base + 16)
         # +24 skinned u8, +25 nodes_count u8, +26..31 padding, +32 node_name_ids_relptr i64
-        result.append(RenderSet(name_id, mat_name_id, vertices_mapping_id, indices_mapping_id, mfm_path_id))
+        nodes_cnt   = record_data[base + 25]
+        node_rp     = _i64(record_data, base + 32)
+        node_name_id = 0
+        if nodes_cnt > 0 and node_rp != 0:
+            node_arr_off = (base + 32) + node_rp
+            if node_arr_off + 4 <= len(record_data):
+                node_name_id = _u32(record_data, node_arr_off)
+        result.append(RenderSet(name_id, mat_name_id, vertices_mapping_id, indices_mapping_id,
+                                mfm_path_id, node_name_id))
     return result
 
 
@@ -524,6 +535,30 @@ class VisualPrototype:
             if name and name.startswith("HP_"):
                 result.append(name)
         return sorted(result)
+
+    def damage_indices_mapping_ids(self, strings: StringsSection) -> set[int]:
+        """Return mapping_ids for render sets that are damage/cross-section geometry.
+
+        Node naming convention in BigWorld WoWS:
+          Xxx_crack_YYY_DeckHouse  → main-body exterior deckhouse face at joint (NOT damage)
+          Xxx_crack_YYY_Hull       → main-body exterior hull face at joint (NOT damage)
+          Xxx_crack_YYY_in         → inner cross-section face at joint (DAMAGE)
+          Xxx_crack_YYY            → inner/cross-section face (no material suffix) (DAMAGE)
+          Xxx_hide                 → hidden torn-metal mesh (DAMAGE)
+        """
+        result: set[int] = set()
+        for rs in self.render_sets:
+            name = strings.get_string_by_id(rs.node_name_id) or ""
+            if "_hide" in name:
+                result.add(rs.indices_mapping_id)
+            elif "_crack_" in name:
+                # Exterior main-body faces: last token is "DeckHouse" or "DeckHouse<N>"
+                # (e.g. Bow_crack_MidFront_DeckHouse, MidBack_crack_MidFront_DeckHouse1)
+                # Everything else (_in, bare junction names, _wire) is damage geometry.
+                last_token = name.rsplit("_", 1)[-1] if "_" in name else name
+                if not last_token.startswith("DeckHouse"):
+                    result.add(rs.indices_mapping_id)
+        return result
 
 
 def _mat4_mul(a: list[float], b: list[float]) -> list[float]:

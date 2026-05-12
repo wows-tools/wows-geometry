@@ -318,6 +318,7 @@ def stitch_ship(
     with_textures: bool = False,
     max_texture_size: int = 2048,
     lod_level: int = 0,
+    exclude_damage: bool = True,
 ) -> None:
     print(f"Loading GameParams …", file=sys.stderr)
     gp = load_game_params(gameparams_path)
@@ -492,6 +493,7 @@ def stitch_ship(
                 game_dir,
                 max_texture_size=max_texture_size,
                 lod_level=lod_level,
+                exclude_damage=exclude_damage,
             )
 
         _write_glb(merged_json, merged_binary, output_glb)
@@ -554,6 +556,9 @@ Notes:
                     help="Max texture dimension in pixels (default: 2048)")
     ap.add_argument("--lod", metavar="N", type=int, default=0,
                     help="LOD level to export: 0=highest detail (default), 1/2/3=lower")
+    ap.add_argument("--damage", action="store_true",
+                    help="Include damage/cross-section geometry at ship break points "
+                         "(excluded by default)")
     args = ap.parse_args()
 
     # Auto-detect CLI binary
@@ -595,6 +600,7 @@ Notes:
         with_textures=args.textures,
         max_texture_size=args.texture_size,
         lod_level=args.lod,
+        exclude_damage=not args.damage,
     )
 
 
