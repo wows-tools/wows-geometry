@@ -181,7 +181,10 @@ float f16_to_f32(uint16_t h) {
             f = s;
         } else {
             e = 1;
-            while (!(m & 0x400u)) { m <<= 1; e--; }
+            while (!(m & 0x400u)) {
+                m <<= 1;
+                e--;
+            }
             m &= 0x3ffu;
             f = s | ((e + 112u) << 23) | (m << 13);
         }
