@@ -15,7 +15,8 @@ jobs:
     - name: Install packages
       run: |
         sudo apt update
-        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev
+        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev \
+          libmeshoptimizer-dev libtinygltf-dev
 
     - name: Set up CMake
       uses: lukka/run-cmake@v1

@@ -2,6 +2,13 @@
 *.d
 __pycache__/
 
+.claude/
+*.glb
+*.gltf
+out
+res_unpack
+build*/
+
 # Object files
 *.o
 *.ko
@@ -58,6 +65,7 @@ dkms.conf
 
 # binary
 wows-geometry-cli
+wows-stitch
 wows-geometry-test
 
 # coverage stuff
@@ -87,3 +95,4 @@ inc/html/
 inc/latex/
 latex/
 docs/doxygen-awesome-css
+wows-toolkit/

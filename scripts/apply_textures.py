@@ -68,6 +68,45 @@ def read_geometry_mapping_ids(geom_path: str) -> list[int]:
     return mapping_ids
 
 
+def read_geometry_tri_counts(geom_path: str) -> dict[int, int]:
+    """Return {mapping_id: triangle_count} for every index bloc in the geometry file."""
+    with open(geom_path, "rb") as f:
+        hdr = f.read(72)
+    if len(hdr) < 72:
+        return {}
+    n_index_bloc = struct.unpack_from("<I", hdr, 12)[0]
+    off_sec_2    = struct.unpack_from("<Q", hdr, 32)[0]
+    with open(geom_path, "rb") as f:
+        f.seek(off_sec_2)
+        table = f.read(n_index_bloc * 16)
+    result: dict[int, int] = {}
+    for i in range(n_index_bloc):
+        mid        = struct.unpack_from("<I", table, i * 16)[0]
+        items_cnt  = struct.unpack_from("<I", table, i * 16 + 12)[0]
+        result[mid] = items_cnt // 3
+    return result
+
+
+def best_lod_for_visual(visual, damage_mids: set[int], tri_counts: dict[int, int]) -> int:
+    """
+    Return the LOD level whose non-damage geometry has the most triangles.
+
+    LOD0 in WoWS is designed for extreme close-up damage viewing: it prioritises
+    crack-seam and cross-section faces and may have minimal main-hull coverage.
+    LOD1 is the standard combat LOD and typically carries the complete undamaged
+    hull panels.  Selecting the LOD with the highest non-damage triangle count
+    gives the most visually complete undamaged ship for static renders.
+    """
+    best_level = 0
+    best_tris  = -1
+    for lod_i, lod_mids in enumerate(visual.lods):
+        tris = sum(tri_counts.get(m, 0) for m in lod_mids if m not in damage_mids)
+        if tris > best_tris:
+            best_tris  = tris
+            best_level = lod_i
+    return best_level
+
+
 # ---------------------------------------------------------------------------
 # Texture file finder
 # ---------------------------------------------------------------------------
@@ -247,9 +286,6 @@ def apply_textures_to_glb(
         textures_list.append({"sampler": sampler_idx, "source": img_idx})
         return tex_idx
 
-    # V-flip texture transform: BigWorld geometry stores V with origin at bottom,
-    # but DDS textures are stored top-to-bottom. Applying scale=[1,-1], offset=[0,1]
-    # corrects: new_v = -1*v + 1 = 1-v
     _V_FLIP = {
         "extensions": {
             "KHR_texture_transform": {
@@ -319,18 +355,18 @@ def apply_textures_to_glb(
                     kept_prims.append(prim)
             mesh["primitives"] = kept_prims
 
-    # Declare the KHR_texture_transform extension as used
     out_json = dict(json_dict)
-    exts_used = list(out_json.get("extensionsUsed", []))
-    if "KHR_texture_transform" not in exts_used:
-        exts_used.append("KHR_texture_transform")
-    out_json["extensionsUsed"] = exts_used
     out_json["bufferViews"] = bv_list
     out_json["images"]      = images_list
     out_json["textures"]    = textures_list
     out_json["samplers"]    = samplers_list
     out_json["materials"]   = materials_list
     out_json["buffers"]     = [{"byteLength": len(binary)}]
+
+    exts_used = list(out_json.get("extensionsUsed", []))
+    if "KHR_texture_transform" not in exts_used:
+        exts_used.append("KHR_texture_transform")
+    out_json["extensionsUsed"] = exts_used
 
     return out_json, bytes(binary)
 
@@ -356,7 +392,7 @@ def texture_hull_glb(
     hull_model_path: str,
     game_dir: str,
     max_texture_size: int = 2048,
-    lod_level: int = 0,
+    lod_level: int = -1,
     exclude_damage: bool = True,
 ) -> tuple[dict, bytes]:
     """
@@ -364,9 +400,13 @@ def texture_hull_glb(
 
     hull_geom_paths: ordered list of geometry file paths (same order as meshes in the GLB).
     hull_model_path: unused (kept for API compatibility).
-    lod_level: 0 = highest detail, 1/2/3 = lower. Primitives from other LODs are removed.
-    exclude_damage: when True (default), remove damage/cross-section primitives (node names
-                    containing '_crack_' or '_hide', or materials like C002_Razlom).
+    lod_level: LOD to export.  -1 (default) = auto-select per visual the LOD with the
+               most non-damage triangles; 0 = highest detail, 1/2/3 = lower.
+               Note: WoWS LOD0 is designed for extreme close-up damage viewing and may
+               have sparse main-hull geometry; LOD1 typically has the complete undamaged
+               hull panels.  Auto-selection (-1) picks the best per section.
+    exclude_damage: when True (default), remove damage/cross-section primitives (node
+                    names containing '_crack_*_in' or '_hide').
     """
     if Image is None:
         print("  Warning: Pillow not installed — cannot apply textures.", file=sys.stderr)
@@ -377,8 +417,10 @@ def texture_hull_glb(
         parse_assets_bin, parse_visual, VISUAL_ITEM_SIZE, VISUAL_BLOB_INDEX,
     )
 
+    auto_lod = lod_level < 0
+    lod_label = "auto" if auto_lod else str(lod_level)
     damage_label = "excluding damage" if exclude_damage else "including damage"
-    print(f"\nApplying textures from assets.bin (LOD {lod_level}, {damage_label}) …",
+    print(f"\nApplying textures from assets.bin (LOD {lod_label}, {damage_label}) …",
           file=sys.stderr)
 
     db = parse_assets_bin(assets_bin_path)
@@ -388,6 +430,7 @@ def texture_hull_glb(
     # never merge them into a single dict.
     geom_to_material_map: dict[str, dict[int, dict]] = {}
     geom_to_allowed:      dict[str, set[int]]        = {}
+    geom_to_chosen_lod:   dict[str, int]             = {}
 
     for geom_path in hull_geom_paths:
         if not os.path.isfile(geom_path):
@@ -404,22 +447,31 @@ def texture_hull_glb(
             continue
         record_data = db.get_prototype_data(blob_idx, rec_idx, VISUAL_ITEM_SIZE)
         visual = parse_visual(record_data)
-        lod_info = f"LOD{lod_level}/{visual.lod_count}" if visual.lod_count else "no LODs"
+
+        # Auto-select the LOD with the most non-damage triangles for this visual.
+        if auto_lod and visual.lod_count > 0:
+            tri_counts = read_geometry_tri_counts(geom_path)
+            damage_mids = set(visual.damage_indices_mapping_ids(db.strings))
+            chosen_lod = best_lod_for_visual(visual, damage_mids, tri_counts)
+        else:
+            chosen_lod = max(0, lod_level)
+
+        lod_info = f"LOD{chosen_lod}/{visual.lod_count}" if visual.lod_count else "no LODs"
         print(f"  Visual: {full_path} ({len(visual.render_sets)} render sets, {lod_info})",
               file=sys.stderr)
 
         mat_map = build_material_map(db, visual, game_dir)
         geom_to_material_map[geom_path] = mat_map
 
-        allowed: set[int] = set(visual.lod_indices_mapping_ids(lod_level))
+        allowed: set[int] = set(visual.lod_indices_mapping_ids(chosen_lod))
         if exclude_damage:
             damage: set[int] = set(visual.damage_indices_mapping_ids(db.strings))
-            damage.update(mid for mid, info in mat_map.items() if info.get("is_damage"))
             n_before = len(allowed)
             allowed -= damage
             print(f"  Damage filter: removed {n_before - len(allowed)} "
-                  f"of {n_before} LOD{lod_level} primitives", file=sys.stderr)
-        geom_to_allowed[geom_path] = allowed
+                  f"of {n_before} LOD{chosen_lod} primitives", file=sys.stderr)
+        geom_to_allowed[geom_path]     = allowed
+        geom_to_chosen_lod[geom_path]  = chosen_lod
 
     if not geom_to_material_map:
         print("  Warning: no textures resolved.", file=sys.stderr)
@@ -441,8 +493,9 @@ def texture_hull_glb(
             kept     = sum(1 for mid in mapping_ids if mid in allowed)
             total    = len(mapping_ids)
             textured = sum(1 for mid in mapping_ids if mid in mat_map and mid in allowed)
+            chosen   = geom_to_chosen_lod.get(geom_path, lod_level)
             print(f"  {os.path.basename(geom_path)}: {total} prims total, "
-                  f"{kept} in LOD{lod_level}, {textured} textured", file=sys.stderr)
+                  f"{kept} in LOD{chosen}, {textured} textured", file=sys.stderr)
         geom_to_mesh_idxs.setdefault(geom_path, []).append(mesh_idx)
 
     return apply_textures_to_glb(

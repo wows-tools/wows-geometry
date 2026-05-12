@@ -317,7 +317,7 @@ def stitch_ship(
     assets_bin_path: Optional[str] = None,
     with_textures: bool = False,
     max_texture_size: int = 2048,
-    lod_level: int = 0,
+    lod_level: int = -1,
     exclude_damage: bool = True,
 ) -> None:
     print(f"Loading GameParams …", file=sys.stderr)
@@ -566,8 +566,9 @@ Notes:
                     help="Embed DDS textures as PNG in the output GLB (requires assets.bin)")
     ap.add_argument("--texture-size", metavar="N", type=int, default=2048,
                     help="Max texture dimension in pixels (default: 2048)")
-    ap.add_argument("--lod", metavar="N", type=int, default=0,
-                    help="LOD level to export: 0=highest detail (default), 1/2/3=lower")
+    ap.add_argument("--lod", metavar="N", default="best",
+                    help="LOD level to export: 'best' (default) = auto-select per section "
+                         "the LOD with the most non-damage hull geometry; 0=LOD0, 1/2/3=lower")
     ap.add_argument("--damage", action="store_true",
                     help="Include damage/cross-section geometry at ship break points "
                          "(excluded by default)")
@@ -600,6 +601,16 @@ Notes:
             assets_bin = candidate
             print(f"Auto-detected assets.bin: {assets_bin}", file=sys.stderr)
 
+    # Resolve --lod: "best" → -1 (auto), integer string → int
+    lod_raw = args.lod
+    if isinstance(lod_raw, str) and lod_raw.strip().lower() == "best":
+        lod_level = -1
+    else:
+        try:
+            lod_level = int(lod_raw)
+        except (ValueError, TypeError):
+            ap.error(f"--lod must be 'best' or an integer (0–3), got: {lod_raw!r}")
+
     stitch_ship(
         gameparams_path=args.gameparams,
         game_dir=args.game_dir,
@@ -611,7 +622,7 @@ Notes:
         assets_bin_path=assets_bin,
         with_textures=args.textures,
         max_texture_size=args.texture_size,
-        lod_level=args.lod,
+        lod_level=lod_level,
         exclude_damage=not args.damage,
     )
 

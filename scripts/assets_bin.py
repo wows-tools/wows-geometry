@@ -541,7 +541,8 @@ class VisualPrototype:
         """Return mapping_ids for render sets that are damage/cross-section geometry.
 
         Node naming convention in BigWorld WoWS:
-          Xxx_crack_YYY            → exterior hull face at joint (NOT damage)
+          Xxx                      → main hull section (NOT damage)
+          Xxx_crack_YYY            → exterior hull face at break joint (NOT damage)
           Xxx_crack_YYY_DeckHouse  → exterior deckhouse face at joint (NOT damage)
           Xxx_crack_YYY_Bulge      → exterior bulge plating at joint (NOT damage)
           Xxx_crack_YYY_wire       → rigging at joint (NOT damage)
@@ -551,6 +552,9 @@ class VisualPrototype:
           Xxx_crack_YYY_*_in       → inner face with suffix (DAMAGE)
           Xxx_crack_YYY_inside     → inner face alternate spelling (DAMAGE)
           Xxx_hide                 → hidden torn-metal mesh (DAMAGE)
+
+        Note: C002_Razlom material is also used on non-damage nodes (exterior crack
+        seams on Bow/Stern) — material name alone is not a reliable damage indicator.
         """
         result: set[int] = set()
         for rs in self.render_sets:

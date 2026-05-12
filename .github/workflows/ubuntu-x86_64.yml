@@ -20,7 +20,8 @@ jobs:
     - name: Install packages
       run: |
         sudo apt update
-        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev valgrind
+        sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev valgrind \
+          libmeshoptimizer-dev libtinygltf-dev
     - name: Configure CMake
       run: cmake -DCOVERAGE=ON -DBUILD_TESTS=ON .
     - name: Build
