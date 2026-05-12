@@ -44,7 +44,7 @@ from typing import Optional
 # Import our parsers from the same directory
 sys.path.insert(0, os.path.dirname(__file__))
 from game_params import load_game_params, get_params_root, extract_ship, list_ships
-from assets_bin import get_hp_transforms, model_path_to_visual_suffix
+from assets_bin import get_hp_transforms, model_path_to_visual_suffix, get_blendbone_corrections
 from apply_textures import texture_hull_glb
 
 
@@ -405,6 +405,23 @@ def stitch_ship(
                 print(f"  Warning: could not load HP transforms from {suffix}: {e}", file=sys.stderr)
         print(f"  Total: {len(hp_transforms)} HP_ transforms.", file=sys.stderr)
 
+    # Load blend-bone correction per unique turret model.
+    # .geometry vertices are stored in bind pose (before the BlendBone rest-pose
+    # transform).  For models whose Rotate_Y_BlendBone is a Z-flip the barrels
+    # point -Z in the file; applying inverse(BlendBone) corrects this without
+    # a blanket per-species rotation hack.
+    blendbone_corrections: dict[str, list[float]] = {}
+    if with_turrets and assets_bin_path:
+        unique_models = list({
+            info["model"]
+            for info in mounts.values()
+            if info.get("model")
+        })
+        try:
+            blendbone_corrections = get_blendbone_corrections(assets_bin_path, unique_models)
+        except Exception as e:
+            print(f"  Warning: could not load blend-bone corrections: {e}", file=sys.stderr)
+
     # Locate turret geometry files (if requested)
     turret_geoms: dict[str, Optional[str]] = {}
     if with_turrets:
@@ -443,26 +460,21 @@ def stitch_ship(
             print("No hull parts could be converted.", file=sys.stderr)
             sys.exit(1)
 
-        # Turret models — place at HP_ world-space transform if available.
-        # All turret/gun models face stern (+Z in game space) but the ship faces
-        # bow (-Z), so we apply a 180° Y-axis rotation on top of the HP transform.
-        _ROT180Y = [
-            -1.0,  0.0, 0.0, 0.0,
-             0.0,  1.0, 0.0, 0.0,
-             0.0,  0.0,-1.0, 0.0,
-             0.0,  0.0, 0.0, 1.0,
-        ]  # column-major
-
         if with_turrets:
             for hp_name, geom_path in sorted(turret_geoms.items()):
                 if not geom_path:
                     continue
 
-                hp_mat = hp_transforms.get(hp_name)
-                if hp_mat is not None:
-                    # Compose: first rotate 180° around Y, then translate to HP position.
-                    # result = hp_mat * ROT180Y  (in column-major, right-multiply)
-                    transform = _mat4_mul_col(hp_mat, _ROT180Y)
+                hp_mat     = hp_transforms.get(hp_name)
+                model_path = mounts.get(hp_name, {}).get("model", "")
+                correction = blendbone_corrections.get(model_path)
+
+                if hp_mat is not None and correction is not None:
+                    # Undo the model's BlendBone rest-pose rotation so the HP
+                    # transform's own orientation takes over: hp_mat * inv(BlendBone)
+                    transform = _mat4_mul_col(hp_mat, correction)
+                elif hp_mat is not None:
+                    transform = hp_mat
                 else:
                     transform = None
 

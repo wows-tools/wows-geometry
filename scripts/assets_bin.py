@@ -30,6 +30,7 @@ VisualPrototype (blob index 1, item_size=0x70):
   HP_ hardpoint nodes. World-space transform = compose matrices up to root.
 """
 
+import re
 import struct
 import sys
 import os
@@ -540,10 +541,15 @@ class VisualPrototype:
         """Return mapping_ids for render sets that are damage/cross-section geometry.
 
         Node naming convention in BigWorld WoWS:
-          Xxx_crack_YYY_DeckHouse  → main-body exterior deckhouse face at joint (NOT damage)
-          Xxx_crack_YYY_Hull       → main-body exterior hull face at joint (NOT damage)
-          Xxx_crack_YYY_in         → inner cross-section face at joint (DAMAGE)
-          Xxx_crack_YYY            → inner/cross-section face (no material suffix) (DAMAGE)
+          Xxx_crack_YYY            → exterior hull face at joint (NOT damage)
+          Xxx_crack_YYY_DeckHouse  → exterior deckhouse face at joint (NOT damage)
+          Xxx_crack_YYY_Bulge      → exterior bulge plating at joint (NOT damage)
+          Xxx_crack_YYY_wire       → rigging at joint (NOT damage)
+          Xxx_crack_YYY_in         → inner cross-section face (DAMAGE)
+          Xxx_crack_YYY_in1        → inner cross-section variant (DAMAGE)
+          Xxx_crack_YYY_in_*       → inner cross-section sub-element (DAMAGE)
+          Xxx_crack_YYY_*_in       → inner face with suffix (DAMAGE)
+          Xxx_crack_YYY_inside     → inner face alternate spelling (DAMAGE)
           Xxx_hide                 → hidden torn-metal mesh (DAMAGE)
         """
         result: set[int] = set()
@@ -552,11 +558,9 @@ class VisualPrototype:
             if "_hide" in name:
                 result.add(rs.indices_mapping_id)
             elif "_crack_" in name:
-                # Exterior main-body faces: last token is "DeckHouse" or "DeckHouse<N>"
-                # (e.g. Bow_crack_MidFront_DeckHouse, MidBack_crack_MidFront_DeckHouse1)
-                # Everything else (_in, bare junction names, _wire) is damage geometry.
-                last_token = name.rsplit("_", 1)[-1] if "_" in name else name
-                if not last_token.startswith("DeckHouse"):
+                # Damage interior faces always contain _in as a suffix component
+                # (_in, _in1, _in_*, _*_in) or _inside. Exterior faces do not.
+                if re.search(r"_in(?:\d|_|$)|_inside(?:_|$)", name):
                     result.add(rs.indices_mapping_id)
         return result
 
@@ -715,6 +719,82 @@ def model_path_to_visual_suffix(hull_model_path: str) -> str:
     if len(parts) >= 2:
         return "/".join(parts[-2:])
     return parts[-1]
+
+
+_IDENTITY_16: list[float] = [
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
+]
+
+
+def _mat4_rotation_inverse(m: list[float]) -> list[float]:
+    """Inverse of a 4×4 column-major pure-rotation (or reflection) matrix.
+
+    For orthogonal matrices the inverse equals the transpose of the 3×3 block.
+    Any translation in column 3 is discarded — blend-bone nodes are rotations only.
+    """
+    # column-major: element (row r, col c) lives at index c*4+r
+    # Transpose: result[c*4+r] = m[r*4+c]
+    return [
+        m[0],  m[4],  m[8],  0.0,
+        m[1],  m[5],  m[9],  0.0,
+        m[2],  m[6],  m[10], 0.0,
+        0.0,   0.0,   0.0,   1.0,
+    ]
+
+
+def get_blendbone_corrections(
+    assets_bin_path: str,
+    model_paths: list[str],
+) -> dict[str, list[float]]:
+    """Return per-model blend-bone correction matrices.
+
+    BigWorld .geometry files store vertices in *bind pose* — before the
+    BlendBone rest-pose transform is applied.  To place a turret model at its
+    HP_ hardpoint with the correct facing direction we must undo that rest-pose
+    rotation: correction = inverse(Rotate_Y_BlendBone_local_rotation).
+
+    For models whose Rotate_Y_BlendBone is a Z-flip ([[1,0,0],[0,1,0],[0,0,-1]])
+    the correction is the Z-flip itself (self-inverse), which rotates bind-pose
+    barrels from -Z to +Z.  For models with an identity BlendBone the correction
+    is identity (no change needed).
+
+    Returns {model_path: [16 floats column-major]} for every path in model_paths.
+    Paths whose visual cannot be found in assets.bin default to identity.
+    """
+    db = parse_assets_bin(assets_bin_path)
+    result: dict[str, list[float]] = {}
+
+    for model_path in model_paths:
+        visual_suffix = model_path_to_visual_suffix(model_path)
+        loc = db.resolve_path(visual_suffix)
+        if loc is None:
+            result[model_path] = list(_IDENTITY_16)
+            continue
+
+        blob_index, record_index, _full = loc
+        if blob_index != VISUAL_BLOB_INDEX:
+            result[model_path] = list(_IDENTITY_16)
+            continue
+
+        record_data = db.get_prototype_data(blob_index, record_index, VISUAL_ITEM_SIZE)
+        visual = parse_visual(record_data)
+
+        # Prefer Rotate_Y_BlendBone (encodes yaw rest pose); fall back to Root_BlendBone.
+        node_idx = visual.find_node_index_by_name("Rotate_Y_BlendBone", db.strings)
+        if node_idx is None:
+            node_idx = visual.find_node_index_by_name("Root_BlendBone", db.strings)
+
+        if node_idx is None or node_idx >= len(visual.nodes.matrices):
+            result[model_path] = list(_IDENTITY_16)
+            continue
+
+        local_mat = visual.nodes.matrices[node_idx]
+        result[model_path] = _mat4_rotation_inverse(local_mat)
+
+    return result
 
 
 # ---------------------------------------------------------------------------
