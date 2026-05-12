@@ -90,8 +90,7 @@ set_target_properties(
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
-target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY}
-                      ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY})
+target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY})
 
 target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
                       ${PCRE_LIBRARY})
