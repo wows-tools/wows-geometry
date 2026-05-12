@@ -33,6 +33,11 @@ extern "C" {
 #include <string>
 #include <vector>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb/stb_image_resize2.h>
+
 /* ── embedded game_params.py ─────────────────────────────────────── */
 
 static const char GAME_PARAMS_PY[] = R"PYTHON(
@@ -82,7 +87,7 @@ def _to_plain(obj, _memo=None):
 class _PermissiveUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         try: return super().find_class(module, name)
-        except (ModuleNotFoundError, AttributeError): return _Stub
+        except Exception: return _Stub
 
 def load_game_params(path):
     with open(path, "rb") as f: data = f.read()
@@ -380,7 +385,8 @@ static Mat16d float_to_double_mat(const float m[16]) {
 struct GlbPart {
     tinygltf::Model model;
     std::string     mesh_name;
-    Mat16d          matrix; /* empty → no matrix (identity) */
+    std::string     geom_path; /* source .geometry file */
+    Mat16d          matrix;    /* empty → identity */
 };
 
 static tinygltf::Model merge_parts(std::vector<GlbPart> &parts) {
@@ -705,6 +711,354 @@ static std::string find_game_file(const std::string &game_dir,
     return hits.back(); /* highest = newest version */
 }
 
+/* ── DDS block-compressed decoder (BC1/BC2/BC3/BC4/BC5) ──────────── */
+
+static void rgb565(uint16_t c, uint8_t *r, uint8_t *g, uint8_t *b) {
+    uint8_t rv=(c>>11)&0x1f; *r=(rv<<3)|(rv>>2);
+    uint8_t gv=(c>> 5)&0x3f; *g=(gv<<2)|(gv>>4);
+    uint8_t bv= c     &0x1f; *b=(bv<<3)|(bv>>2);
+}
+
+static void bc1_block(const uint8_t *src, uint8_t tmp[64]) {
+    uint16_t c0,c1; memcpy(&c0,src,2); memcpy(&c1,src+2,2);
+    uint32_t ix;    memcpy(&ix,src+4,4);
+    uint8_t r[4],g[4],b[4]; r[3]=g[3]=b[3]=0;
+    rgb565(c0,&r[0],&g[0],&b[0]); rgb565(c1,&r[1],&g[1],&b[1]);
+    if (c0>c1) {
+        r[2]=(2*r[0]+r[1]+1)/3; g[2]=(2*g[0]+g[1]+1)/3; b[2]=(2*b[0]+b[1]+1)/3;
+        r[3]=(r[0]+2*r[1]+1)/3; g[3]=(g[0]+2*g[1]+1)/3; b[3]=(b[0]+2*b[1]+1)/3;
+    } else {
+        r[2]=(r[0]+r[1])/2; g[2]=(g[0]+g[1])/2; b[2]=(b[0]+b[1])/2;
+    }
+    for (int i=0;i<16;++i) {
+        int k=(ix>>(i*2))&3;
+        tmp[i*4]=r[k]; tmp[i*4+1]=g[k]; tmp[i*4+2]=b[k]; tmp[i*4+3]=255;
+    }
+}
+
+static void bc4_block(const uint8_t *src, uint8_t av[16]) {
+    uint8_t a0=src[0],a1=src[1]; uint8_t t[8]; t[0]=a0; t[1]=a1;
+    if(a0>a1){t[2]=(6*a0+a1+3)/7;t[3]=(5*a0+2*a1+3)/7;t[4]=(4*a0+3*a1+3)/7;
+              t[5]=(3*a0+4*a1+3)/7;t[6]=(2*a0+5*a1+3)/7;t[7]=(a0+6*a1+3)/7;}
+    else{t[2]=(4*a0+a1+2)/5;t[3]=(3*a0+2*a1+2)/5;t[4]=(2*a0+3*a1+2)/5;
+         t[5]=(a0+4*a1+2)/5;t[6]=0;t[7]=255;}
+    uint64_t bits=0; memcpy(&bits,src+2,6);
+    for(int i=0;i<16;++i) av[i]=t[(bits>>(i*3))&7];
+}
+
+enum DdsFmt { DDS_NONE,DDS_BC1,DDS_BC2,DDS_BC3,DDS_BC4,DDS_BC5 };
+
+static std::vector<uint8_t> decode_dds(const uint8_t *d,size_t sz,int *W,int *H) {
+    if(sz<128||memcmp(d,"DDS ",4)!=0) return {};
+    uint32_t h,w,fcc;
+    memcpy(&h,d+12,4); memcpy(&w,d+16,4); memcpy(&fcc,d+84,4);
+    size_t off=128; DdsFmt fmt=DDS_NONE;
+    static const uint32_t DXT1=0x31545844,DXT3=0x33545844,DXT5=0x35545844,
+                          DXT2=0x32545844,DXT4=0x34545844,
+                          ATI1=0x31495441,BC4U=0x55344342,
+                          ATI2=0x32495441,BC5U=0x55354342,DX10=0x30315844;
+    if(fcc==DX10){
+        if(sz<148) return {};
+        uint32_t dxgi; memcpy(&dxgi,d+128,4); off=148;
+        switch(dxgi){case 71:case 72:fmt=DDS_BC1;break;case 74:fmt=DDS_BC2;break;
+                     case 77:case 78:fmt=DDS_BC3;break;case 80:case 81:fmt=DDS_BC4;break;
+                     case 83:case 84:fmt=DDS_BC5;break;default:return {};}
+    } else {
+        if(fcc==DXT1)            fmt=DDS_BC1;
+        else if(fcc==DXT2||fcc==DXT3) fmt=DDS_BC2;
+        else if(fcc==DXT4||fcc==DXT5) fmt=DDS_BC3;
+        else if(fcc==ATI1||fcc==BC4U) fmt=DDS_BC4;
+        else if(fcc==ATI2||fcc==BC5U) fmt=DDS_BC5;
+        else return {};
+    }
+    int bw=(w+3)/4,bh=(h+3)/4;
+    int bs=(fmt==DDS_BC1||fmt==DDS_BC4)?8:16;
+    if(sz<off+(size_t)bw*bh*bs) return {};
+    *W=(int)w; *H=(int)h;
+    std::vector<uint8_t> rgba(w*h*4,255);
+    const uint8_t *src=d+off;
+    for(int by=0;by<bh;++by) for(int bx=0;bx<bw;++bx) {
+        int px=bx*4,py=by*4;
+        int cx=std::min(4,(int)w-px),cy=std::min(4,(int)h-py);
+        uint8_t tmp[64]={};
+        switch(fmt){
+        case DDS_BC1: bc1_block(src,tmp); break;
+        case DDS_BC2:{uint8_t cb[16];bc1_block(src+8,tmp);
+            for(int i=0;i<8;++i){cb[i*2]=(src[i]&0xF)*17;cb[i*2+1]=(src[i]>>4)*17;}
+            for(int i=0;i<16;++i)tmp[i*4+3]=255; break;}
+        case DDS_BC3:{uint8_t ab[16];bc4_block(src,ab);bc1_block(src+8,tmp);
+            for(int i=0;i<16;++i)tmp[i*4+3]=255; break;}
+        case DDS_BC4:{uint8_t ab[16];bc4_block(src,ab);
+            for(int i=0;i<16;++i){tmp[i*4]=tmp[i*4+1]=tmp[i*4+2]=ab[i];tmp[i*4+3]=255;}break;}
+        case DDS_BC5:{uint8_t rb[16],gb[16];bc4_block(src,rb);bc4_block(src+8,gb);
+            for(int i=0;i<16;++i){tmp[i*4]=rb[i];tmp[i*4+1]=gb[i];tmp[i*4+2]=0;tmp[i*4+3]=255;}break;}
+        default:break;}
+        for(int ty=0;ty<cy;++ty)
+            memcpy(rgba.data()+(py+ty)*(int)w*4+px*4,tmp+ty*16,cx*4);
+        src+=bs;
+    }
+    return rgba;
+}
+
+static std::vector<uint8_t> dds_to_png(const std::string &path, int max_sz) {
+    FILE *f=fopen(path.c_str(),"rb"); if(!f) return {};
+    fseek(f,0,SEEK_END); long sz=ftell(f); fseek(f,0,SEEK_SET);
+    if(sz<=0){fclose(f);return {};}
+    std::vector<uint8_t> raw((size_t)sz);
+    bool ok=fread(raw.data(),1,(size_t)sz,f)==(size_t)sz; fclose(f);
+    if(!ok) return {};
+    int w,h;
+    std::vector<uint8_t> rgba=decode_dds(raw.data(),raw.size(),&w,&h);
+    if(rgba.empty()) return {};
+    if(max_sz>0&&(w>max_sz||h>max_sz)){
+        float s=(float)max_sz/std::max(w,h);
+        int nw=std::max(1,(int)(w*s)),nh=std::max(1,(int)(h*s));
+        std::vector<uint8_t> rs((size_t)nw*nh*4);
+        stbir_resize_uint8_srgb(rgba.data(),w,h,0,rs.data(),nw,nh,0,STBIR_RGBA);
+        rgba=std::move(rs); w=nw; h=nh;
+    }
+    /* Strip alpha channel when fully opaque → ~25% smaller PNG */
+    bool has_alpha = false;
+    for (int i = 3, n = w*h*4; i < n; i += 4)
+        if (rgba[i] != 255) { has_alpha = true; break; }
+    std::vector<uint8_t> rgb3;
+    const uint8_t *pix = rgba.data();
+    int channels = 4, stride = w*4;
+    if (!has_alpha) {
+        rgb3.resize((size_t)w*h*3);
+        for (int i = 0; i < w*h; i++) {
+            rgb3[i*3+0]=rgba[i*4+0]; rgb3[i*3+1]=rgba[i*4+1]; rgb3[i*3+2]=rgba[i*4+2];
+        }
+        pix=rgb3.data(); channels=3; stride=w*3;
+    }
+    std::vector<uint8_t> png;
+    stbi_write_png_to_func([](void*ctx,void*data,int n){
+        auto*v=(std::vector<uint8_t>*)ctx;
+        const auto*p=(const uint8_t*)data; v->insert(v->end(),p,p+n);
+    },&png,w,h,channels,pix,stride);
+    return png;
+}
+
+/* ── geometry mapping_id helpers ─────────────────────────────────── */
+
+static std::vector<uint32_t> read_geom_mapping_ids(const std::string &path) {
+    FILE *f=fopen(path.c_str(),"rb"); if(!f) return {};
+    uint8_t hdr[72]; if(fread(hdr,1,72,f)<72){fclose(f);return {};}
+    uint32_t n; memcpy(&n,hdr+12,4);
+    uint64_t off; memcpy(&off,hdr+32,8);
+    fseek(f,(long)off,SEEK_SET);
+    std::vector<uint32_t> ids;
+    for(uint32_t i=0;i<n;++i){
+        uint8_t e[16]; if(fread(e,1,16,f)<16) break;
+        uint32_t mid; memcpy(&mid,e,4); ids.push_back(mid);
+    }
+    fclose(f); return ids;
+}
+
+static std::map<uint32_t,uint32_t> read_geom_tri_counts(const std::string &path) {
+    FILE *f=fopen(path.c_str(),"rb"); if(!f) return {};
+    uint8_t hdr[72]; if(fread(hdr,1,72,f)<72){fclose(f);return {};}
+    uint32_t n; memcpy(&n,hdr+12,4);
+    uint64_t off; memcpy(&off,hdr+32,8);
+    fseek(f,(long)off,SEEK_SET);
+    std::map<uint32_t,uint32_t> r;
+    for(uint32_t i=0;i<n;++i){
+        uint8_t e[16]; if(fread(e,1,16,f)<16) break;
+        uint32_t mid,cnt; memcpy(&mid,e,4); memcpy(&cnt,e+12,4);
+        r[mid]=cnt/3;
+    }
+    fclose(f); return r;
+}
+
+/* ── texture file finder ─────────────────────────────────────────── */
+
+static const char *MFM_STRIP[]={"_skinned","_alpha","_ep",nullptr};
+
+static std::string find_texture(const std::string &dir,
+                                 const std::string &stem,
+                                 const char *channel) {
+    std::vector<std::string> cands={stem};
+    for(const char**s=MFM_STRIP;*s;++s){
+        size_t sl=strlen(*s);
+        if(stem.size()>sl&&stem.compare(stem.size()-sl,sl,*s)==0){
+            cands.push_back(stem.substr(0,stem.size()-sl)); break;
+        }
+    }
+    for(auto&cs:cands)
+        for(auto ext:{".dd0",".dd1",".dds"}){
+            std::string p=dir+"/"+cs+channel+ext;
+            if(file_exists(p)) return p;
+        }
+    return "";
+}
+
+/* ── LOD selection ───────────────────────────────────────────────── */
+
+static int best_lod(const assets_bin_visual_info_t *vi,
+                    const std::set<uint32_t> &dmg,
+                    const std::map<uint32_t,uint32_t> &tc) {
+    int best=0,btris=-1;
+    for(size_t i=0;i<vi->lod_count;++i){
+        int tris=0;
+        for(size_t j=0;j<vi->lods[i].count;++j){
+            uint32_t mid=vi->lods[i].mapping_ids[j];
+            if(dmg.count(mid)) continue;
+            auto it=tc.find(mid); if(it!=tc.end()) tris+=(int)it->second;
+        }
+        if(tris>btris){btris=tris;best=(int)i;}
+    }
+    return best;
+}
+
+/* ── texture application ─────────────────────────────────────────── */
+
+static void apply_textures(tinygltf::Model &model,
+                            const std::vector<std::string> &geom_order,
+                            assets_bin_pdb_t *pdb,
+                            const std::string &game_dir,
+                            int lod_level, bool excl_damage, int max_tex) {
+    if(!pdb||geom_order.empty()) return;
+
+    if(model.samplers.empty()){
+        tinygltf::Sampler samp;
+        samp.magFilter=9729; samp.minFilter=9987;
+        samp.wrapS=samp.wrapT=10497;
+        model.samplers.push_back(samp);
+    }
+
+    std::map<std::string,int> stem_to_mat;
+
+    auto embed_png=[&](const std::vector<uint8_t>&png)->int{
+        auto&buf=model.buffers[0].data;
+        while(buf.size()&3) buf.push_back(0);
+        size_t boff=buf.size();
+        buf.insert(buf.end(),png.begin(),png.end());
+        tinygltf::BufferView bv; bv.buffer=0; bv.byteOffset=boff; bv.byteLength=png.size();
+        int bvi=(int)model.bufferViews.size(); model.bufferViews.push_back(bv);
+        tinygltf::Image img; img.bufferView=bvi; img.mimeType="image/png";
+        int ii=(int)model.images.size(); model.images.push_back(img);
+        tinygltf::Texture tex; tex.sampler=0; tex.source=ii;
+        int ti=(int)model.textures.size(); model.textures.push_back(tex);
+        return ti;
+    };
+
+    auto vflip_tex=[](int ti)->tinygltf::TextureInfo{
+        tinygltf::TextureInfo t; t.index=ti; t.texCoord=0;
+        tinygltf::Value::Object khr;
+        tinygltf::Value::Array sc,of;
+        sc.push_back(tinygltf::Value(1.0)); sc.push_back(tinygltf::Value(-1.0));
+        of.push_back(tinygltf::Value(0.0)); of.push_back(tinygltf::Value( 1.0));
+        khr["scale"]=tinygltf::Value(sc); khr["offset"]=tinygltf::Value(of);
+        t.extensions["KHR_texture_transform"]=tinygltf::Value(khr);
+        return t;
+    };
+
+    auto ensure_mat=[&](const std::string&name,const std::vector<uint8_t>&png)->int{
+        auto it=stem_to_mat.find(name);
+        if(it!=stem_to_mat.end()) return it->second;
+        int ti=embed_png(png);
+        tinygltf::Material mat; mat.name=name; mat.doubleSided=true;
+        mat.pbrMetallicRoughness.baseColorTexture=vflip_tex(ti);
+        mat.pbrMetallicRoughness.metallicFactor=0.0;
+        mat.pbrMetallicRoughness.roughnessFactor=0.8;
+        int mi=(int)model.materials.size(); model.materials.push_back(mat);
+        stem_to_mat[name]=mi; return mi;
+    };
+
+    struct GtData {
+        std::vector<uint32_t> mids;
+        std::set<uint32_t>    allowed;
+        std::map<uint32_t,int> mid_mat;
+    };
+    std::map<std::string,GtData> cache;
+
+    for(size_t mi=0;mi<model.meshes.size();++mi){
+        if(mi>=geom_order.size()) break;
+        const std::string &gp=geom_order[mi];
+        if(gp.empty()) continue;
+
+        if(!cache.count(gp)){
+            GtData &gt=cache[gp];
+            std::string suf=geom_to_visual_suffix(gp);
+            assets_bin_visual_info_t *vi=assets_bin_get_visual_info(pdb,suf.c_str());
+            if(!vi){ cache[gp]={};  continue; }
+
+            gt.mids=read_geom_mapping_ids(gp);
+
+            std::set<uint32_t> dmg;
+            for(size_t ri=0;ri<vi->rs_count;++ri)
+                if(vi->render_sets[ri].is_damage)
+                    dmg.insert(vi->render_sets[ri].indices_mapping_id);
+
+            int clod;
+            if(lod_level<0&&vi->lod_count>0){
+                auto tc=read_geom_tri_counts(gp);
+                clod=best_lod(vi,dmg,tc);
+            } else { clod=std::max(0,lod_level); }
+
+            fprintf(stderr,"  Visual %s: LOD%d/%zu, %zu render sets\n",
+                    path_basename(gp).c_str(),clod,vi->lod_count,vi->rs_count);
+
+            if(vi->lod_count>0&&(size_t)clod<vi->lod_count)
+                for(size_t j=0;j<vi->lods[clod].count;++j)
+                    gt.allowed.insert(vi->lods[clod].mapping_ids[j]);
+            else
+                for(size_t ri=0;ri<vi->rs_count;++ri)
+                    gt.allowed.insert(vi->render_sets[ri].indices_mapping_id);
+
+            if(excl_damage) for(uint32_t m:dmg) gt.allowed.erase(m);
+
+            for(size_t ri=0;ri<vi->rs_count;++ri){
+                const assets_bin_rs_t &rs=vi->render_sets[ri];
+                uint32_t mid=rs.indices_mapping_id;
+                if(!gt.allowed.count(mid)||!rs.mfm_path[0]) continue;
+
+                std::string mfm=normalize_slashes(rs.mfm_path);
+                auto sl=mfm.rfind('/');
+                std::string mdir=(sl!=std::string::npos)?mfm.substr(0,sl):".";
+                std::string mfile=(sl!=std::string::npos)?mfm.substr(sl+1):mfm;
+                std::string tstem=mfile.size()>4&&mfile.compare(mfile.size()-4,4,".mfm")==0
+                                   ?mfile.substr(0,mfile.size()-4):mfile;
+                std::string tdir=game_dir+"/"+mdir;
+
+                std::string dds=find_texture(tdir,tstem,"_a");
+                if(dds.empty()){
+                    fprintf(stderr,"    no albedo: %s\n",tstem.c_str()); continue;
+                }
+                std::vector<uint8_t> png=dds_to_png(dds,max_tex);
+                if(png.empty()){
+                    fprintf(stderr,"    decode fail: %s\n",path_basename(dds).c_str()); continue;
+                }
+                int mat=ensure_mat(tstem,png);
+                gt.mid_mat[mid]=mat;
+                fprintf(stderr,"    %s → mat%d (%zuKB)\n",
+                        path_basename(dds).c_str(),mat,png.size()/1024);
+            }
+            assets_bin_visual_info_free(vi);
+        }
+
+        GtData &gt=cache.at(gp);
+        std::vector<tinygltf::Primitive> kept;
+        for(size_t pi=0;pi<model.meshes[mi].primitives.size();++pi){
+            tinygltf::Primitive &prim=model.meshes[mi].primitives[pi];
+            if(pi<gt.mids.size()){
+                uint32_t mid=gt.mids[pi];
+                if(!gt.allowed.empty()&&!gt.allowed.count(mid)) continue;
+                auto it=gt.mid_mat.find(mid);
+                if(it!=gt.mid_mat.end()) prim.material=it->second;
+            }
+            kept.push_back(prim);
+        }
+        model.meshes[mi].primitives=std::move(kept);
+    }
+
+    if(!stem_to_mat.empty()){
+        auto&eu=model.extensionsUsed;
+        if(std::find(eu.begin(),eu.end(),"KHR_texture_transform")==eu.end())
+            eu.push_back("KHR_texture_transform");
+    }
+}
+
 /* ── argp ─────────────────────────────────────────────────────────── */
 
 const char *argp_program_version     = "wows-stitch " BFD_VERSION;
@@ -717,13 +1071,17 @@ static char doc[] =
     "(recursive scan up to 3 directory levels; newest version wins).";
 
 static struct argp_option options[] = {
-    {"gameparams",  'g', "FILE",    0, "GameParams.data (auto-detected from -d if omitted)"},
-    {"game-dir",    'd', "DIR",     0, "Root game directory"},
-    {"ship",        's', "NAME",    0, "Ship name or substring (e.g. PJSB007, Kongo)"},
-    {"output",      'o', "FILE",    0, "Output .glb file"},
-    {"hull",        'H', "UPGRADE", 0, "Hull upgrade name substring (default: first)"},
-    {"with-turrets",'t', nullptr,   0, "Include turret / mounted-component models"},
-    {"assets-bin",  'a', "FILE",    0, "assets.bin (auto-detected from -d if omitted)"},
+    {"gameparams",   'g', "FILE",  0, "GameParams.data (auto-detected from -d if omitted)"},
+    {"game-dir",     'd', "DIR",   0, "Root game directory"},
+    {"ship",         's', "NAME",  0, "Ship name or substring (e.g. PJSB007, Kongo)"},
+    {"output",       'o', "FILE",  0, "Output .glb file"},
+    {"hull",         'H', "UPG",   0, "Hull upgrade name substring (default: first)"},
+    {"with-turrets", 't', nullptr, 0, "Include turret / mounted-component models"},
+    {"assets-bin",   'a', "FILE",  0, "assets.bin (auto-detected from -d if omitted)"},
+    {"textures",     'T', nullptr, 0, "Apply DDS textures (requires assets.bin)"},
+    {"texture-size", 'Z', "N",     0, "Max texture dimension in pixels (default: 2048)"},
+    {"lod",          'L', "N",     0, "LOD level to export (-1=auto, default: -1)"},
+    {"damage",       'D', nullptr, 0, "Include damage/crack geometry (default: excluded)"},
     {0}
 };
 
@@ -735,6 +1093,10 @@ struct Args {
     char *hull         = nullptr;
     char *assets_bin   = nullptr;
     bool  with_turrets = false;
+    bool  textures     = false;
+    int   tex_size     = 2048;
+    int   lod          = -1;
+    bool  damage       = false;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -747,6 +1109,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'H': a->hull         = arg; break;
     case 'a': a->assets_bin   = arg; break;
     case 't': a->with_turrets = true; break;
+    case 'T': a->textures     = true; break;
+    case 'Z': a->tex_size     = atoi(arg); break;
+    case 'L': a->lod          = atoi(arg); break;
+    case 'D': a->damage       = true; break;
     default:  return ARGP_ERR_UNKNOWN;
     }
     return 0;
@@ -861,6 +1227,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "  Hull part: %s …\n", path_basename(gp).c_str());
         GlbPart part;
         part.mesh_name = stem(path_basename(gp));
+        part.geom_path = gp;
         if (geom_to_model(gp, part.model))
             parts.push_back(std::move(part));
     }
@@ -906,6 +1273,7 @@ int main(int argc, char **argv) {
 
             GlbPart part;
             part.mesh_name = label;
+            part.geom_path = geom_path;
             part.matrix    = transform;
             if (geom_to_model(geom_path, part.model))
                 parts.push_back(std::move(part));
@@ -915,6 +1283,24 @@ int main(int argc, char **argv) {
     /* ── merge ─── */
     fprintf(stderr, "Merging %zu part(s) …\n", parts.size());
     tinygltf::Model merged = merge_parts(parts);
+
+    /* ── textures ─── */
+    if (args.textures && !assets_bin_path.empty()) {
+        fprintf(stderr, "Applying textures (size=%d, lod=%d, damage=%s) …\n",
+                args.tex_size, args.lod, args.damage ? "yes" : "no");
+        assets_bin_pdb_t *pdb = assets_bin_pdb_open(assets_bin_path.c_str());
+        if (!pdb) {
+            fprintf(stderr, "Warning: failed to open assets.bin for textures.\n");
+        } else {
+            std::vector<std::string> geom_order;
+            for (const auto &p : parts) geom_order.push_back(p.geom_path);
+            apply_textures(merged, geom_order, pdb, game_dir,
+                           args.lod, !args.damage, args.tex_size);
+            assets_bin_pdb_free(pdb);
+        }
+    } else if (args.textures) {
+        fprintf(stderr, "Warning: --textures requires assets.bin (use -a or -d).\n");
+    }
 
     /* ── write output ─── */
     tinygltf::TinyGLTF writer;
