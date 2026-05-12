@@ -79,27 +79,27 @@ typedef struct {
 
 #define WOWS_HEADER_SIZE 72
 typedef struct {
-    uint32_t n_vertex_type;         // number of merged vertex buffers
-    uint32_t n_index_type;          // number of merged index buffers
-    uint32_t n_vertex_bloc;         // number of vertex mapping entries
-    uint32_t n_index_bloc;          // number of index mapping entries
-    uint32_t n_collision_bloc;      // number of collision models
-    uint32_t n_armor_bloc;          // number of armor models
-    uint64_t off_vertices_mapping;  // offset to vertices mapping table (always 72/0x48)
-    uint64_t off_indices_mapping;   // offset to indices mapping table
-    uint64_t off_merged_vertices;   // offset to merged vertex buffers array
-    uint64_t off_merged_indices;    // offset to merged index buffers array
-    uint64_t off_collision_models;  // offset to collision models array
-    uint64_t off_armor_models;      // offset to armor models array
+    uint32_t n_vertex_type;        // number of merged vertex buffers
+    uint32_t n_index_type;         // number of merged index buffers
+    uint32_t n_vertex_bloc;        // number of vertex mapping entries
+    uint32_t n_index_bloc;         // number of index mapping entries
+    uint32_t n_collision_bloc;     // number of collision models
+    uint32_t n_armor_bloc;         // number of armor models
+    uint64_t off_vertices_mapping; // offset to vertices mapping table (always 72/0x48)
+    uint64_t off_indices_mapping;  // offset to indices mapping table
+    uint64_t off_merged_vertices;  // offset to merged vertex buffers array
+    uint64_t off_merged_indices;   // offset to merged index buffers array
+    uint64_t off_collision_models; // offset to collision models array
+    uint64_t off_armor_models;     // offset to armor models array
 } wows_geometry_header;
 
 #define WOWS_BLOC_INFO_SIZE 16
 typedef struct {
-    uint32_t mapping_id;            // draw call identifier
-    uint16_t merged_buffer_index;   // index into merged vertex or index buffer array
-    uint16_t packed_texel_density;  // matches vertex and index mapping entries together
-    uint32_t items_offset;          // first element within the merged buffer
-    uint32_t items_count;           // number of elements for this draw call
+    uint32_t mapping_id;           // draw call identifier
+    uint16_t merged_buffer_index;  // index into merged vertex or index buffer array
+    uint16_t packed_texel_density; // matches vertex and index mapping entries together
+    uint32_t items_offset;         // first element within the merged buffer
+    uint32_t items_count;          // number of elements for this draw call
 } wows_geometry_info;
 
 #define WOWS_VERTEX_META_SIZE 32
@@ -127,11 +127,11 @@ typedef struct {
 
 #define WOWS_INDEX_META_SIZE 16
 typedef struct {
-    int64_t data_relptr;       // relative pointer from struct base to ENCD block
-    uint32_t s_idx_bloc_size;  // total ENCD block size (includes 8-byte ENCD header)
+    int64_t data_relptr;      // relative pointer from struct base to ENCD block
+    uint32_t s_idx_bloc_size; // total ENCD block size (includes 8-byte ENCD header)
     uint16_t _reserved;
-    uint16_t s_index_size;     // bytes per index: 2 (uint16) or 4 (uint32)
-    size_t _abs_start;         // absolute file offset of ENCD block
+    uint16_t s_index_size; // bytes per index: 2 (uint16) or 4 (uint32)
+    size_t _abs_start;     // absolute file offset of ENCD block
 } wows_geometry_index_section_metadata;
 
 typedef struct {
@@ -169,5 +169,5 @@ int wows_parse_geometry_fp(FILE *input, wows_geometry **geometry_content);
 int wows_geometry_print(wows_geometry *geometry_content, bool verbose);
 int wows_geometry_free(wows_geometry *geometry_content);
 int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path);
-int wows_geometry_to_glb_sections(wows_geometry *geometry, const char *output_path,
-                                   const uint32_t *sections, uint32_t n_sections);
+int wows_geometry_to_glb_sections(wows_geometry *geometry, const char *output_path, const uint32_t *sections,
+                                  uint32_t n_sections);
