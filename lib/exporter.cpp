@@ -90,9 +90,19 @@ static uint32_t find_vertex_base(const wows_geometry *geometry,
 
 /* ─────────────────────────────────────────────────────────────────
  * Export to binary glTF (.glb) using tinygltf.
+ * sections/n_sections: optional vertex-section whitelist (NULL = all).
  * ───────────────────────────────────────────────────────────────── */
+static bool vtype_included(uint32_t k, const uint32_t *sections, uint32_t n_sections)
+{
+    if (n_sections == 0) return true;
+    for (uint32_t i = 0; i < n_sections; i++)
+        if (sections[i] == k) return true;
+    return false;
+}
+
 extern "C"
-int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path)
+int wows_geometry_to_glb_sections(wows_geometry *geometry, const char *output_path,
+                                   const uint32_t *sections, uint32_t n_sections)
 {
     uint32_t n_vtypes = geometry->header->n_vertex_type;
     uint32_t n_itypes = geometry->header->n_index_type;
@@ -126,7 +136,8 @@ int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path)
     std::vector<VtypeInfo> vinfo(n_vtypes);
 
     for (uint32_t k = 0; k < n_vtypes; k++) {
-        if (!geometry->vertexes || !geometry->vertexes[k] ||
+        if (!vtype_included(k, sections, n_sections) ||
+            !geometry->vertexes || !geometry->vertexes[k] ||
             !geometry->vertexes[k]->raw_data) {
             vinfo[k].count = 0;
             continue;
@@ -186,26 +197,37 @@ int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path)
 
         uint16_t vt;
         uint32_t vbase = find_vertex_base(geometry, i, &vt);
-        iinfo[i].vtype    = vt;
-        iinfo[i].idx_size = is;
-        iinfo[i].count    = icnt;
+        if (!vtype_included(vt, sections, n_sections))
+            continue;
+        iinfo[i].vtype = vt;
+        iinfo[i].count = icnt;
+
+        /* upgrade uint16 indices to uint32 when absolute values exceed uint16 range */
+        uint16_t out_is = is;
+        if (is == 2) {
+            uint32_t raw_max = 0;
+            for (uint32_t j = 0; j < icnt; j++) {
+                uint16_t v; memcpy(&v, raw + j*2, 2);
+                if ((uint32_t)v > raw_max) raw_max = v;
+            }
+            if (raw_max + vbase > 65535u)
+                out_is = 4;
+        }
+        iinfo[i].idx_size = out_is;
 
         pad4();
         iinfo[i].bv_offset = blob.size();
 
-        if (vbase == 0) {
-            append(raw, (size_t)icnt * is);
-        } else {
-            for (uint32_t j = 0; j < icnt; j++) {
-                if (is == 2) {
-                    uint16_t v; memcpy(&v, raw + j*2, 2);
-                    uint16_t vo = (uint16_t)(v + vbase);
-                    append(&vo, 2);
-                } else {
-                    uint32_t v; memcpy(&v, raw + j*4, 4);
-                    uint32_t vo = v + vbase;
-                    append(&vo, 4);
-                }
+        for (uint32_t j = 0; j < icnt; j++) {
+            uint32_t v = 0;
+            if (is == 2) { uint16_t t; memcpy(&t, raw + j*2, 2); v = t; }
+            else          { memcpy(&v, raw + j*4, 4); }
+            uint32_t vo = v + vbase;
+            if (out_is == 4) {
+                append(&vo, 4);
+            } else {
+                uint16_t vo16 = (uint16_t)vo;
+                append(&vo16, 2);
             }
         }
     }
@@ -312,4 +334,10 @@ int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path)
         return WOWS_ERROR_UNKNOWN;
     }
     return 0;
+}
+
+extern "C"
+int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path)
+{
+    return wows_geometry_to_glb_sections(geometry, output_path, NULL, 0);
 }

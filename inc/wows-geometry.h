@@ -169,3 +169,5 @@ int wows_parse_geometry_fp(FILE *input, wows_geometry **geometry_content);
 int wows_geometry_print(wows_geometry *geometry_content, bool verbose);
 int wows_geometry_free(wows_geometry *geometry_content);
 int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path);
+int wows_geometry_to_glb_sections(wows_geometry *geometry, const char *output_path,
+                                   const uint32_t *sections, uint32_t n_sections);
