@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
-extern bool g_stitch_verbose;
-#define vlog(tag, fmt, ...) do { if (g_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
+extern bool wows_stitch_verbose;
+#define vlog(tag, fmt, ...) do { if (wows_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 #include <cmath>
 #include <limits>
 #include <vector>

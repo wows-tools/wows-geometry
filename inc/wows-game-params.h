@@ -9,14 +9,14 @@
  */
 
 #pragma once
-#include "stitch.h"
+#include "wows-model-exporter.h"
 #include <string>
 #include <vector>
 
 /**
- * @brief One ship entry returned by list_ships().
+ * @brief One ship entry returned by wows_list_ships().
  */
-struct ShipEntry {
+struct wows_ship_entry {
     std::string key;    /**< GameParams key, e.g. "PJSB007". */
     std::string index;  /**< Short code, e.g. "JSB007". */
     std::string nation; /**< Nation string, e.g. "Japan". */
@@ -39,7 +39,7 @@ struct ShipEntry {
  * @param out              Output parameter filled with hull model path and mount entries.
  * @return `true` on success; errors are printed to stderr.
  */
-bool load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, HullInfo &out);
+bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, wows_hull_info &out);
 
 /**
  * @brief Enumerate all ships in `GameParams.data`, grouped by nation and type.
@@ -48,7 +48,7 @@ bool load_hull_info(const char *gameparams_path, const char *ship_name, const ch
  * ship type as extracted from the `typeinfo` block inside each ship record.
  *
  * @param gameparams_path  Filesystem path to `GameParams.data`.
- * @param out              Output vector filled with one ShipEntry per ship.
+ * @param out              Output vector filled with one wows_ship_entry per ship.
  * @return `true` on success; errors are printed to stderr.
  */
-bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out);
+bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out);

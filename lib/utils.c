@@ -33,59 +33,59 @@
 #include "internal.h"
 
 int vertex2id(const char *vertex_type) {
-    if (strcmp(vertex_type, VER_UNKNOWN) == 0)
-        return ID_UNKNOWN;
-    if (strcmp(vertex_type, VER_SET3_XYNUV2IIIWWTBPC) == 0)
-        return ID_SET3_XYNUV2IIIWWTBPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUV2TBIPC) == 0)
-        return ID_SET3_XYNUV2TBIPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUV2TBPC) == 0)
-        return ID_SET3_XYNUV2TBPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWPC) == 0)
-        return ID_SET3_XYNUVIIIWWPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWR) == 0)
-        return ID_SET3_XYNUVIIIWWR;
-    if (strcmp(vertex_type, VER_SET3_XYNUVIIIWWTBPC) == 0)
-        return ID_SET3_XYNUVIIIWWTBPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVPC) == 0)
-        return ID_SET3_XYNUVPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVRPC) == 0)
-        return ID_SET3_XYNUVRPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVTBIPC) == 0)
-        return ID_SET3_XYNUVTBIPC;
-    if (strcmp(vertex_type, VER_SET3_XYNUVTBOI) == 0)
-        return ID_SET3_XYNUVTBOI;
-    if (strcmp(vertex_type, VER_SET3_XYNUVTBPC) == 0)
-        return ID_SET3_XYNUVTBPC;
+    if (strcmp(vertex_type, WOWS_VER_UNKNOWN) == 0)
+        return WOWS_ID_UNKNOWN;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUV2IIIWWTBPC) == 0)
+        return WOWS_ID_SET3_XYNUV2IIIWWTBPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUV2TBIPC) == 0)
+        return WOWS_ID_SET3_XYNUV2TBIPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUV2TBPC) == 0)
+        return WOWS_ID_SET3_XYNUV2TBPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVIIIWWPC) == 0)
+        return WOWS_ID_SET3_XYNUVIIIWWPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVIIIWWR) == 0)
+        return WOWS_ID_SET3_XYNUVIIIWWR;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVIIIWWTBPC) == 0)
+        return WOWS_ID_SET3_XYNUVIIIWWTBPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVPC) == 0)
+        return WOWS_ID_SET3_XYNUVPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVRPC) == 0)
+        return WOWS_ID_SET3_XYNUVRPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVTBIPC) == 0)
+        return WOWS_ID_SET3_XYNUVTBIPC;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVTBOI) == 0)
+        return WOWS_ID_SET3_XYNUVTBOI;
+    if (strcmp(vertex_type, WOWS_VER_SET3_XYNUVTBPC) == 0)
+        return WOWS_ID_SET3_XYNUVTBPC;
     return -1; // Invalid version string
 }
 
 const char *id2vertex(int id) {
     switch (id) {
-    case ID_SET3_XYNUV2IIIWWTBPC:
-        return VER_SET3_XYNUV2IIIWWTBPC;
-    case ID_SET3_XYNUV2TBIPC:
-        return VER_SET3_XYNUV2TBIPC;
-    case ID_SET3_XYNUV2TBPC:
-        return VER_SET3_XYNUV2TBPC;
-    case ID_SET3_XYNUVIIIWWPC:
-        return VER_SET3_XYNUVIIIWWPC;
-    case ID_SET3_XYNUVIIIWWR:
-        return VER_SET3_XYNUVIIIWWR;
-    case ID_SET3_XYNUVIIIWWTBPC:
-        return VER_SET3_XYNUVIIIWWTBPC;
-    case ID_SET3_XYNUVPC:
-        return VER_SET3_XYNUVPC;
-    case ID_SET3_XYNUVRPC:
-        return VER_SET3_XYNUVRPC;
-    case ID_SET3_XYNUVTBIPC:
-        return VER_SET3_XYNUVTBIPC;
-    case ID_SET3_XYNUVTBOI:
-        return VER_SET3_XYNUVTBOI;
-    case ID_SET3_XYNUVTBPC:
-        return VER_SET3_XYNUVTBPC;
+    case WOWS_ID_SET3_XYNUV2IIIWWTBPC:
+        return WOWS_VER_SET3_XYNUV2IIIWWTBPC;
+    case WOWS_ID_SET3_XYNUV2TBIPC:
+        return WOWS_VER_SET3_XYNUV2TBIPC;
+    case WOWS_ID_SET3_XYNUV2TBPC:
+        return WOWS_VER_SET3_XYNUV2TBPC;
+    case WOWS_ID_SET3_XYNUVIIIWWPC:
+        return WOWS_VER_SET3_XYNUVIIIWWPC;
+    case WOWS_ID_SET3_XYNUVIIIWWR:
+        return WOWS_VER_SET3_XYNUVIIIWWR;
+    case WOWS_ID_SET3_XYNUVIIIWWTBPC:
+        return WOWS_VER_SET3_XYNUVIIIWWTBPC;
+    case WOWS_ID_SET3_XYNUVPC:
+        return WOWS_VER_SET3_XYNUVPC;
+    case WOWS_ID_SET3_XYNUVRPC:
+        return WOWS_VER_SET3_XYNUVRPC;
+    case WOWS_ID_SET3_XYNUVTBIPC:
+        return WOWS_VER_SET3_XYNUVTBIPC;
+    case WOWS_ID_SET3_XYNUVTBOI:
+        return WOWS_VER_SET3_XYNUVTBOI;
+    case WOWS_ID_SET3_XYNUVTBPC:
+        return WOWS_VER_SET3_XYNUVTBPC;
     default:
-        return VER_UNKNOWN;
+        return WOWS_VER_UNKNOWN;
     }
 }
 

@@ -2,11 +2,11 @@
  * @file stitch.h
  * @brief High-level ship assembly and GLB export API.
  *
- * This header provides the top-level `stitch_export_ship()` function as well
+ * This header provides the top-level `wows_stitch_export_ship()` function as well
  * as the lower-level helpers used internally to locate geometry files, decode
  * textures, and merge multiple GLB parts into a single scene.
  *
- * A typical caller only needs ::stitch_export_ship; the remaining symbols are
+ * A typical caller only needs ::wows_stitch_export_ship; the remaining symbols are
  * exposed for unit-testing and for tools that need finer-grained control.
  */
 
@@ -16,33 +16,33 @@
 #include <map>
 #include <cstdint>
 #include <tiny_gltf.h>
-#include "assets_bin.h"
+#include "wows-assets-bin.h"
 
 /** @brief Set to `true` before calling any stitch function to enable verbose logging to stderr. */
-extern bool g_stitch_verbose;
+extern bool wows_stitch_verbose;
 
 /**
  * @brief Enable or disable verbose diagnostic output.
  *
  * @param v  `true` to enable, `false` to disable.
  */
-void stitch_set_verbose(bool v);
+void wows_stitch_set_verbose(bool v);
 
 /**
  * @brief Conditionally print a formatted message to stderr when verbose mode is active.
  *
  * Usage mirrors `fprintf(stderr, ...)`.
  */
-#define stitch_vlog(...)                                                                                               \
+#define wows_stitch_vlog(...)                                                                                               \
     do {                                                                                                               \
-        if (g_stitch_verbose)                                                                                          \
+        if (wows_stitch_verbose)                                                                                          \
             fprintf(stderr, __VA_ARGS__);                                                                              \
     } while (0)
 
 /** @brief Column-major 4×4 transform matrix stored as a flat `double` vector of 16 elements. */
-using Mat16d = std::vector<double>;
+using wows_mat16d = std::vector<double>;
 
-/** @defgroup stitch_types Data types
+/** @defgroup wows_stitch_types Data types
  *  Structures used to describe ship parts and export options.
  *  @{
  */
@@ -53,9 +53,9 @@ using Mat16d = std::vector<double>;
  * All fields have sensible defaults; only @p game_dir, @p ship_name, and
  * @p output_path must be specified.
  */
-struct ShipExportOptions {
+struct wows_ship_export_options {
     std::string gameparams_path; /**< Path to `GameParams.data`; auto-detected from @p game_dir if empty. */
-    std::string assets_bin_path; /**< Path to `assets.bin`; auto-detected from @p game_dir if empty. */
+    std::string wows_assets_bin_path; /**< Path to `assets.bin`; auto-detected from @p game_dir if empty. */
     std::string hull_upgrade;    /**< Upgrade name substring used to select a hull; empty = latest hull. */
     bool with_turrets = true;    /**< Include turret and module meshes. */
     bool with_textures = true;   /**< Embed textures in the output GLB. */
@@ -67,7 +67,7 @@ struct ShipExportOptions {
 /**
  * @brief A turret or module mount point, pairing a hardpoint name with a model path.
  */
-struct MountEntry {
+struct wows_mount_entry {
     std::string hp_name;    /**< Hardpoint socket name (e.g. `"HP_MainGun_1"`). */
     std::string model_path; /**< Path to the mount's `.visual` model within the game tree. */
 };
@@ -75,24 +75,24 @@ struct MountEntry {
 /**
  * @brief Aggregated hull information for one ship hull variant.
  */
-struct HullInfo {
+struct wows_hull_info {
     std::string hull_model;          /**< Path to the primary hull `.visual` model. */
-    std::vector<MountEntry> mounts;  /**< All mount points attached to this hull. */
+    std::vector<wows_mount_entry> mounts;  /**< All mount points attached to this hull. */
 };
 
 /**
  * @brief One resolved geometry part ready to be merged into a GLB scene.
  */
-struct GlbPart {
+struct wows_glb_part {
     tinygltf::Model model;  /**< Parsed glTF model for this part. */
     std::string mesh_name;  /**< Display name used for the mesh node in the merged scene. */
     std::string geom_path;  /**< Filesystem path to the source `.geometry` file. */
-    Mat16d matrix;          /**< World-space transform; empty vector means identity. */
+    wows_mat16d matrix;          /**< World-space transform; empty vector means identity. */
 };
 
 /** @} */
 
-/** @defgroup stitch_export High-level export
+/** @defgroup wows_stitch_export High-level export
  *  @{
  */
 
@@ -111,29 +111,29 @@ struct GlbPart {
  * @param opts         Export options; defaults are applied if not specified.
  * @return `true` on success; errors are printed to stderr.
  */
-bool stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
-                        const ShipExportOptions &opts = {});
+bool wows_stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
+                        const wows_ship_export_options &opts = {});
 
 /** @} */
 
-/** @defgroup stitch_path Path and file utilities
+/** @defgroup wows_stitch_path Path and file utilities
  *  @{
  */
 
 /** @brief Return the basename component of a path (everything after the last `/`). */
-std::string stitch_path_basename(const std::string &p);
+std::string wows_stitch_path_basename(const std::string &p);
 
 /** @brief Return the directory component of a path (everything up to and including the last `/`). */
-std::string stitch_path_dirname(const std::string &p);
+std::string wows_stitch_path_dirname(const std::string &p);
 
 /** @brief Return the stem of a filename (basename without the final extension). */
-std::string stitch_stem(const std::string &filename);
+std::string wows_stitch_stem(const std::string &filename);
 
 /** @brief Replace all backslashes in @p s with forward slashes and return the result. */
-std::string stitch_normalize_slashes(std::string s);
+std::string wows_stitch_normalize_slashes(std::string s);
 
 /** @brief Return `true` if the file at @p p exists and is readable. */
-bool stitch_file_exists(const std::string &p);
+bool wows_stitch_file_exists(const std::string &p);
 
 /**
  * @brief Resolve a `.visual` model path to the corresponding `.geometry` file path.
@@ -142,18 +142,18 @@ bool stitch_file_exists(const std::string &p);
  * @param game_dir Root resource directory.
  * @return Filesystem path to the `.geometry` file, or empty string if not found.
  */
-std::string stitch_model_to_geom_path(const std::string &model, const std::string &game_dir);
+std::string wows_stitch_model_to_geom_path(const std::string &model, const std::string &game_dir);
 
 /**
  * @brief Convert a `.geometry` filesystem path to its `.visual` suffix form.
  *
  * The suffix is suitable as the @p visual_suffix argument to
- * ::assets_bin_get_visual_info.
+ * ::wows_assets_bin_get_visual_info.
  *
  * @param geom_path  Filesystem path to a `.geometry` file.
  * @return Visual suffix string (e.g. `"ShipDir/ShipDir.visual"`).
  */
-std::string stitch_geom_to_visual_suffix(const std::string &geom_path);
+std::string wows_stitch_geom_to_visual_suffix(const std::string &geom_path);
 
 /**
  * @brief Find all `.geometry` files belonging to a hull model.
@@ -165,7 +165,7 @@ std::string stitch_geom_to_visual_suffix(const std::string &geom_path);
  * @param game_dir    Root resource directory.
  * @return Sorted list of filesystem paths to the part `.geometry` files.
  */
-std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir);
+std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir);
 
 /**
  * @brief Search for a game asset file by name under @p game_dir.
@@ -174,11 +174,11 @@ std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, c
  * @param filename  Filename (not a path) to search for.
  * @return Full filesystem path to the first match, or empty string if not found.
  */
-std::string stitch_find_game_file(const std::string &game_dir, const std::string &filename);
+std::string wows_stitch_find_game_file(const std::string &game_dir, const std::string &filename);
 
 /** @} */
 
-/** @defgroup stitch_math Matrix math helpers
+/** @defgroup wows_stitch_math Matrix math helpers
  *  @{
  */
 
@@ -189,19 +189,19 @@ std::string stitch_find_game_file(const std::string &game_dir, const std::string
  * @param b  Right-hand matrix (16 elements).
  * @return Product `a × b` as a 16-element vector.
  */
-Mat16d stitch_mat4_mul_d(const Mat16d &a, const Mat16d &b);
+wows_mat16d wows_stitch_mat4_mul_d(const wows_mat16d &a, const wows_mat16d &b);
 
 /**
- * @brief Convert a `float[16]` column-major matrix to a `double` Mat16d.
+ * @brief Convert a `float[16]` column-major matrix to a `double` wows_mat16d.
  *
  * @param m  Source float array of 16 elements.
- * @return Double-precision copy as a Mat16d.
+ * @return Double-precision copy as a wows_mat16d.
  */
-Mat16d stitch_float_to_double_mat(const float m[16]);
+wows_mat16d wows_stitch_float_to_double_mat(const float m[16]);
 
 /** @} */
 
-/** @defgroup stitch_geom Geometry I/O
+/** @defgroup wows_stitch_geom Geometry I/O
  *  @{
  */
 
@@ -212,10 +212,10 @@ Mat16d stitch_float_to_double_mat(const float m[16]);
  * @param model_out  Output parameter filled with the parsed glTF model.
  * @return `true` on success.
  */
-bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out);
+bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out);
 
 /**
- * @brief Merge a list of ::GlbPart objects into a single tinygltf scene.
+ * @brief Merge a list of ::wows_glb_part objects into a single tinygltf scene.
  *
  * Each part's mesh nodes are added under a root node and transformed by the
  * part's @p matrix field.
@@ -223,11 +223,11 @@ bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_o
  * @param parts  Parts to merge; modified in-place (meshes are moved out).
  * @return A merged tinygltf::Model containing all parts in one scene.
  */
-tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts);
+tinygltf::Model wows_stitch_merge_parts(std::vector<wows_glb_part> &parts);
 
 /** @} */
 
-/** @defgroup stitch_dds DDS texture decoding
+/** @defgroup wows_stitch_dds DDS texture decoding
  *  @{
  */
 
@@ -242,7 +242,7 @@ tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts);
  * @param H   Output: decoded image height in pixels.
  * @return RGBA pixel data (`W × H × 4` bytes), or empty on failure.
  */
-std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H);
+std::vector<uint8_t> wows_stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H);
 
 /**
  * @brief Load a `.dds` file from disk and encode it as a PNG byte buffer.
@@ -253,11 +253,11 @@ std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int 
  * @param max_sz  Maximum allowed width or height; 0 means no limit.
  * @return PNG-encoded bytes, or empty on failure.
  */
-std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz);
+std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz);
 
 /** @} */
 
-/** @defgroup stitch_tex Texture application
+/** @defgroup wows_stitch_tex Texture application
  *  @{
  */
 
@@ -275,7 +275,7 @@ std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz);
  * @param excl_damage If `true`, damage-geometry render sets are skipped.
  * @param max_tex     Maximum texture dimension; larger textures are downscaled.
  */
-void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, assets_bin_pdb_t *pdb,
+void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
                            const std::string &game_dir, int lod_level, bool excl_damage, int max_tex);
 
 /**
@@ -285,6 +285,6 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
  *
  * @param model  glTF model to modify in-place.
  */
-void stitch_apply_default_material(tinygltf::Model &model);
+void wows_stitch_apply_default_material(tinygltf::Model &model);
 
 /** @} */

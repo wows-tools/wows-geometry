@@ -3,7 +3,7 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize2.h>
 
-#include "stitch.h"
+#include "wows-model-exporter.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -81,7 +81,7 @@ static void bc4_block(const uint8_t *src, uint8_t av[16]) {
 
 enum DdsFmt { DDS_NONE, DDS_BC1, DDS_BC2, DDS_BC3, DDS_BC4, DDS_BC5 };
 
-std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H) {
+std::vector<uint8_t> wows_stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H) {
     if (sz < 128 || memcmp(d, "DDS ", 4) != 0)
         return {};
     uint32_t h, w, fcc;
@@ -202,7 +202,7 @@ std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int 
     return rgba;
 }
 
-std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz) {
+std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz) {
     FILE *f = fopen(path.c_str(), "rb");
     if (!f)
         return {};
@@ -219,7 +219,7 @@ std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz) {
     if (!ok)
         return {};
     int w, h;
-    std::vector<uint8_t> rgba = stitch_decode_dds(raw.data(), raw.size(), &w, &h);
+    std::vector<uint8_t> rgba = wows_stitch_decode_dds(raw.data(), raw.size(), &w, &h);
     if (rgba.empty())
         return {};
     if (max_sz > 0 && (w > max_sz || h > max_sz)) {

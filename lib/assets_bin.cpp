@@ -1,7 +1,7 @@
 /* C++ port of scripts/assets_bin.py — BigWorld PrototypeDatabase parser.
  * Provides HP_ hardpoint transforms and BlendBone correction matrices.
  */
-#include "assets_bin.h"
+#include "wows-assets-bin.h"
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -14,8 +14,8 @@
 #include <unordered_map>
 #include <vector>
 
-bool g_assets_bin_verbose = false;
-#define vlog(tag, fmt, ...) do { if (g_assets_bin_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
+bool wows_assets_bin_verbose = false;
+#define vlog(tag, fmt, ...) do { if (wows_assets_bin_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 
 /* ── raw read helpers ─────────────────────────────────────────────── */
 static inline uint32_t ru32(const uint8_t *d, size_t o) {
@@ -464,7 +464,7 @@ static bool get_vis(const PDB &pdb, const char *suffix, VisNodes *vn_out) {
 
 extern "C" {
 
-assets_bin_hp_list_t *assets_bin_get_hp_transforms(const char *path, const char *visual_suffix) {
+wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms(const char *path, const char *visual_suffix) {
     PDB pdb;
     if (!load_pdb(path, pdb))
         return nullptr;
@@ -484,9 +484,9 @@ assets_bin_hp_list_t *assets_bin_get_hp_transforms(const char *path, const char 
             hp.push_back({name, ni});
     }
 
-    auto *list = new assets_bin_hp_list_t;
+    auto *list = new wows_assets_bin_hp_list_t;
     list->count = hp.size();
-    list->entries = new assets_bin_hp_t[hp.size()];
+    list->entries = new wows_assets_bin_hp_t[hp.size()];
     for (size_t i = 0; i < hp.size(); ++i) {
         strncpy(list->entries[i].name, hp[i].first.c_str(), 255);
         list->entries[i].name[255] = '\0';
@@ -495,21 +495,21 @@ assets_bin_hp_list_t *assets_bin_get_hp_transforms(const char *path, const char 
     return list;
 }
 
-void assets_bin_hp_list_free(assets_bin_hp_list_t *list) {
+void wows_assets_bin_hp_list_free(wows_assets_bin_hp_list_t *list) {
     if (!list)
         return;
     delete[] list->entries;
     delete list;
 }
 
-assets_bin_bb_list_t *assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths) {
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths) {
     PDB pdb;
     if (!load_pdb(path, pdb))
         return nullptr;
 
-    auto *list = new assets_bin_bb_list_t;
+    auto *list = new wows_assets_bin_bb_list_t;
     list->count = n_paths;
-    list->entries = new assets_bin_bb_t[n_paths];
+    list->entries = new wows_assets_bin_bb_t[n_paths];
 
     for (size_t i = 0; i < n_paths; ++i) {
         strncpy(list->entries[i].model_path, model_paths[i], 511);
@@ -532,7 +532,7 @@ assets_bin_bb_list_t *assets_bin_get_blendbone_corrections(const char *path, con
     return list;
 }
 
-void assets_bin_bb_list_free(assets_bin_bb_list_t *list) {
+void wows_assets_bin_bb_list_free(wows_assets_bin_bb_list_t *list) {
     if (!list)
         return;
     delete[] list->entries;
@@ -541,16 +541,16 @@ void assets_bin_bb_list_free(assets_bin_bb_list_t *list) {
 
 /* ── PDB opaque handle ──────────────────────────────────────────── */
 
-assets_bin_pdb_t *assets_bin_pdb_open(const char *path) {
+wows_assets_bin_pdb_t *wows_assets_bin_pdb_open(const char *path) {
     PDB *pdb = new PDB;
     if (!load_pdb(path, *pdb)) {
         delete pdb;
         return nullptr;
     }
-    return reinterpret_cast<assets_bin_pdb_t *>(pdb);
+    return reinterpret_cast<wows_assets_bin_pdb_t *>(pdb);
 }
 
-void assets_bin_pdb_free(assets_bin_pdb_t *handle) {
+void wows_assets_bin_pdb_free(wows_assets_bin_pdb_t *handle) {
     delete reinterpret_cast<PDB *>(handle);
 }
 
@@ -562,7 +562,7 @@ void assets_bin_pdb_free(assets_bin_pdb_t *handle) {
 #define VIS_RS_RP_OFF 96u
 #define VIS_LOD_RP_OFF 104u
 
-assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, const char *visual_suffix) {
+wows_assets_bin_visual_info_t *wows_assets_bin_get_visual_info(wows_assets_bin_pdb_t *handle, const char *visual_suffix) {
     PDB &pdb = *reinterpret_cast<PDB *>(handle);
     int bi, ri;
     if (!pdb.resolve(visual_suffix, &bi, &ri))
@@ -590,11 +590,11 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
     size_t rs_abs = (size_t)((int64_t)rd_off + ri64(d, rd_off + VIS_RS_RP_OFF));
     size_t lod_abs = (size_t)((int64_t)rd_off + ri64(d, rd_off + VIS_LOD_RP_OFF));
 
-    auto *info = new assets_bin_visual_info_t;
+    auto *info = new wows_assets_bin_visual_info_t;
     info->rs_count = rs_count;
     info->lod_count = lod_count;
-    info->render_sets = rs_count ? new assets_bin_rs_t[rs_count]() : nullptr;
-    info->lods = lod_count ? new assets_bin_lod_t[lod_count]() : nullptr;
+    info->render_sets = rs_count ? new wows_assets_bin_rs_t[rs_count]() : nullptr;
+    info->lods = lod_count ? new wows_assets_bin_lod_t[lod_count]() : nullptr;
 
     /* parse render sets; build name_id → indices_mapping_id table for LODs */
     std::unordered_map<uint32_t, uint32_t> name_to_mid;
@@ -612,7 +612,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
 
         name_to_mid[name_id] = indices_mapping_id;
 
-        assets_bin_rs_t &rs = info->render_sets[i];
+        wows_assets_bin_rs_t &rs = info->render_sets[i];
         rs.indices_mapping_id = indices_mapping_id;
         rs.mfm_path[0] = '\0';
         rs.section_name[0] = '\0';
@@ -647,7 +647,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
 
     }
 
-    if (g_assets_bin_verbose) {
+    if (wows_assets_bin_verbose) {
         std::map<std::string, int> rs_name_count, rs_name_seq;
         for (uint16_t i = 0; i < rs_count; ++i) {
             const char *n = info->render_sets[i].node_name;
@@ -655,7 +655,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
         }
         for (uint16_t i = 0; i < rs_count; ++i) {
             size_t base = rs_abs + i * RENDER_SET_SIZE;
-            const assets_bin_rs_t &rs = info->render_sets[i];
+            const wows_assets_bin_rs_t &rs = info->render_sets[i];
             const char *primary = rs.section_name[0] ? rs.section_name
                                   : rs.node_name[0]  ? rs.node_name : "(unnamed)";
             std::string base_name(primary);
@@ -689,7 +689,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
         int64_t rp = ri64(d, entry_base + 8);
         size_t names_abs = (size_t)((int64_t)entry_base + rp);
 
-        assets_bin_lod_t &lod = info->lods[i];
+        wows_assets_bin_lod_t &lod = info->lods[i];
         lod.count = 0;
         lod.mapping_ids = rs_cnt ? new unsigned int[rs_cnt] : nullptr;
 
@@ -714,7 +714,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
             rs_name_count[n[0] ? n : "(unnamed)"]++;
         }
         for (uint16_t i = 0; i < rs_count; ++i) {
-            assets_bin_rs_t &rs = info->render_sets[i];
+            wows_assets_bin_rs_t &rs = info->render_sets[i];
             const char *primary = rs.section_name[0] ? rs.section_name
                                   : rs.node_name[0]  ? rs.node_name : "(unnamed)";
             std::string base_name(primary);
@@ -732,7 +732,7 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
     return info;
 }
 
-void assets_bin_visual_info_free(assets_bin_visual_info_t *info) {
+void wows_assets_bin_visual_info_free(wows_assets_bin_visual_info_t *info) {
     if (!info)
         return;
     delete[] info->render_sets;

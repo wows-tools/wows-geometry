@@ -32,46 +32,46 @@
 /** @defgroup vertex_types Vertex format identifiers
  *  Each `.geometry` file declares the vertex layout used by its vertex
  *  buffers.  The string name (e.g. `"set3/xyznuvtbpc"`) is stored in the
- *  file; the corresponding `ID_*` constant is used internally to select the
+ *  file; the corresponding `WOWS_ID_*` constant is used internally to select the
  *  decode path.
  *  @{
  */
-#define VER_UNKNOWN "unknown"             /**< Unknown / unrecognised format string. */
-#define ID_UNKNOWN 0                      /**< Numeric ID for an unknown format. */
+#define WOWS_VER_UNKNOWN "unknown"             /**< Unknown / unrecognised format string. */
+#define WOWS_ID_UNKNOWN 0                      /**< Numeric ID for an unknown format. */
 
-#define VER_SET3_XYNUV2IIIWWTBPC "set3/xyznuv2iiiwwtbpc" /**< Format name: pos + 2×UV + IIIww + TB + PC. */
-#define ID_SET3_XYNUV2IIIWWTBPC 1
+#define WOWS_VER_SET3_XYNUV2IIIWWTBPC "set3/xyznuv2iiiwwtbpc" /**< Format name: pos + 2×UV + IIIww + TB + PC. */
+#define WOWS_ID_SET3_XYNUV2IIIWWTBPC 1
 
-#define VER_SET3_XYNUV2TBIPC "set3/xyznuv2tbipc"         /**< Format name: pos + 2×UV + TB + IPC. */
-#define ID_SET3_XYNUV2TBIPC 2
+#define WOWS_VER_SET3_XYNUV2TBIPC "set3/xyznuv2tbipc"         /**< Format name: pos + 2×UV + TB + IPC. */
+#define WOWS_ID_SET3_XYNUV2TBIPC 2
 
-#define VER_SET3_XYNUV2TBPC "set3/xyznuv2tbpc"           /**< Format name: pos + 2×UV + TB + PC. */
-#define ID_SET3_XYNUV2TBPC 3
+#define WOWS_VER_SET3_XYNUV2TBPC "set3/xyznuv2tbpc"           /**< Format name: pos + 2×UV + TB + PC. */
+#define WOWS_ID_SET3_XYNUV2TBPC 3
 
-#define VER_SET3_XYNUVIIIWWPC "set3/xyznuviiiwwpc"       /**< Format name: pos + UV + IIIww + PC. */
-#define ID_SET3_XYNUVIIIWWPC 4
+#define WOWS_VER_SET3_XYNUVIIIWWPC "set3/xyznuviiiwwpc"       /**< Format name: pos + UV + IIIww + PC. */
+#define WOWS_ID_SET3_XYNUVIIIWWPC 4
 
-#define VER_SET3_XYNUVIIIWWR "set3/xyznuviiiwwr"         /**< Format name: pos + UV + IIIww + R. */
-#define ID_SET3_XYNUVIIIWWR 5
+#define WOWS_VER_SET3_XYNUVIIIWWR "set3/xyznuviiiwwr"         /**< Format name: pos + UV + IIIww + R. */
+#define WOWS_ID_SET3_XYNUVIIIWWR 5
 
-#define VER_SET3_XYNUVIIIWWTBPC "set3/xyznuviiiwwtbpc"   /**< Format name: pos + UV + IIIww + TB + PC. */
-#define ID_SET3_XYNUVIIIWWTBPC 6
+#define WOWS_VER_SET3_XYNUVIIIWWTBPC "set3/xyznuviiiwwtbpc"   /**< Format name: pos + UV + IIIww + TB + PC. */
+#define WOWS_ID_SET3_XYNUVIIIWWTBPC 6
 
-#define VER_SET3_XYNUVPC "set3/xyznuvpc"                 /**< Format name: pos + UV + PC. */
-#define ID_SET3_XYNUVPC 7
+#define WOWS_VER_SET3_XYNUVPC "set3/xyznuvpc"                 /**< Format name: pos + UV + PC. */
+#define WOWS_ID_SET3_XYNUVPC 7
 
-#define VER_SET3_XYNUVRPC "set3/xyznuvrpc"               /**< Format name: pos + UV + R + PC. */
-#define ID_SET3_XYNUVRPC 8
-#define SIZE_XYNUVRPC 28                                  /**< Stride in bytes for the XYNUVRPC layout. */
+#define WOWS_VER_SET3_XYNUVRPC "set3/xyznuvrpc"               /**< Format name: pos + UV + R + PC. */
+#define WOWS_ID_SET3_XYNUVRPC 8
+#define WOWS_SIZE_XYNUVRPC 28                                  /**< Stride in bytes for the XYNUVRPC layout. */
 
-#define VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc"           /**< Format name: pos + UV + TB + IPC. */
-#define ID_SET3_XYNUVTBIPC 9
+#define WOWS_VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc"           /**< Format name: pos + UV + TB + IPC. */
+#define WOWS_ID_SET3_XYNUVTBIPC 9
 
-#define VER_SET3_XYNUVTBOI "set3/xyznuvtboi"             /**< Format name: pos + UV + TB + OI. */
-#define ID_SET3_XYNUVTBOI 10
+#define WOWS_VER_SET3_XYNUVTBOI "set3/xyznuvtboi"             /**< Format name: pos + UV + TB + OI. */
+#define WOWS_ID_SET3_XYNUVTBOI 10
 
-#define VER_SET3_XYNUVTBPC "set3/xyznuvtbpc"             /**< Format name: pos + UV + TB + PC. */
-#define ID_SET3_XYNUVTBPC 11
+#define WOWS_VER_SET3_XYNUVTBPC "set3/xyznuvtbpc"             /**< Format name: pos + UV + TB + PC. */
+#define WOWS_ID_SET3_XYNUVTBPC 11
 /** @} */
 
 /**
@@ -190,7 +190,7 @@ typedef struct {
     /* Parser-internal fields — not part of the on-disk format. */
     size_t _abs_start;   /**< Absolute file offset of the ENCD block start. */
     size_t _abs_end;     /**< Absolute file offset of the ENCD block end. */
-    uint8_t _vertex_type; /**< Resolved vertex-type ID (one of the `ID_*` constants). */
+    uint8_t _vertex_type; /**< Resolved vertex-type ID (one of the `WOWS_ID_*` constants). */
 } wows_geometry_vertex_section_metadata;
 
 /**

@@ -1,4 +1,4 @@
-#include "stitch.h"
+#include "wows-model-exporter.h"
 extern "C" {
 #include "wows-geometry.h"
 }
@@ -16,59 +16,59 @@ extern "C" {
 #include <dirent.h>
 #include <sys/stat.h>
 
-bool g_stitch_verbose = false;
+bool wows_stitch_verbose = false;
 /* mirror verbosity into assets_bin */
-void stitch_set_verbose(bool v) {
-    g_stitch_verbose = v;
-    g_assets_bin_verbose = v;
+void wows_stitch_set_verbose(bool v) {
+    wows_stitch_verbose = v;
+    wows_assets_bin_verbose = v;
 }
 #define vlog(tag, fmt, ...)                                                                                           \
     do {                                                                                                               \
-        if (g_stitch_verbose)                                                                                          \
+        if (wows_stitch_verbose)                                                                                          \
             fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__);                                                         \
     } while (0)
 
 /* ── path / file utilities ───────────────────────────────────────── */
 
-std::string stitch_path_basename(const std::string &p) {
+std::string wows_stitch_path_basename(const std::string &p) {
     auto sl = p.rfind('/');
     return (sl == std::string::npos) ? p : p.substr(sl + 1);
 }
 
-std::string stitch_path_dirname(const std::string &p) {
+std::string wows_stitch_path_dirname(const std::string &p) {
     auto sl = p.rfind('/');
     return (sl == std::string::npos) ? "." : p.substr(0, sl);
 }
 
-std::string stitch_stem(const std::string &filename) {
+std::string wows_stitch_stem(const std::string &filename) {
     auto dot = filename.rfind('.');
     return (dot == std::string::npos) ? filename : filename.substr(0, dot);
 }
 
-std::string stitch_normalize_slashes(std::string s) {
+std::string wows_stitch_normalize_slashes(std::string s) {
     for (auto &c : s)
         if (c == '\\')
             c = '/';
     return s;
 }
 
-bool stitch_file_exists(const std::string &p) {
+bool wows_stitch_file_exists(const std::string &p) {
     struct stat st;
     return stat(p.c_str(), &st) == 0 && S_ISREG(st.st_mode);
 }
 
 /* ── model path helpers ─────────────────────────────────────────── */
 
-std::string stitch_model_to_geom_path(const std::string &model, const std::string &game_dir) {
-    std::string rel = stitch_normalize_slashes(model);
+std::string wows_stitch_model_to_geom_path(const std::string &model, const std::string &game_dir) {
+    std::string rel = wows_stitch_normalize_slashes(model);
     auto pos = rel.rfind(".model");
     if (pos != std::string::npos)
         rel.replace(pos, 6, ".geometry");
-    return stitch_normalize_slashes(game_dir + "/" + rel);
+    return wows_stitch_normalize_slashes(game_dir + "/" + rel);
 }
 
-std::string stitch_geom_to_visual_suffix(const std::string &geom_path) {
-    std::string v = stitch_normalize_slashes(geom_path);
+std::string wows_stitch_geom_to_visual_suffix(const std::string &geom_path) {
+    std::string v = wows_stitch_normalize_slashes(geom_path);
     auto pos = v.rfind(".geometry");
     if (pos != std::string::npos)
         v.replace(pos, 9, ".visual");
@@ -81,13 +81,13 @@ std::string stitch_geom_to_visual_suffix(const std::string &geom_path) {
     return v;
 }
 
-std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir) {
-    std::string geom_path = stitch_model_to_geom_path(hull_model, game_dir);
-    if (!stitch_file_exists(geom_path))
+std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir) {
+    std::string geom_path = wows_stitch_model_to_geom_path(hull_model, game_dir);
+    if (!wows_stitch_file_exists(geom_path))
         return {};
 
-    std::string ship_dir = stitch_path_dirname(geom_path);
-    std::string base_name = stitch_stem(stitch_path_basename(geom_path));
+    std::string ship_dir = wows_stitch_path_dirname(geom_path);
+    std::string base_name = wows_stitch_stem(wows_stitch_path_basename(geom_path));
 
     DIR *dir = opendir(ship_dir.c_str());
     if (!dir)
@@ -103,7 +103,7 @@ std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, c
             continue;
         if (fname.compare(0, base_name.size(), base_name) != 0)
             continue;
-        if (stitch_stem(fname) == base_name)
+        if (wows_stitch_stem(fname) == base_name)
             continue;
         results.push_back(ship_dir + "/" + fname);
     }
@@ -128,7 +128,7 @@ static void find_recursive(const std::string &dir, const std::string &target, in
             continue;
         std::string full = dir + "/" + name;
         if (name == target) {
-            if (stitch_file_exists(full))
+            if (wows_stitch_file_exists(full))
                 out.push_back(full);
         } else if (depth > 0) {
             struct stat st;
@@ -139,7 +139,7 @@ static void find_recursive(const std::string &dir, const std::string &target, in
     closedir(d);
 }
 
-std::string stitch_find_game_file(const std::string &game_dir, const std::string &filename) {
+std::string wows_stitch_find_game_file(const std::string &game_dir, const std::string &filename) {
     std::vector<std::string> hits;
     find_recursive(game_dir, filename, 3, hits);
     if (hits.empty())
@@ -150,8 +150,8 @@ std::string stitch_find_game_file(const std::string &game_dir, const std::string
 
 /* ── matrix math ────────────────────────────────────────────────── */
 
-Mat16d stitch_mat4_mul_d(const Mat16d &a, const Mat16d &b) {
-    Mat16d out(16, 0.0);
+wows_mat16d wows_stitch_mat4_mul_d(const wows_mat16d &a, const wows_mat16d &b) {
+    wows_mat16d out(16, 0.0);
     for (int col = 0; col < 4; ++col)
         for (int row = 0; row < 4; ++row)
             for (int k = 0; k < 4; ++k)
@@ -159,8 +159,8 @@ Mat16d stitch_mat4_mul_d(const Mat16d &a, const Mat16d &b) {
     return out;
 }
 
-Mat16d stitch_float_to_double_mat(const float m[16]) {
-    Mat16d r(16);
+wows_mat16d wows_stitch_float_to_double_mat(const float m[16]) {
+    wows_mat16d r(16);
     for (int i = 0; i < 16; ++i)
         r[i] = (double)m[i];
     return r;
@@ -266,12 +266,12 @@ static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vty
     return 0;
 }
 
-bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out) {
+bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out) {
     wows_geometry *geom = nullptr;
     std::vector<char> gp_buf(geom_path.begin(), geom_path.end());
     gp_buf.push_back('\0');
     if (wows_parse_geometry(gp_buf.data(), &geom) != 0) {
-        vlog(stitch_path_basename(geom_path).c_str(), "Warning: failed to parse geometry\n");
+        vlog(wows_stitch_path_basename(geom_path).c_str(), "Warning: failed to parse geometry\n");
         return false;
     }
 
@@ -476,7 +476,7 @@ bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_o
 
 /* ── GLB merge ──────────────────────────────────────────────────── */
 
-tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts) {
+tinygltf::Model wows_stitch_merge_parts(std::vector<wows_glb_part> &parts) {
     tinygltf::Model merged;
     merged.asset.version = "2.0";
     merged.asset.generator = "wows-geometry wows-gltf-exporter";
@@ -616,7 +616,7 @@ static std::string find_texture(const std::string &dir, const std::string &st, c
     for (auto &cs : cands)
         for (auto ext : {".dd0", ".dd1", ".dds"}) {
             std::string p = dir + "/" + cs + channel + ext;
-            if (stitch_file_exists(p))
+            if (wows_stitch_file_exists(p))
                 return p;
         }
     return "";
@@ -624,7 +624,7 @@ static std::string find_texture(const std::string &dir, const std::string &st, c
 
 /* ── LOD selection ──────────────────────────────────────────────── */
 
-static int best_lod(const assets_bin_visual_info_t *vi, const std::set<uint32_t> &dmg,
+static int best_lod(const wows_assets_bin_visual_info_t *vi, const std::set<uint32_t> &dmg,
                     const std::map<uint32_t, uint32_t> &tc) {
     int best = 0, btris = -1;
     for (size_t i = 0; i < vi->lod_count; ++i) {
@@ -647,7 +647,7 @@ static int best_lod(const assets_bin_visual_info_t *vi, const std::set<uint32_t>
 
 /* ── texture application ────────────────────────────────────────── */
 
-void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, assets_bin_pdb_t *pdb,
+void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
                            const std::string &game_dir, int lod_level, bool excl_damage, int max_tex) {
     if (!pdb || geom_order.empty())
         return;
@@ -721,8 +721,8 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
 
         if (!cache.count(gp)) {
             GtData &gt = cache[gp];
-            std::string suf = stitch_geom_to_visual_suffix(gp);
-            assets_bin_visual_info_t *vi = assets_bin_get_visual_info(pdb, suf.c_str());
+            std::string suf = wows_stitch_geom_to_visual_suffix(gp);
+            wows_assets_bin_visual_info_t *vi = wows_assets_bin_get_visual_info(pdb, suf.c_str());
             if (!vi) {
                 cache[gp] = {};
                 continue;
@@ -730,7 +730,7 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
 
             gt.geo_map_ids = read_geom_mapping_ids(gp);
 
-            const std::string geom_tag = stitch_path_basename(gp);
+            const std::string geom_tag = wows_stitch_path_basename(gp);
 
             std::set<uint32_t> dmg;
             for (size_t ri = 0; ri < vi->rs_count; ++ri)
@@ -759,7 +759,7 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                     gt.allowed.erase(m);
 
             for (size_t ri = 0; ri < vi->rs_count; ++ri) {
-                const assets_bin_rs_t &rs = vi->render_sets[ri];
+                const wows_assets_bin_rs_t &rs = vi->render_sets[ri];
                 uint32_t geo_map_id = rs.indices_mapping_id;
                 if (!gt.allowed.count(geo_map_id))
                     continue;
@@ -772,7 +772,7 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                 if (!rs.mfm_path[0] || max_tex <= 0)
                     continue;
 
-                std::string mfm = stitch_normalize_slashes(rs.mfm_path);
+                std::string mfm = wows_stitch_normalize_slashes(rs.mfm_path);
                 auto sl = mfm.rfind('/');
                 std::string mdir = (sl != std::string::npos) ? mfm.substr(0, sl) : ".";
                 std::string mfile = (sl != std::string::npos) ? mfm.substr(sl + 1) : mfm;
@@ -786,17 +786,17 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                     vlog(geom_tag.c_str(), "no albedo texture: %s\n", tstem.c_str());
                     continue;
                 }
-                std::vector<uint8_t> png = stitch_dds_to_png(dds, max_tex);
+                std::vector<uint8_t> png = wows_stitch_dds_to_png(dds, max_tex);
                 if (png.empty()) {
-                    vlog(geom_tag.c_str(), "failed to decode: %s\n", stitch_path_basename(dds).c_str());
+                    vlog(geom_tag.c_str(), "failed to decode: %s\n", wows_stitch_path_basename(dds).c_str());
                     continue;
                 }
                 int mat = ensure_mat(tstem, png);
                 gt.geo_map_mat[geo_map_id] = mat;
                 vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n",
-                     stitch_path_basename(dds).c_str(), mat, png.size() / 1024);
+                     wows_stitch_path_basename(dds).c_str(), mat, png.size() / 1024);
             }
-            assets_bin_visual_info_free(vi);
+            wows_assets_bin_visual_info_free(vi);
         }
 
         GtData &gt = cache.at(gp);
@@ -866,7 +866,7 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
     }
 }
 
-void stitch_apply_default_material(tinygltf::Model &model) {
+void wows_stitch_apply_default_material(tinygltf::Model &model) {
     /* find or create the fallback matte light-grey material */
     int default_mat = -1;
     for (int i = 0; i < (int)model.materials.size(); ++i) {

@@ -3,8 +3,8 @@
 #include <Python.h>
 #include <argp.h>
 
-#include "game_params.h"
-#include "stitch.h"
+#include "wows-game-params.h"
+#include "wows-model-exporter.h"
 
 #include <algorithm>
 #include <cctype>
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     if (args.gameparams) {
         gameparams_path = args.gameparams;
     } else {
-        gameparams_path = stitch_find_game_file(args.game_dir, "GameParams.data");
+        gameparams_path = wows_stitch_find_game_file(args.game_dir, "GameParams.data");
         if (gameparams_path.empty()) {
             fprintf(stderr, "GameParams.data not found under %s\n", args.game_dir);
             return 1;
@@ -77,8 +77,8 @@ int main(int argc, char **argv) {
     }
 
     Py_Initialize();
-    std::vector<ShipEntry> ships;
-    bool ok = list_ships(gameparams_path.c_str(), ships);
+    std::vector<wows_ship_entry> ships;
+    bool ok = wows_list_ships(gameparams_path.c_str(), ships);
     Py_Finalize();
 
     if (!ok)
@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     std::string nation_filter = args.nation ? str_lower(args.nation) : "";
     std::string type_filter   = args.type   ? str_lower(args.type)   : "";
 
-    std::sort(ships.begin(), ships.end(), [](const ShipEntry &a, const ShipEntry &b) {
+    std::sort(ships.begin(), ships.end(), [](const wows_ship_entry &a, const wows_ship_entry &b) {
         if (a.nation != b.nation) return a.nation < b.nation;
         if (a.type   != b.type)   return a.type   < b.type;
         return a.key < b.key;

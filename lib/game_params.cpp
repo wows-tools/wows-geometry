@@ -1,7 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "game_params.h"
+#include "wows-game-params.h"
 
 #include <cstdio>
 #include <regex>
@@ -81,7 +81,7 @@ def _as_list(val):
     if isinstance(val, (list, tuple)): return list(val)
     return []
 
-def list_ships(game_params):
+def wows_list_ships(game_params):
     root = get_params_root(game_params)
     ships = []
     for key, val in root.items():
@@ -147,7 +147,7 @@ static std::string py_str(PyObject *o) {
     return s ? s : "";
 }
 
-bool load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, HullInfo &out) {
+bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, wows_hull_info &out) {
     PyObject *mod = PyImport_AddModule("game_params");
     if (!mod) {
         PyErr_Print();
@@ -277,7 +277,7 @@ bool load_hull_info(const char *gameparams_path, const char *ship_name, const ch
         if (nk > 0) {
             PyObject *k = PyList_GetItem(keys, nk - 1);
             upg_data = PyDict_GetItem(upgrades, k);
-            stitch_vlog("  Hull upgrade: %s\n", py_str(k).c_str());
+            wows_stitch_vlog("  Hull upgrade: %s\n", py_str(k).c_str());
         }
         Py_DECREF(keys);
         if (!upg_data) {
@@ -305,7 +305,7 @@ bool load_hull_info(const char *gameparams_path, const char *ship_name, const ch
     return true;
 }
 
-bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out) {
+bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out) {
     PyObject *mod = PyImport_AddModule("game_params");
     if (!mod) { PyErr_Print(); return false; }
     PyObject *ns = PyModule_GetDict(mod);
@@ -321,7 +321,7 @@ bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out) {
     PyObject *gp = PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
     if (!gp) { PyErr_Print(); return false; }
 
-    PyObject *ships = PyObject_CallMethod(mod, "list_ships", "O", gp);
+    PyObject *ships = PyObject_CallMethod(mod, "wows_list_ships", "O", gp);
     Py_DECREF(gp);
     if (!ships) { PyErr_Print(); return false; }
 
@@ -329,7 +329,7 @@ bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out) {
     out.reserve((size_t)n);
     for (Py_ssize_t i = 0; i < n; ++i) {
         PyObject *entry = PyList_GetItem(ships, i);
-        ShipEntry se;
+        wows_ship_entry se;
         se.key    = py_str(PyDict_GetItemString(entry, "key"));
         se.index  = py_str(PyDict_GetItemString(entry, "index"));
         se.nation = py_str(PyDict_GetItemString(entry, "nation"));

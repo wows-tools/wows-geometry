@@ -9,7 +9,7 @@
  *  - render-set / LOD listings that map draw-call IDs to material (.mfm) paths.
  *
  * The preferred usage pattern is to open a PDB handle once with
- * ::assets_bin_pdb_open and then call query helpers as needed, rather than
+ * ::wows_assets_bin_pdb_open and then call query helpers as needed, rather than
  * using the one-shot helpers that reload the PDB on every call.
  */
 
@@ -17,7 +17,7 @@
 #include <stddef.h>
 
 #ifdef __cplusplus
-extern bool g_assets_bin_verbose; /**< Set to `true` before any call to enable verbose logging. */
+extern bool wows_assets_bin_verbose; /**< Set to `true` before any call to enable verbose logging. */
 extern "C" {
 #endif
 
@@ -33,15 +33,15 @@ extern "C" {
 typedef struct {
     char name[256];  /**< Hardpoint name as stored in the PDB (e.g. `"HP_MainGun_1"`). */
     float mat[16];   /**< Column-major 4×4 world-space transform matrix. */
-} assets_bin_hp_t;
+} wows_assets_bin_hp_t;
 
 /**
  * @brief List of all hardpoint transforms for one visual.
  */
 typedef struct {
-    assets_bin_hp_t *entries; /**< Array of hardpoint entries. */
+    wows_assets_bin_hp_t *entries; /**< Array of hardpoint entries. */
     size_t count;             /**< Number of entries in @p entries. */
-} assets_bin_hp_list_t;
+} wows_assets_bin_hp_list_t;
 
 /** @} */
 
@@ -57,15 +57,15 @@ typedef struct {
 typedef struct {
     char model_path[512]; /**< Path of the model this correction applies to, relative to the game tree. */
     float correction[16]; /**< Column-major 4×4 matrix equal to inverse(BlendBone transform). */
-} assets_bin_bb_t;
+} wows_assets_bin_bb_t;
 
 /**
  * @brief List of BlendBone corrections for a set of model paths.
  */
 typedef struct {
-    assets_bin_bb_t *entries; /**< Array of BlendBone correction entries. */
+    wows_assets_bin_bb_t *entries; /**< Array of BlendBone correction entries. */
     size_t count;             /**< Number of entries in @p entries. */
-} assets_bin_bb_list_t;
+} wows_assets_bin_bb_list_t;
 
 /** @} */
 
@@ -79,7 +79,7 @@ typedef struct {
 /**
  * @brief Opaque handle to an open `assets.bin` database.
  */
-typedef struct assets_bin_pdb_s assets_bin_pdb_t;
+typedef struct wows_assets_bin_pdb_s wows_assets_bin_pdb_t;
 
 /**
  * @brief Open and parse an `assets.bin` file.
@@ -87,14 +87,14 @@ typedef struct assets_bin_pdb_s assets_bin_pdb_t;
  * @param path  Filesystem path to the `assets.bin` file.
  * @return A heap-allocated PDB handle, or `NULL` on failure.
  */
-assets_bin_pdb_t *assets_bin_pdb_open(const char *path);
+wows_assets_bin_pdb_t *wows_assets_bin_pdb_open(const char *path);
 
 /**
  * @brief Close an `assets.bin` handle and release all associated memory.
  *
- * @param pdb  Handle previously returned by ::assets_bin_pdb_open.
+ * @param pdb  Handle previously returned by ::wows_assets_bin_pdb_open.
  */
-void assets_bin_pdb_free(assets_bin_pdb_t *pdb);
+void wows_assets_bin_pdb_free(wows_assets_bin_pdb_t *pdb);
 
 /** @} */
 
@@ -116,7 +116,7 @@ typedef struct {
     char section_name[256];          /**< Render-set section name (from the `name_id` field at offset 0). */
     char node_name[256];             /**< Node name (from the `node_name_ids` array; may be shared). */
     int is_damage;                   /**< Non-zero if this section represents damage/cross-section geometry. */
-} assets_bin_rs_t;
+} wows_assets_bin_rs_t;
 
 /**
  * @brief List of draw-call IDs belonging to one LOD level.
@@ -124,39 +124,39 @@ typedef struct {
 typedef struct {
     unsigned int *mapping_ids; /**< Array of draw-call IDs active in this LOD. */
     size_t count;              /**< Number of IDs in @p mapping_ids. */
-} assets_bin_lod_t;
+} wows_assets_bin_lod_t;
 
 /**
  * @brief Complete render-set and LOD description for a visual resource.
  *
- * Returned by ::assets_bin_get_visual_info; must be freed with
- * ::assets_bin_visual_info_free.
+ * Returned by ::wows_assets_bin_get_visual_info; must be freed with
+ * ::wows_assets_bin_visual_info_free.
  */
 typedef struct {
-    assets_bin_rs_t *render_sets; /**< Array of render-set entries. */
+    wows_assets_bin_rs_t *render_sets; /**< Array of render-set entries. */
     size_t rs_count;              /**< Number of entries in @p render_sets. */
-    assets_bin_lod_t *lods;       /**< Array of LOD descriptors, index 0 = highest detail. */
+    wows_assets_bin_lod_t *lods;       /**< Array of LOD descriptors, index 0 = highest detail. */
     size_t lod_count;             /**< Number of LOD levels in @p lods. */
-} assets_bin_visual_info_t;
+} wows_assets_bin_visual_info_t;
 
 /**
  * @brief Query render-set and LOD information for a `.visual` resource.
  *
  * @p visual_suffix must be a suffix path such as `"ShipDir/ShipDir.visual"`.
- * The @p pdb handle must have been obtained from ::assets_bin_pdb_open.
+ * The @p pdb handle must have been obtained from ::wows_assets_bin_pdb_open.
  *
  * @param pdb            Open PDB handle.
  * @param visual_suffix  Suffix path of the visual resource to look up.
- * @return Heap-allocated ::assets_bin_visual_info_t, or `NULL` if not found.
+ * @return Heap-allocated ::wows_assets_bin_visual_info_t, or `NULL` if not found.
  */
-assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *pdb, const char *visual_suffix);
+wows_assets_bin_visual_info_t *wows_assets_bin_get_visual_info(wows_assets_bin_pdb_t *pdb, const char *visual_suffix);
 
 /**
- * @brief Free memory allocated by ::assets_bin_get_visual_info.
+ * @brief Free memory allocated by ::wows_assets_bin_get_visual_info.
  *
- * @param info  Pointer returned by ::assets_bin_get_visual_info.
+ * @param info  Pointer returned by ::wows_assets_bin_get_visual_info.
  */
-void assets_bin_visual_info_free(assets_bin_visual_info_t *info);
+void wows_assets_bin_visual_info_free(wows_assets_bin_visual_info_t *info);
 
 /** @} */
 
@@ -171,16 +171,16 @@ void assets_bin_visual_info_free(assets_bin_visual_info_t *info);
  *
  * @param path           Filesystem path to `assets.bin`.
  * @param visual_suffix  Suffix path of the target visual resource.
- * @return Heap-allocated list, or `NULL` on failure.  Free with ::assets_bin_hp_list_free.
+ * @return Heap-allocated list, or `NULL` on failure.  Free with ::wows_assets_bin_hp_list_free.
  */
-assets_bin_hp_list_t *assets_bin_get_hp_transforms(const char *path, const char *visual_suffix);
+wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms(const char *path, const char *visual_suffix);
 
 /**
- * @brief Free memory allocated by ::assets_bin_get_hp_transforms.
+ * @brief Free memory allocated by ::wows_assets_bin_get_hp_transforms.
  *
  * @param list  List to free.
  */
-void assets_bin_hp_list_free(assets_bin_hp_list_t *list);
+void wows_assets_bin_hp_list_free(wows_assets_bin_hp_list_t *list);
 
 /**
  * @brief Extract BlendBone correction matrices for a set of model paths.
@@ -188,16 +188,16 @@ void assets_bin_hp_list_free(assets_bin_hp_list_t *list);
  * @param path        Filesystem path to `assets.bin`.
  * @param model_paths Array of model path strings to look up.
  * @param n_paths     Length of @p model_paths.
- * @return Heap-allocated list, or `NULL` on failure.  Free with ::assets_bin_bb_list_free.
+ * @return Heap-allocated list, or `NULL` on failure.  Free with ::wows_assets_bin_bb_list_free.
  */
-assets_bin_bb_list_t *assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths);
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths);
 
 /**
- * @brief Free memory allocated by ::assets_bin_get_blendbone_corrections.
+ * @brief Free memory allocated by ::wows_assets_bin_get_blendbone_corrections.
  *
  * @param list  List to free.
  */
-void assets_bin_bb_list_free(assets_bin_bb_list_t *list);
+void wows_assets_bin_bb_list_free(wows_assets_bin_bb_list_t *list);
 
 /** @} */
 
