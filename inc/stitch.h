@@ -8,6 +8,27 @@
 
 /* verbose flag — set to true before calling library functions */
 extern bool g_stitch_verbose;
+
+/* ── high-level ship export ──────────────────────────────────────── */
+
+struct ShipExportOptions {
+    std::string gameparams_path;   /* auto-detected from game_dir if empty */
+    std::string assets_bin_path;   /* auto-detected from game_dir if empty */
+    std::string hull_upgrade;      /* upgrade name substring; empty = latest */
+    bool        with_turrets   = true;
+    bool        with_textures  = true;
+    int         max_tex_size   = 2048;
+    int         lod_level      = -1;   /* -1 = auto */
+    bool        exclude_damage = true;
+};
+
+/* Export a full ship to a GLB file. Returns true on success.
+ * Errors are printed to stderr. Python must NOT be initialised by the
+ * caller; this function manages Py_Initialize / Py_Finalize internally. */
+bool stitch_export_ship(const std::string &game_dir,
+                        const std::string &ship_name,
+                        const std::string &output_path,
+                        const ShipExportOptions &opts = {});
 #define stitch_vlog(...) do { if (g_stitch_verbose) fprintf(stderr, __VA_ARGS__); } while(0)
 
 /* column-major 4×4 matrix as a flat double vector */

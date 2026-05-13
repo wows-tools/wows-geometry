@@ -369,7 +369,7 @@ bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_o
 tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts) {
     tinygltf::Model merged;
     merged.asset.version   = "2.0";
-    merged.asset.generator = "wows-geometry wows-stitch";
+    merged.asset.generator = "wows-geometry wows-gltf-exporter";
     merged.scenes.push_back({});
     merged.defaultScene = 0;
 

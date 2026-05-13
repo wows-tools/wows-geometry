@@ -67,6 +67,7 @@ dkms.conf
 wows-geometry-cli
 wows-stitch
 wows-geometry-test
+wows-gltf-exporter
 
 # coverage stuff
 coverage.base

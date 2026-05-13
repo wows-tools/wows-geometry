@@ -91,17 +91,17 @@ set_target_properties(
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
+target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
 target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY}
-                      ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY})
+                      ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY}
+                      ${Python3_LIBRARIES})
 
 target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
                       ${PCRE_LIBRARY})
 
 # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
-add_executable(wows-stitch wows-stitch.cpp)
-target_include_directories(wows-stitch PRIVATE ${Python3_INCLUDE_DIRS})
-target_link_libraries(wows-stitch wows-geometry ${TINYGLTF_LIBRARY}
-                      ${Python3_LIBRARIES})
+add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
+target_link_libraries(wows-gltf-exporter wows-geometry ${TINYGLTF_LIBRARY})
 
 if(BUILD_TESTS)
   if(CUNIT_LIBRARY)
@@ -159,7 +159,7 @@ endif()
 
 # install binaries and library
 install(
-  TARGETS wows-geometry wows-geometry-cli wows-stitch
+  TARGETS wows-geometry wows-geometry-cli wows-gltf-exporter
   RUNTIME DESTINATION ${BIN_INSTALL_DIR}
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
