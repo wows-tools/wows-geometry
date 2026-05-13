@@ -1,7 +1,6 @@
 # wows-model-exporter
 
 [![Ubuntu-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml)
-[![Coverage Status](https://coveralls.io/repos/github/wows-tools/wows-model-exporter/badge.svg?branch=main)](https://coveralls.io/github/wows-tools/wows-model-exporter?branch=main)
 [![Documentation](https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-model-exporter/)
 
 Parser and GLB exporter for World of Warships `.geometry` 3D model files.
