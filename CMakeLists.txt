@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(wows-geometry)
+project(wows-model-exporter)
 
 # Project version (sematic versionning)
-set(wows-geometry_VERSION_MAJOR 0)
-set(wows-geometry_VERSION_MINOR 1)
-set(wows-geometry_VERSION_PATCH 0)
+set(wows-model-exporter_VERSION_MAJOR 0)
+set(wows-model-exporter_VERSION_MINOR 1)
+set(wows-model-exporter_VERSION_PATCH 0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
@@ -17,21 +17,21 @@ find_package(
   COMPONENTS Interpreter Development
   REQUIRED)
 
-set(wows-geometry_VERSION
-    ${wows-geometry_VERSION_MAJOR}.${wows-geometry_VERSION_MINOR}.${wows-geometry_VERSION_PATCH}
+set(wows-model-exporter_VERSION
+    ${wows-model-exporter_VERSION_MAJOR}.${wows-model-exporter_VERSION_MINOR}.${wows-model-exporter_VERSION_PATCH}
 )
 
 add_custom_target(
   tag
-  COMMAND git tag -a ${wows-geometry_VERSION} -m
-          "tagging version ${wows-geometry_VERSION}"
-  COMMAND git push origin ${wows-geometry_VERSION})
+  COMMAND git tag -a ${wows-model-exporter_VERSION} -m
+          "tagging version ${wows-model-exporter_VERSION}"
+  COMMAND git push origin ${wows-model-exporter_VERSION})
 
 # set version as a definition
 set(CMAKE_C_FLAGS
-    "${CMAKE_CXX_FLAGS} -DBFD_VERSION='\"${wows-geometry_VERSION}\"'")
+    "${CMAKE_CXX_FLAGS} -DBFD_VERSION='\"${wows-model-exporter_VERSION}\"'")
 set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -DBFD_VERSION='\"${wows-geometry_VERSION}\"'")
+    "${CMAKE_CXX_FLAGS} -DBFD_VERSION='\"${wows-model-exporter_VERSION}\"'")
 
 # Options
 option(DEBUG "compile with debug symbol" OFF)
@@ -89,8 +89,8 @@ include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
 set_target_properties(
-  wows-geometry PROPERTIES VERSION ${wows-geometry_VERSION}
-                           SOVERSION ${wows-geometry_VERSION_MAJOR})
+  wows-geometry PROPERTIES VERSION ${wows-model-exporter_VERSION}
+                           SOVERSION ${wows-model-exporter_VERSION_MAJOR})
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
@@ -126,6 +126,9 @@ if(BUILD_TESTS)
     if(COVERAGE)
       set(CMAKE_BUILD_TYPE Debug)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+      target_link_libraries(wows-geometry-cli gcov)
+      target_link_libraries(wows-gltf-exporter gcov)
       include(CodeCoverage)
       setup_target_for_coverage(
         NAME

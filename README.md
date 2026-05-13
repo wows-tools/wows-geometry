@@ -1,8 +1,8 @@
-# wows-geometry
+# wows-model-exporter
 
-[![Ubuntu-x86_64](https://github.com/wows-tools/wows-geometry/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-geometry/actions/workflows/ubuntu-x86_64.yml)
-[![Coverage Status](https://coveralls.io/repos/github/wows-tools/wows-geometry/badge.svg?branch=main)](https://coveralls.io/github/wows-tools/wows-geometry?branch=main)
-[![Documentation](https://github.com/wows-tools/wows-geometry/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-geometry/)
+[![Ubuntu-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml)
+[![Coverage Status](https://coveralls.io/repos/github/wows-tools/wows-model-exporter/badge.svg?branch=main)](https://coveralls.io/github/wows-tools/wows-model-exporter?branch=main)
+[![Documentation](https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-model-exporter/)
 
 Parser and GLB exporter for World of Warships `.geometry` 3D model files.
 
@@ -75,7 +75,7 @@ wows-gltf-exporter -d /opt/wows -s Kongo -H HullB -t -L 0 -o kongo_hullb.glb
 `wows-geometry` exposes a C++ API for embedding ship export into your own tools.
 The main entry point is `stitch_export_ship()` from `inc/stitch.h`.
 
-Full API reference: **[wows-tools.github.io/wows-geometry](https://wows-tools.github.io/wows-geometry/)**
+Full API reference: **[wows-tools.github.io/wows-model-exporter](https://wows-tools.github.io/wows-model-exporter/)**
 
 ### Quick start
 
