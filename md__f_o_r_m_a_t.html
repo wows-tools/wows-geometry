@@ -96,11 +96,11 @@ $(document).ready(function(){initNavTree('md__f_o_r_m_a_t.html',''); initResizab
   <div class="headertitle"><div class="title">WoWs .geometry Format</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md13"></a> </p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md14"></a> </p>
+<h1><a class="anchor" id="autotoc_md15"></a>
 Introduction</h1>
 <p>BigWorld engine <code>.geometry</code> format used by World of Warships for 3D model data. Vertex and index data are compressed using <b>meshoptimizer</b> (ENCD blocks).</p>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 File Layout</h1>
 <div class="fragment"><div class="line">[Header 72 bytes]</div>
 <div class="line">[Vertex Bloc Mapping table: n_vertex_bloc × 16 bytes]    ← at off_vertices_mapping (always 72)</div>
@@ -111,9 +111,9 @@ File Layout</h1>
 <div class="line">[ENCD index data blocs]     ← pointed to by Index Type Metadata</div>
 <div class="line">[Collision model data]      ← at off_collision_models (if n_collision_bloc &gt; 0)</div>
 <div class="line">[Armor model data]          ← at off_armor_models (if n_armor_bloc &gt; 0)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md16"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md17"></a>
 Format</h1>
-<h2><a class="anchor" id="autotoc_md17"></a>
+<h2><a class="anchor" id="autotoc_md18"></a>
 Header (72 bytes)</h2>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
 <div class="line">packet-beta</div>
@@ -157,7 +157,7 @@ Header (72 bytes)</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>off_armor_models</code>   </td><td class="markdownTableBodyNone">64 bits   </td><td class="markdownTableBodyNone">Absolute offset to armor model data (0 if none)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md18"></a>
+<h2><a class="anchor" id="autotoc_md19"></a>
 Vertex/Index Bloc Mapping Entry (16 bytes each)</h2>
 <p>Array of <code>n_vertex_bloc</code> (or <code>n_index_bloc</code>) entries describing individual submesh ranges within the merged vertex/index buffers.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -181,7 +181,7 @@ Vertex/Index Bloc Mapping Entry (16 bytes each)</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>items_count</code>   </td><td class="markdownTableBodyNone">32 bits   </td><td class="markdownTableBodyNone">Number of elements (vertices or indices) for this submesh   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md19"></a>
+<h2><a class="anchor" id="autotoc_md20"></a>
 Draw Call Matching</h2>
 <p>The <code>packed_texel_density</code> field in both vertex and index bloc mapping entries is the key that pairs them together into a draw call. Within a <code>packed_texel_density</code> group:</p>
 <ol type="1">
@@ -190,7 +190,7 @@ Draw Call Matching</h2>
 <li>The k-th index entry maps to the k-th vertex entry.</li>
 </ol>
 <p>Index values stored in each index bloc are zero-based relative to that draw call's vertex base (<code>section_1[j].items_offset</code>). When exporting, absolute vertex indices are computed as <code>raw_index + vertex_base</code>.</p>
-<h2><a class="anchor" id="autotoc_md20"></a>
+<h2><a class="anchor" id="autotoc_md21"></a>
 Vertex Type Metadata (32 bytes each)</h2>
 <p>Array of <code>n_vertex_type</code> entries. Each describes a merged vertex buffer. All pointer fields are relative to the struct base address.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -219,7 +219,7 @@ Vertex Type Metadata (32 bytes each)</h2>
 <td class="markdownTableBodyNone"><code>is_bumped</code>   </td><td class="markdownTableBodyNone">8 bits   </td><td class="markdownTableBodyNone">1 if vertex format includes tangent/binormal   </td></tr>
 </table>
 <p>The vertex type string ends 8 bytes after <code>struct_base + off_ver_bloc_end</code> (second u64 of the packed string interpreted as a relative pointer from the packed string base).</p>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md22"></a>
 Index Type Metadata (16 bytes each)</h2>
 <p>Array of <code>n_index_type</code> entries. Each describes a merged index buffer.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -240,7 +240,7 @@ Index Type Metadata (16 bytes each)</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>s_index_size</code>   </td><td class="markdownTableBodyNone">16 bits   </td><td class="markdownTableBodyNone">Bytes per index: 2 (uint16) or 4 (uint32)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<h2><a class="anchor" id="autotoc_md23"></a>
 ENCD Block</h2>
 <p>Both vertex and index data use the same ENCD container format, encoded with <b>meshoptimizer</b> (<a href="https://github.com/zeux/meshoptimizer">https://github.com/zeux/meshoptimizer</a>).</p>
 <div class="fragment"><div class="line">[4 bytes] magic = 0x44434E45 (&quot;ENCD&quot; as little-endian uint32)</div>
@@ -251,10 +251,10 @@ ENCD Block</h2>
 <li>Indices: <code>meshopt_decodeIndexBuffer(dst_u32, element_count, 4, payload, payload_size)</code> then downcast each u32 to u16 if <code>s_index_size == 2</code>.</li>
 </ul>
 <p>If the magic does not match <code>ENCD</code>, the bloc is treated as raw (uncompressed) data.</p>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md24"></a>
 Vertex Data Layout (after ENCD decode)</h2>
 <p>Vertices are tightly packed at <code>s_vertex_size</code> bytes each. Fields present depend on the vertex type name. All multi-byte values are little-endian.</p>
-<h3><a class="anchor" id="autotoc_md24"></a>
+<h3><a class="anchor" id="autotoc_md25"></a>
 Attribute encoding</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -272,7 +272,7 @@ Attribute encoding</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">pc   </td><td class="markdownTableBodyNone">0 B   </td><td class="markdownTableBodyNone">Per-vertex color flag only — no bytes in buffer   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md25"></a>
+<h3><a class="anchor" id="autotoc_md26"></a>
 Vertex type layouts</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -300,7 +300,7 @@ Vertex type layouts</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>set3/xyznuv2iiiwwtbpc</code>   </td><td class="markdownTableBodyNone">40   </td><td class="markdownTableBodyNone">xyz(12) + n(4) + uv0(4) + uv1(4) + iiiww(8) + t(4) + b(4)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md26"></a>
+<h2><a class="anchor" id="autotoc_md27"></a>
 Collision Model Data</h2>
 <p>Present when <code>n_collision_bloc &gt; 0</code>. The data starts at <code>off_collision_models</code>.</p>
 <p>The binary format of these blocs is <b>not yet fully reversed</b>. What is known:</p>
@@ -309,7 +309,7 @@ Collision Model Data</h2>
 <li>The section is used for physics collision detection (simplified hull geometry).</li>
 <li>The data is referenced externally by GameParams: the armor dict key encodes a <code>model_index</code> in its upper 16 bits that indexes into this array (see Armor key encoding below).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 Armor Model Data</h2>
 <p>Present when <code>n_armor_bloc &gt; 0</code>. The data starts at <code>off_armor_models</code>.</p>
 <p>The binary format of these blocs is <b>not yet fully reversed</b>. What is known:</p>
@@ -319,9 +319,9 @@ Armor Model Data</h2>
 <li>Thickness values and material IDs come from <code>GameParams.data</code> (see below), not from the <code>.geometry</code> file itself.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md30"></a>
 Ship Part Files and LOD</h1>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 File Naming Convention</h2>
 <p>A ship's geometry is split across multiple <code>.geometry</code> files in the same directory:</p>
 <div class="fragment"><div class="line">content/gameplay/japan/ship/battleship/JSB007_Kongo_1942/</div>
@@ -333,7 +333,7 @@ File Naming Convention</h2>
 <div class="line">    ...</div>
 </div><!-- fragment --><p>The bare base file (same name as the directory) is a low-detail stand-in used at extreme camera distances. The suffixed part files (<code>_Bow</code>, <code>_MidFront</code>, etc.) hold the actual high-detail mesh. All parts share the same ship coordinate space and can be merged directly without any transform.</p>
 <p>A corresponding <code>.visual</code> file exists for each <code>.geometry</code> file at the same path. The <code>.visual</code> path is the key used to look up the <code>VisualPrototype</code> record in <code>assets.bin</code>.</p>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 Render-Set LOD (in assets.bin)</h2>
 <p>Within a single part file, multiple detail levels are expressed as groups of render sets in the <code>VisualPrototype</code> record (see VisualPrototype). Each LOD entry lists which render sets (identified by <code>indices_mapping_id</code>) belong to that detail level:</p>
 <table class="markdownTable">
@@ -349,7 +349,7 @@ Render-Set LOD (in assets.bin)</h2>
 <td class="markdownTableBodyNone">3   </td><td class="markdownTableBodyNone">Lowest detail / impostor   </td></tr>
 </table>
 <p>A render set's <code>indices_mapping_id</code> matches the <code>mapping_id</code> field in the index bloc mapping table of the <code>.geometry</code> file. This is how LOD filtering maps directly onto primitive selection during export.</p>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md33"></a>
 Damage and Cross-Section Geometry</h2>
 <p>Ships split into sections on sinking. Each break point has associated geometry:</p>
 <table class="markdownTable">
@@ -371,7 +371,7 @@ Damage and Cross-Section Geometry</h2>
 <li><code>*Razlom*</code> — torn-metal texture used at break surfaces</li>
 <li><code>*C011_Grid*</code> — grid/alpha overlay used at break points</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md33"></a>
+<h2><a class="anchor" id="autotoc_md34"></a>
 Coordinate System</h2>
 <ul>
 <li><b>Y-up</b>, right-hand coordinate system (BigWorld convention).</li>
@@ -380,9 +380,9 @@ Coordinate System</h2>
 <li>HP_ hardpoint transforms in <code>assets.bin</code> are world-space, column-major 4×4 <code>float32</code> matrices.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md35"></a>
+<h1><a class="anchor" id="autotoc_md36"></a>
 Related Files</h1>
-<h2><a class="anchor" id="autotoc_md36"></a>
+<h2><a class="anchor" id="autotoc_md37"></a>
 &lt;tt&gt;GameParams.data&lt;/tt&gt;</h2>
 <p><b>Format:</b> <code>reverse(zlib(pickle(root_dict)))</code></p>
 <p>The bytes of the file are stored in reverse order; reversing and zlib-decompressing yields a Python pickle. The root object is either a <code>dict</code> with an <code>""</code> key (older builds) or a <code>list</code> whose first element is the param dict (newer builds).</p>
@@ -402,7 +402,7 @@ Related Files</h1>
 <p>The <code>model</code> field inside a hull component is a path like:</p>
 <div class="fragment"><div class="line">content/gameplay/japan/ship/battleship/JSB007_Kongo_1942/JSB007_Kongo_1942.model</div>
 </div><!-- fragment --><p>Replace the <code>.model</code> suffix with <code>.geometry</code> to obtain the geometry file path relative to the game root directory.</p>
-<h3><a class="anchor" id="autotoc_md37"></a>
+<h3><a class="anchor" id="autotoc_md38"></a>
 Armor Key Encoding</h3>
 <p>The <code>armor</code> dict inside a hull component uses integer keys:</p>
 <div class="fragment"><div class="line">key   = (model_index &lt;&lt; 16) | material_id</div>
@@ -412,10 +412,10 @@ Armor Key Encoding</h3>
 <li><code>material_id</code> — armor surface material (determines penetration/bounce behaviour).</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md40"></a>
 &lt;tt&gt;assets.bin&lt;/tt&gt; (BigWorld PrototypeDatabase)</h2>
 <p><code>assets.bin</code> is the BigWorld <code>PrototypeDatabase</code> binary format. It stores pre-compiled scene-graph data (visual prototypes) for all game objects.</p>
-<h3><a class="anchor" id="autotoc_md40"></a>
+<h3><a class="anchor" id="autotoc_md41"></a>
 File Header (16 bytes)</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -432,7 +432,7 @@ File Header (16 bytes)</h3>
 <td class="markdownTableBodyNone">14   </td><td class="markdownTableBodyNone">2   </td><td class="markdownTableBodyNone"><code>endianness</code>   </td><td class="markdownTableBodyNone"></td></tr>
 </table>
 <p>Body starts at offset <code>0x10</code>.</p>
-<h3><a class="anchor" id="autotoc_md41"></a>
+<h3><a class="anchor" id="autotoc_md42"></a>
 Body Layout</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -447,7 +447,7 @@ Body Layout</h3>
 <td class="markdownTableBodyNone"><code>0x60</code>   </td><td class="markdownTableBodyNone">—   </td><td class="markdownTableBodyNone">Databases array   </td></tr>
 </table>
 <p>All sections use relative pointers (<code>int64_t</code>, signed, from the field's own address).</p>
-<h3><a class="anchor" id="autotoc_md42"></a>
+<h3><a class="anchor" id="autotoc_md43"></a>
 Strings Section (base = 0x10)</h3>
 <p>Open-addressing hashmap mapping <code>uint32_t</code> name IDs to null-terminated UTF-8 strings.</p>
 <table class="markdownTable">
@@ -469,7 +469,7 @@ Strings Section (base = 0x10)</h3>
 <td class="markdownTableBodyNone">32   </td><td class="markdownTableBodyNone"><code>string_data_relptr</code>   </td><td class="markdownTableBodyNone">→ null-terminated strings   </td></tr>
 </table>
 <p>Lookup: probe <code>(key % capacity + i) % capacity</code> until <code>key</code> matches or bucket is empty (both fields zero).</p>
-<h3><a class="anchor" id="autotoc_md43"></a>
+<h3><a class="anchor" id="autotoc_md44"></a>
 R2P Map (base = 0x38)</h3>
 <p>Maps path <code>self_id (uint64_t)</code> to a packed <code>uint32_t</code> value encoding the blob and record where the prototype data lives.</p>
 <table class="markdownTable">
@@ -487,7 +487,7 @@ R2P Map (base = 0x38)</h3>
 <p>Packed value decoding:</p>
 <div class="fragment"><div class="line">blob_index   = (value &amp; 0xFF) // 4</div>
 <div class="line">record_index = value &gt;&gt; 8</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md44"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md45"></a>
 Path Storage (base = 0x50)</h3>
 <p>Flat array of path entries (32 bytes each):</p>
 <table class="markdownTable">
@@ -501,7 +501,7 @@ Path Storage (base = 0x50)</h3>
 <td class="markdownTableBodyNone">16   </td><td class="markdownTableBodyNone">packed string   </td><td class="markdownTableBodyNone">Node name (BigWorld packed string: <code>u32 char_count</code>, 4 B pad, <code>i64 text_relptr</code>)   </td></tr>
 </table>
 <p>Full paths are reconstructed by walking parent links. A <code>.visual</code> path suffix (e.g. <code>JSB007_Kongo_1942/JSB007_Kongo_1942.visual</code>) is the lookup key.</p>
-<h3><a class="anchor" id="autotoc_md45"></a>
+<h3><a class="anchor" id="autotoc_md46"></a>
 Databases Array (base = 0x60 in body, relptr base = body_base)</h3>
 <p>Array of database entries (0x18 bytes each):</p>
 <table class="markdownTable">
@@ -519,7 +519,7 @@ Databases Array (base = 0x60 in body, relptr base = body_base)</h3>
 <td class="markdownTableBodyNone">16   </td><td class="markdownTableBodyNone"><code>data_relptr</code>   </td><td class="markdownTableBodyNone"><code>i64</code> relative to entry base → blob   </td></tr>
 </table>
 <p>Each blob starts with a <code>uint64_t</code> record count, followed by fixed-size records. <b>Blob index 1</b> holds <code>VisualPrototype</code> records (item size = <code>0x70</code>).</p>
-<h3><a class="anchor" id="autotoc_md46"></a>
+<h3><a class="anchor" id="autotoc_md47"></a>
 VisualPrototype</h3>
 <p>Record format (item size <code>0x70 = 112</code> bytes):</p>
 <table class="markdownTable">
@@ -559,7 +559,7 @@ VisualPrototype</h3>
 <td class="markdownTableBodyNone">104   </td><td class="markdownTableBodyNone">8   </td><td class="markdownTableBodyNone"><code>lods_rp</code>   </td><td class="markdownTableBodyNone"><code>i64</code> relptr → LOD entry array   </td></tr>
 </table>
 <p>World-space transform for a node = product of local matrices from root to node (column-major, right-to-left multiplication).</p>
-<h3><a class="anchor" id="autotoc_md47"></a>
+<h3><a class="anchor" id="autotoc_md48"></a>
 RenderSet (0x28 = 40 bytes each)</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -583,7 +583,7 @@ RenderSet (0x28 = 40 bytes each)</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">32   </td><td class="markdownTableBodyNone">8   </td><td class="markdownTableBodyNone"><code>node_name_ids_rp</code>   </td><td class="markdownTableBodyNone"><code>i64</code> relptr → <code>u32[]</code> node name IDs   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md48"></a>
+<h3><a class="anchor" id="autotoc_md49"></a>
 LOD Entry (16 bytes each)</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -599,7 +599,7 @@ LOD Entry (16 bytes each)</h3>
 </table>
 <p>Name IDs reference render sets by their <code>name_id</code> field. Resolved to <code>indices_mapping_id</code> for LOD-based primitive filtering.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md50"></a>
+<h2><a class="anchor" id="autotoc_md51"></a>
 Texture Files</h2>
 <p>Textures live in the same directory as the <code>.mfm</code> file they are referenced from. The stem is derived from the MFM filename (minus the <code>.mfm</code> extension and optional MFM-only suffixes: <code>_skinned</code>, <code>_alpha</code>, <code>_ep</code>).</p>
 <table class="markdownTable">
@@ -615,7 +615,7 @@ Texture Files</h2>
 <p>File extensions in priority order: <code>.dd0</code> (highest resolution MIP set), <code>.dd1</code>, <code>.dds</code>. All are standard DDS containers.</p>
 <p>UV orientation: BigWorld stores V with origin at the bottom; DDS textures are stored top-to-bottom. Correct display requires flipping V: <code>v_display = 1.0 - v_stored</code>. In glTF this is expressed with <code>KHR_texture_transform</code>: <code>scale=[1,-1], offset=[0,1]</code>.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md52"></a>
+<h1><a class="anchor" id="autotoc_md53"></a>
 Full Data Flow</h1>
 <div class="fragment"><div class="line">GameParams.data</div>
 <div class="line">  │</div>
@@ -648,7 +648,7 @@ Full Data Flow</h1>
 <div class="line">  │</div>
 <div class="line">  └─ (turret placement)</div>
 <div class="line">      HP_ node world-space transform  ×  ROT180Y  =  mesh matrix in GLB</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md53"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md54"></a>
 Primitive Identity Chain</h2>
 <div class="fragment"><div class="line">geometry index bloc mapping entry</div>
 <div class="line">    .mapping_id</div>

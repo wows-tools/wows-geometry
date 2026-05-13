@@ -115,6 +115,15 @@ Tools</h1>
 <div class="line">  -g FILE    Export submeshes to GLB</div>
 <div class="line">  -s 0,1,…   Comma-separated vertex section indices to export (default: all)</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md4"></a>
+&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships</h2>
+<p>Lists all ships found in <code>GameParams.data</code>, with optional filtering by nation or type.</p>
+<div class="fragment"><div class="line">wows-list-ships [-d &lt;game-dir&gt;] [-g GameParams.data] [-n nation] [-t type]</div>
+<div class="line"> </div>
+<div class="line">  -d DIR     Root game directory (auto-detects GameParams.data)</div>
+<div class="line">  -g FILE    GameParams.data (alternative to -d)</div>
+<div class="line">  -n STR     Filter by nation (case-insensitive substring)</div>
+<div class="line">  -t STR     Filter by ship type (case-insensitive substring)</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
 &lt;tt&gt;wows-gltf-exporter&lt;/tt&gt; — full ship GLB assembler</h2>
 <p>Reads <code>GameParams.data</code> to find hull and mount-point models, loads HP_ transforms and BlendBone corrections from <code>assets.bin</code>, decodes DDS textures, and writes a single textured GLB containing the hull and all turret/weapon mounts.</p>
 <p><code>GameParams.data</code> and <code>assets.bin</code> are auto-detected under <code>-d</code> if not supplied explicitly (recursive scan, up to 3 levels, newest version wins).</p>
@@ -137,36 +146,39 @@ Tools</h1>
 <div class="line">  -v         Verbose progress output</div>
 </div><!-- fragment --><p><b>Example — export Kongo with all defaults:</b> </p><div class="fragment"><div class="line">wows-gltf-exporter -d /opt/wows -s Kongo -o kongo.glb</div>
 </div><!-- fragment --><p><b>Example — specific hull, no turrets, LOD 0:</b> </p><div class="fragment"><div class="line">wows-gltf-exporter -d /opt/wows -s Kongo -H HullB -t -L 0 -o kongo_hullb.glb</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md6"></a>
 Library API</h1>
-<p><code>wows-geometry</code> exposes a C++ API for embedding ship export into your own tools. The main entry point is <code>stitch_export_ship()</code> from <code>inc/stitch.h</code>.</p>
+<p><code>wows-geometry</code> exposes a C++ API for embedding ship export into your own tools. The main entry point is <code><a class="el" href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12" title="Export a complete ship model to a binary glTF (GLB) file.">wows_stitch_export_ship()</a></code> from <code><a class="el" href="wows-model-exporter_8h.html">inc/wows-model-exporter.h</a></code>.</p>
 <p>Full API reference: <b><a href="https://wows-tools.github.io/wows-model-exporter/">wows-tools.github.io/wows-model-exporter</a></b></p>
-<h2><a class="anchor" id="autotoc_md6"></a>
-Quick start</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;stitch.h&quot;</span></div>
-<div class="line"> </div>
-<div class="line">ShipExportOptions opts;</div>
-<div class="line"><span class="comment">// all fields have sensible defaults; override only what you need:</span></div>
-<div class="line"><span class="comment">// opts.hull_upgrade    = &quot;HullB&quot;;   // empty = latest</span></div>
-<div class="line"><span class="comment">// opts.with_turrets    = false;</span></div>
-<div class="line"><span class="comment">// opts.with_textures   = false;</span></div>
-<div class="line"><span class="comment">// opts.max_tex_size    = 1024;</span></div>
-<div class="line"><span class="comment">// opts.lod_level       = 0;         // -1 = auto</span></div>
-<div class="line"><span class="comment">// opts.exclude_damage  = false;</span></div>
-<div class="line"><span class="comment">// opts.gameparams_path = &quot;/explicit/path/GameParams.data&quot;;  // auto-detected if empty</span></div>
-<div class="line"><span class="comment">// opts.assets_bin_path = &quot;/explicit/path/assets.bin&quot;;       // auto-detected if empty</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">bool</span> ok = stitch_export_ship(<span class="stringliteral">&quot;/opt/wows&quot;</span>, <span class="stringliteral">&quot;Kongo&quot;</span>, <span class="stringliteral">&quot;kongo.glb&quot;</span>, opts);</div>
-</div><!-- fragment --><p><code>stitch_export_ship</code> handles everything: auto-detecting <code>GameParams.data</code> and <code>assets.bin</code> under <code>game_dir</code>, resolving hull and turret models, loading HP_ transforms and BlendBone corrections, decoding geometry, merging, texturing, and writing the GLB. Errors are printed to stderr; Python is initialised and finalised internally.</p>
 <h2><a class="anchor" id="autotoc_md7"></a>
-&lt;tt&gt;ShipExportOptions&lt;/tt&gt; fields</h2>
+Quick start</h2>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="wows-model-exporter_8h.html">wows-model-exporter.h</a>&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_struct" href="structwows__ship__export__options.html">wows_ship_export_options</a> opts;</div>
+<div class="line"><span class="comment">// all fields have sensible defaults; override only what you need:</span></div>
+<div class="line"><span class="comment">// opts.hull_upgrade         = &quot;HullB&quot;;   // empty = latest</span></div>
+<div class="line"><span class="comment">// opts.with_turrets         = false;</span></div>
+<div class="line"><span class="comment">// opts.with_textures        = false;</span></div>
+<div class="line"><span class="comment">// opts.max_tex_size         = 1024;</span></div>
+<div class="line"><span class="comment">// opts.lod_level            = 0;         // -1 = auto</span></div>
+<div class="line"><span class="comment">// opts.exclude_damage       = false;</span></div>
+<div class="line"><span class="comment">// opts.gameparams_path      = &quot;/explicit/path/GameParams.data&quot;;  // auto-detected if empty</span></div>
+<div class="line"><span class="comment">// opts.wows_assets_bin_path = &quot;/explicit/path/assets.bin&quot;;       // auto-detected if empty</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keywordtype">bool</span> ok = <a class="code hl_function" href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12">wows_stitch_export_ship</a>(<span class="stringliteral">&quot;/opt/wows&quot;</span>, <span class="stringliteral">&quot;Kongo&quot;</span>, <span class="stringliteral">&quot;kongo.glb&quot;</span>, opts);</div>
+<div class="ttc" id="agroup__wows__stitch__export_html_ga7d0ad2a4e0f4e3e1a282d5188dab4d12"><div class="ttname"><a href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12">wows_stitch_export_ship</a></div><div class="ttdeci">bool wows_stitch_export_ship(const std::string &amp;game_dir, const std::string &amp;ship_name, const std::string &amp;output_path, const wows_ship_export_options &amp;opts={})</div><div class="ttdoc">Export a complete ship model to a binary glTF (GLB) file.</div></div>
+<div class="ttc" id="astructwows__ship__export__options_html"><div class="ttname"><a href="structwows__ship__export__options.html">wows_ship_export_options</a></div><div class="ttdoc">Options controlling a full-ship GLB export.</div><div class="ttdef"><b>Definition</b> wows-model-exporter.h:56</div></div>
+<div class="ttc" id="awows-model-exporter_8h_html"><div class="ttname"><a href="wows-model-exporter_8h.html">wows-model-exporter.h</a></div></div>
+</div><!-- fragment --><p><code>wows_stitch_export_ship</code> handles everything: auto-detecting <code>GameParams.data</code> and <code>assets.bin</code> under <code>game_dir</code>, resolving hull and turret models, loading HP_ transforms and BlendBone corrections, decoding geometry, merging, texturing, and writing the GLB. Errors are printed to stderr; Python is initialised and finalised internally.</p>
+<h2><a class="anchor" id="autotoc_md8"></a>
+&lt;tt&gt;wows_ship_export_options&lt;/tt&gt; fields</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Field   </th><th class="markdownTableHeadNone">Default   </th><th class="markdownTableHeadNone">Description    </th></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>gameparams_path</code>   </td><td class="markdownTableBodyNone"><code>""</code>   </td><td class="markdownTableBodyNone">Path to <code>GameParams.data</code>; auto-detected from <code>game_dir</code> if empty    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>assets_bin_path</code>   </td><td class="markdownTableBodyNone"><code>""</code>   </td><td class="markdownTableBodyNone">Path to <code>assets.bin</code>; auto-detected from <code>game_dir</code> if empty    </td></tr>
+<td class="markdownTableBodyNone"><code>wows_assets_bin_path</code>   </td><td class="markdownTableBodyNone"><code>""</code>   </td><td class="markdownTableBodyNone">Path to <code>assets.bin</code>; auto-detected from <code>game_dir</code> if empty    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>hull_upgrade</code>   </td><td class="markdownTableBodyNone"><code>""</code>   </td><td class="markdownTableBodyNone">Hull upgrade name substring (e.g. <code>"HullB"</code>); empty = latest    </td></tr>
 <tr class="markdownTableRowEven">
@@ -180,18 +192,19 @@ Quick start</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>exclude_damage</code>   </td><td class="markdownTableBodyNone"><code>true</code>   </td><td class="markdownTableBodyNone">Strip damage/crack render sets   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Verbose output</h2>
-<div class="fragment"><div class="line">g_stitch_verbose = <span class="keyword">true</span>;   <span class="comment">// prints progress to stderr</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
+<div class="fragment"><div class="line"><a class="code hl_variable" href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a> = <span class="keyword">true</span>;   <span class="comment">// prints progress to stderr</span></div>
+<div class="ttc" id="awows-model-exporter_8h_html_a7ae6defa062122b4b7719deee73aa8c8"><div class="ttname"><a href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a></div><div class="ttdeci">bool wows_stitch_verbose</div><div class="ttdoc">Set to true before calling any stitch function to enable verbose logging to stderr.</div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
 Linking</h2>
 <div class="fragment"><div class="line">target_link_libraries(my_tool wows-geometry)</div>
 </div><!-- fragment --><p>Python 3 and all other dependencies are already linked into <code>wows-geometry</code>.</p>
-<h2><a class="anchor" id="autotoc_md10"></a>
+<h2><a class="anchor" id="autotoc_md11"></a>
 Lower-level API</h2>
-<p>If you need finer control (custom merge logic, streaming parts, etc.) the building-block functions used internally by <code>stitch_export_ship</code> are also public: <code>load_hull_info</code>, <code>stitch_find_hull_geoms</code>, <code>stitch_geom_to_model</code>, <code>stitch_merge_parts</code>, <code>stitch_apply_textures</code>, and the <code>assets_bin_*</code> helpers in <code>inc/assets_bin.h</code>.</p>
+<p>If you need finer control (custom merge logic, streaming parts, etc.) the building-block functions used internally by <code>wows_stitch_export_ship</code> are also public: <code>wows_stitch_find_hull_geoms</code>, <code>wows_stitch_geom_to_model</code>, <code>wows_stitch_merge_parts</code>, <code>wows_stitch_apply_textures</code>, and the <code>wows_assets_bin_*</code> helpers in <code><a class="el" href="wows-assets-bin_8h.html">inc/wows-assets-bin.h</a></code>.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Build</h1>
 <div class="fragment"><div class="line"># Dependencies (Debian/Ubuntu)</div>
 <div class="line">sudo apt install cmake zlib1g-dev libmeshoptimizer-dev libtinygltf-dev \</div>
