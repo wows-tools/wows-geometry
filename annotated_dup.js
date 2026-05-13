@@ -1,0 +1,25 @@
+var annotated_dup =
+[
+    [ "assets_bin_bb_list_t", "structassets__bin__bb__list__t.html", "structassets__bin__bb__list__t" ],
+    [ "assets_bin_bb_t", "structassets__bin__bb__t.html", "structassets__bin__bb__t" ],
+    [ "assets_bin_hp_list_t", "structassets__bin__hp__list__t.html", "structassets__bin__hp__list__t" ],
+    [ "assets_bin_hp_t", "structassets__bin__hp__t.html", "structassets__bin__hp__t" ],
+    [ "assets_bin_lod_t", "structassets__bin__lod__t.html", "structassets__bin__lod__t" ],
+    [ "assets_bin_rs_t", "structassets__bin__rs__t.html", "structassets__bin__rs__t" ],
+    [ "assets_bin_visual_info_t", "structassets__bin__visual__info__t.html", "structassets__bin__visual__info__t" ],
+    [ "GlbPart", "struct_glb_part.html", "struct_glb_part" ],
+    [ "HullInfo", "struct_hull_info.html", "struct_hull_info" ],
+    [ "MountEntry", "struct_mount_entry.html", "struct_mount_entry" ],
+    [ "ShipExportOptions", "struct_ship_export_options.html", "struct_ship_export_options" ],
+    [ "wows_geometry", "structwows__geometry.html", "structwows__geometry" ],
+    [ "WOWS_GEOMETRY_CONTEXT", "struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html", "struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t" ],
+    [ "wows_geometry_header", "structwows__geometry__header.html", "structwows__geometry__header" ],
+    [ "wows_geometry_index_section", "structwows__geometry__index__section.html", "structwows__geometry__index__section" ],
+    [ "wows_geometry_index_section_metadata", "structwows__geometry__index__section__metadata.html", "structwows__geometry__index__section__metadata" ],
+    [ "wows_geometry_info", "structwows__geometry__info.html", "structwows__geometry__info" ],
+    [ "wows_geometry_vertex_section", "structwows__geometry__vertex__section.html", "structwows__geometry__vertex__section" ],
+    [ "wows_geometry_vertex_section_metadata", "structwows__geometry__vertex__section__metadata.html", "structwows__geometry__vertex__section__metadata" ],
+    [ "wows_vert_xyznuvrpc", "structwows__vert__xyznuvrpc.html", "structwows__vert__xyznuvrpc" ],
+    [ "wows_vert_xyznuvtbpc", "structwows__vert__xyznuvtbpc.html", "structwows__vert__xyznuvtbpc" ],
+    [ "wows_vertex", "structwows__vertex.html", null ]
+];

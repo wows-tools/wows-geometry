@@ -1,0 +1,25 @@
+var stitch_8h =
+[
+    [ "stitch_apply_default_material", "group__stitch__tex.html#ga93f1581211e78998cc16ca7bb19bb921", null ],
+    [ "stitch_apply_textures", "group__stitch__tex.html#gadbc484bc9c76d2df0dfbd8221172f6d1", null ],
+    [ "stitch_dds_to_png", "group__stitch__dds.html#gada13c8a43d61fb981ea783fe0c549c9e", null ],
+    [ "stitch_decode_dds", "group__stitch__dds.html#ga250cb940f656bddc2b23e21809e2a07b", null ],
+    [ "stitch_export_ship", "group__stitch__export.html#gaa274c9673a0ab7638a31a50dc2a1d379", null ],
+    [ "stitch_file_exists", "group__stitch__path.html#ga1e6bca249b7e705fc83c519ec7157e0a", null ],
+    [ "stitch_find_game_file", "group__stitch__path.html#gae029ae64f89cb18adb2938462b5736dc", null ],
+    [ "stitch_find_hull_geoms", "group__stitch__path.html#ga73bd0cf34b9938d9d4db28298e8bc982", null ],
+    [ "stitch_float_to_double_mat", "group__stitch__math.html#ga498e778f28e5751aff23668d2094e29d", null ],
+    [ "stitch_geom_to_model", "group__stitch__geom.html#ga06a372efc94a31d44b9678d2878f0497", null ],
+    [ "stitch_geom_to_visual_suffix", "group__stitch__path.html#ga237015332b2e9dbe0644336fefe5592f", null ],
+    [ "stitch_mat4_mul_d", "group__stitch__math.html#gafb70593d3de649a72f9a0839b2fe1f68", null ],
+    [ "stitch_merge_parts", "group__stitch__geom.html#gae198bdedc4723477d0e47bf6db171e2e", null ],
+    [ "stitch_model_to_geom_path", "group__stitch__path.html#ga2445ad64669a43d007ac84b9c652621f", null ],
+    [ "stitch_normalize_slashes", "group__stitch__path.html#gabe1183de35aab62d97c0705669d46e9b", null ],
+    [ "stitch_path_basename", "group__stitch__path.html#gad7019a7e078541d7fe4b4e2a53503809", null ],
+    [ "stitch_path_dirname", "group__stitch__path.html#ga50b2328254c38aee239f9c86b9896b67", null ],
+    [ "stitch_set_verbose", "stitch_8h.html#a935c056634240c62c5644bf652e50a47", null ],
+    [ "stitch_stem", "group__stitch__path.html#ga5952f93a287b6fb7015b93c3148f2b62", null ],
+    [ "stitch_vlog", "stitch_8h.html#ac4960085ba2dda4334b7c3ed2bf426e9", null ],
+    [ "Mat16d", "stitch_8h.html#ad7aeff89271b27c2fa9672f31128a9e0", null ],
+    [ "g_stitch_verbose", "stitch_8h.html#acb296800584c189137d7ca301c8bcfea", null ]
+];
