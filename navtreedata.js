@@ -25,7 +25,7 @@
 var NAVTREE =
 [
   [ "WoWs Model Exported", "index.html", [
-    [ "wows-geometry", "index.html", "index" ],
+    [ "wows-model-exporter", "index.html", "index" ],
     [ "WoWs .geometry Format", "md__f_o_r_m_a_t.html", [
       [ "Introduction", "md__f_o_r_m_a_t.html#autotoc_md14", null ],
       [ "File Layout", "md__f_o_r_m_a_t.html#autotoc_md15", null ],
