@@ -106,6 +106,11 @@ target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
 target_link_libraries(wows-gltf-exporter wows-geometry ${TINYGLTF_LIBRARY})
 
+# Ship lister: enumerate ships from GameParams.data
+add_executable(wows-list-ships wows-list-ships.cpp)
+target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
+target_link_libraries(wows-list-ships wows-geometry)
+
 if(BUILD_TESTS)
   if(CUNIT_LIBRARY)
 
@@ -165,7 +170,7 @@ endif()
 
 # install binaries and library
 install(
-  TARGETS wows-geometry wows-geometry-cli wows-gltf-exporter
+  TARGETS wows-geometry wows-geometry-cli wows-gltf-exporter wows-list-ships
   RUNTIME DESTINATION ${BIN_INSTALL_DIR}
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   ARCHIVE DESTINATION ${LIB_INSTALL_DIR})

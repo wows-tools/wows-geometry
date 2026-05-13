@@ -81,6 +81,28 @@ def _as_list(val):
     if isinstance(val, (list, tuple)): return list(val)
     return []
 
+def list_ships(game_params):
+    root = get_params_root(game_params)
+    ships = []
+    for key, val in root.items():
+        if not isinstance(val, dict):
+            continue
+        if "ShipUpgradeInfo" not in val:
+            continue
+        typeinfo = val.get("typeinfo", {})
+        if not isinstance(typeinfo, dict):
+            typeinfo = {}
+        species = typeinfo.get("species", "")
+        nation  = typeinfo.get("nation",  "")
+        index   = val.get("index", key)
+        ships.append({
+            "key":    key,
+            "index":  str(index),
+            "nation": str(nation),
+            "type":   str(species),
+        })
+    return ships
+
 def extract_ship(ship_name, ship_data):
     result = {"name": ship_name, "hull_upgrades": {}}
     upgrade_info = ship_data.get("ShipUpgradeInfo", {})
@@ -280,5 +302,40 @@ bool load_hull_info(const char *gameparams_path, const char *ship_name, const ch
     }
 
     Py_DECREF(info);
+    return true;
+}
+
+bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out) {
+    PyObject *mod = PyImport_AddModule("game_params");
+    if (!mod) { PyErr_Print(); return false; }
+    PyObject *ns = PyModule_GetDict(mod);
+    {
+        PyObject *code = Py_CompileString(GAME_PARAMS_PY, "game_params.py", Py_file_input);
+        if (!code) { PyErr_Print(); return false; }
+        PyObject *r = PyEval_EvalCode(code, ns, ns);
+        Py_DECREF(code);
+        if (!r) { PyErr_Print(); return false; }
+        Py_DECREF(r);
+    }
+
+    PyObject *gp = PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
+    if (!gp) { PyErr_Print(); return false; }
+
+    PyObject *ships = PyObject_CallMethod(mod, "list_ships", "O", gp);
+    Py_DECREF(gp);
+    if (!ships) { PyErr_Print(); return false; }
+
+    Py_ssize_t n = PyList_Size(ships);
+    out.reserve((size_t)n);
+    for (Py_ssize_t i = 0; i < n; ++i) {
+        PyObject *entry = PyList_GetItem(ships, i);
+        ShipEntry se;
+        se.key    = py_str(PyDict_GetItemString(entry, "key"));
+        se.index  = py_str(PyDict_GetItemString(entry, "index"));
+        se.nation = py_str(PyDict_GetItemString(entry, "nation"));
+        se.type   = py_str(PyDict_GetItemString(entry, "type"));
+        out.push_back(std::move(se));
+    }
+    Py_DECREF(ships);
     return true;
 }

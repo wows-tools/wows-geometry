@@ -10,6 +10,18 @@
 
 #pragma once
 #include "stitch.h"
+#include <string>
+#include <vector>
+
+/**
+ * @brief One ship entry returned by list_ships().
+ */
+struct ShipEntry {
+    std::string key;    /**< GameParams key, e.g. "PJSB007". */
+    std::string index;  /**< Short code, e.g. "JSB007". */
+    std::string nation; /**< Nation string, e.g. "Japan". */
+    std::string type;   /**< Ship type string, e.g. "Battleship". */
+};
 
 /**
  * @brief Load hull and mount information for a ship from `GameParams.data`.
@@ -28,3 +40,15 @@
  * @return `true` on success; errors are printed to stderr.
  */
 bool load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, HullInfo &out);
+
+/**
+ * @brief Enumerate all ships in `GameParams.data`, grouped by nation and type.
+ *
+ * Each returned entry carries the GameParams key, short index code, nation, and
+ * ship type as extracted from the `typeinfo` block inside each ship record.
+ *
+ * @param gameparams_path  Filesystem path to `GameParams.data`.
+ * @param out              Output vector filled with one ShipEntry per ship.
+ * @return `true` on success; errors are printed to stderr.
+ */
+bool list_ships(const char *gameparams_path, std::vector<ShipEntry> &out);
