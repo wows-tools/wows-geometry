@@ -177,6 +177,8 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
              "(use opts.assets_bin_path or supply game_dir)\n");
     }
 
+    stitch_apply_default_material(merged);
+
     tinygltf::TinyGLTF writer;
     bool ok = writer.WriteGltfSceneToFile(&merged, output_path,
                                           /*embedImages*/ true, /*embedBuffers*/ true,

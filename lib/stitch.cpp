@@ -865,3 +865,29 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
         }
     }
 }
+
+void stitch_apply_default_material(tinygltf::Model &model) {
+    /* find or create the fallback matte light-grey material */
+    int default_mat = -1;
+    for (int i = 0; i < (int)model.materials.size(); ++i) {
+        if (model.materials[i].name == "__default_grey") {
+            default_mat = i;
+            break;
+        }
+    }
+    if (default_mat < 0) {
+        tinygltf::Material mat;
+        mat.name = "__default_grey";
+        mat.doubleSided = true;
+        mat.pbrMetallicRoughness.baseColorFactor = {0.8, 0.8, 0.8, 1.0};
+        mat.pbrMetallicRoughness.metallicFactor = 0.0;
+        mat.pbrMetallicRoughness.roughnessFactor = 1.0;
+        default_mat = (int)model.materials.size();
+        model.materials.push_back(mat);
+    }
+
+    for (auto &mesh : model.meshes)
+        for (auto &prim : mesh.primitives)
+            if (prim.material < 0)
+                prim.material = default_mat;
+}

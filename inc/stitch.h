@@ -81,3 +81,4 @@ std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz);
 /* ── texture application ─────────────────────────────────────────── */
 void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, assets_bin_pdb_t *pdb,
                            const std::string &game_dir, int lod_level, bool excl_damage, int max_tex);
+void stitch_apply_default_material(tinygltf::Model &model);
