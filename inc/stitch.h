@@ -1,3 +1,15 @@
+/**
+ * @file stitch.h
+ * @brief High-level ship assembly and GLB export API.
+ *
+ * This header provides the top-level `stitch_export_ship()` function as well
+ * as the lower-level helpers used internally to locate geometry files, decode
+ * textures, and merge multiple GLB parts into a single scene.
+ *
+ * A typical caller only needs ::stitch_export_ship; the remaining symbols are
+ * exposed for unit-testing and for tools that need finer-grained control.
+ */
+
 #pragma once
 #include <string>
 #include <vector>
@@ -6,79 +18,273 @@
 #include <tiny_gltf.h>
 #include "assets_bin.h"
 
-/* verbose flag — set to true before calling library functions */
+/** @brief Set to `true` before calling any stitch function to enable verbose logging to stderr. */
 extern bool g_stitch_verbose;
+
+/**
+ * @brief Enable or disable verbose diagnostic output.
+ *
+ * @param v  `true` to enable, `false` to disable.
+ */
 void stitch_set_verbose(bool v);
 
-/* ── high-level ship export ──────────────────────────────────────── */
-
-struct ShipExportOptions {
-    std::string gameparams_path; /* auto-detected from game_dir if empty */
-    std::string assets_bin_path; /* auto-detected from game_dir if empty */
-    std::string hull_upgrade;    /* upgrade name substring; empty = latest */
-    bool with_turrets = true;
-    bool with_textures = true;
-    int max_tex_size = 2048;
-    int lod_level = -1; /* -1 = auto */
-    bool exclude_damage = true;
-};
-
-/* Export a full ship to a GLB file. Returns true on success.
- * Errors are printed to stderr. Python must NOT be initialised by the
- * caller; this function manages Py_Initialize / Py_Finalize internally. */
-bool stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
-                        const ShipExportOptions &opts = {});
+/**
+ * @brief Conditionally print a formatted message to stderr when verbose mode is active.
+ *
+ * Usage mirrors `fprintf(stderr, ...)`.
+ */
 #define stitch_vlog(...)                                                                                               \
     do {                                                                                                               \
         if (g_stitch_verbose)                                                                                          \
             fprintf(stderr, __VA_ARGS__);                                                                              \
     } while (0)
 
-/* column-major 4×4 matrix as a flat double vector */
+/** @brief Column-major 4×4 transform matrix stored as a flat `double` vector of 16 elements. */
 using Mat16d = std::vector<double>;
 
+/** @defgroup stitch_types Data types
+ *  Structures used to describe ship parts and export options.
+ *  @{
+ */
+
+/**
+ * @brief Options controlling a full-ship GLB export.
+ *
+ * All fields have sensible defaults; only @p game_dir, @p ship_name, and
+ * @p output_path must be specified.
+ */
+struct ShipExportOptions {
+    std::string gameparams_path; /**< Path to `GameParams.data`; auto-detected from @p game_dir if empty. */
+    std::string assets_bin_path; /**< Path to `assets.bin`; auto-detected from @p game_dir if empty. */
+    std::string hull_upgrade;    /**< Upgrade name substring used to select a hull; empty = latest hull. */
+    bool with_turrets = true;    /**< Include turret and module meshes. */
+    bool with_textures = true;   /**< Embed textures in the output GLB. */
+    int max_tex_size = 2048;     /**< Maximum texture dimension in pixels; larger textures are downscaled. */
+    int lod_level = -1;          /**< LOD level to export; -1 = auto-select the highest detail level. */
+    bool exclude_damage = true;  /**< Exclude damage and cross-section geometry sections. */
+};
+
+/**
+ * @brief A turret or module mount point, pairing a hardpoint name with a model path.
+ */
 struct MountEntry {
-    std::string hp_name;
-    std::string model_path;
+    std::string hp_name;    /**< Hardpoint socket name (e.g. `"HP_MainGun_1"`). */
+    std::string model_path; /**< Path to the mount's `.visual` model within the game tree. */
 };
 
+/**
+ * @brief Aggregated hull information for one ship hull variant.
+ */
 struct HullInfo {
-    std::string hull_model;
-    std::vector<MountEntry> mounts;
+    std::string hull_model;          /**< Path to the primary hull `.visual` model. */
+    std::vector<MountEntry> mounts;  /**< All mount points attached to this hull. */
 };
 
+/**
+ * @brief One resolved geometry part ready to be merged into a GLB scene.
+ */
 struct GlbPart {
-    tinygltf::Model model;
-    std::string mesh_name;
-    std::string geom_path;
-    Mat16d matrix; /* empty → identity */
+    tinygltf::Model model;  /**< Parsed glTF model for this part. */
+    std::string mesh_name;  /**< Display name used for the mesh node in the merged scene. */
+    std::string geom_path;  /**< Filesystem path to the source `.geometry` file. */
+    Mat16d matrix;          /**< World-space transform; empty vector means identity. */
 };
 
-/* ── path / file utilities ───────────────────────────────────────── */
+/** @} */
+
+/** @defgroup stitch_export High-level export
+ *  @{
+ */
+
+/**
+ * @brief Export a complete ship model to a binary glTF (GLB) file.
+ *
+ * Locates all hull and turret geometry files, decodes vertices and indices,
+ * applies textures, and writes the result to @p output_path.
+ *
+ * Python **must not** be initialised by the caller; this function manages
+ * `Py_Initialize` / `Py_Finalize` internally for `GameParams.data` access.
+ *
+ * @param game_dir     Path to the game's root resource directory.
+ * @param ship_name    Ship identifier as it appears in `GameParams.data` (e.g. `"PJSB009"`).
+ * @param output_path  Destination path for the `.glb` output file.
+ * @param opts         Export options; defaults are applied if not specified.
+ * @return `true` on success; errors are printed to stderr.
+ */
+bool stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
+                        const ShipExportOptions &opts = {});
+
+/** @} */
+
+/** @defgroup stitch_path Path and file utilities
+ *  @{
+ */
+
+/** @brief Return the basename component of a path (everything after the last `/`). */
 std::string stitch_path_basename(const std::string &p);
+
+/** @brief Return the directory component of a path (everything up to and including the last `/`). */
 std::string stitch_path_dirname(const std::string &p);
+
+/** @brief Return the stem of a filename (basename without the final extension). */
 std::string stitch_stem(const std::string &filename);
+
+/** @brief Replace all backslashes in @p s with forward slashes and return the result. */
 std::string stitch_normalize_slashes(std::string s);
+
+/** @brief Return `true` if the file at @p p exists and is readable. */
 bool stitch_file_exists(const std::string &p);
 
+/**
+ * @brief Resolve a `.visual` model path to the corresponding `.geometry` file path.
+ *
+ * @param model    Path to the `.visual` model within the game tree.
+ * @param game_dir Root resource directory.
+ * @return Filesystem path to the `.geometry` file, or empty string if not found.
+ */
 std::string stitch_model_to_geom_path(const std::string &model, const std::string &game_dir);
+
+/**
+ * @brief Convert a `.geometry` filesystem path to its `.visual` suffix form.
+ *
+ * The suffix is suitable as the @p visual_suffix argument to
+ * ::assets_bin_get_visual_info.
+ *
+ * @param geom_path  Filesystem path to a `.geometry` file.
+ * @return Visual suffix string (e.g. `"ShipDir/ShipDir.visual"`).
+ */
 std::string stitch_geom_to_visual_suffix(const std::string &geom_path);
+
+/**
+ * @brief Find all `.geometry` files belonging to a hull model.
+ *
+ * A single hull is often split into multiple part files (`_Bow`, `_MidFront`,
+ * etc.); this function enumerates them all.
+ *
+ * @param hull_model  Path to the hull `.visual` model.
+ * @param game_dir    Root resource directory.
+ * @return Sorted list of filesystem paths to the part `.geometry` files.
+ */
 std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir);
+
+/**
+ * @brief Search for a game asset file by name under @p game_dir.
+ *
+ * @param game_dir  Root resource directory.
+ * @param filename  Filename (not a path) to search for.
+ * @return Full filesystem path to the first match, or empty string if not found.
+ */
 std::string stitch_find_game_file(const std::string &game_dir, const std::string &filename);
 
-/* ── math helpers ────────────────────────────────────────────────── */
+/** @} */
+
+/** @defgroup stitch_math Matrix math helpers
+ *  @{
+ */
+
+/**
+ * @brief Multiply two column-major 4×4 double matrices.
+ *
+ * @param a  Left-hand matrix (16 elements).
+ * @param b  Right-hand matrix (16 elements).
+ * @return Product `a × b` as a 16-element vector.
+ */
 Mat16d stitch_mat4_mul_d(const Mat16d &a, const Mat16d &b);
+
+/**
+ * @brief Convert a `float[16]` column-major matrix to a `double` Mat16d.
+ *
+ * @param m  Source float array of 16 elements.
+ * @return Double-precision copy as a Mat16d.
+ */
 Mat16d stitch_float_to_double_mat(const float m[16]);
 
-/* ── geometry I/O ────────────────────────────────────────────────── */
+/** @} */
+
+/** @defgroup stitch_geom Geometry I/O
+ *  @{
+ */
+
+/**
+ * @brief Load a `.geometry` file and convert it to a tinygltf model.
+ *
+ * @param geom_path  Filesystem path to the `.geometry` file.
+ * @param model_out  Output parameter filled with the parsed glTF model.
+ * @return `true` on success.
+ */
 bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out);
+
+/**
+ * @brief Merge a list of ::GlbPart objects into a single tinygltf scene.
+ *
+ * Each part's mesh nodes are added under a root node and transformed by the
+ * part's @p matrix field.
+ *
+ * @param parts  Parts to merge; modified in-place (meshes are moved out).
+ * @return A merged tinygltf::Model containing all parts in one scene.
+ */
 tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts);
 
-/* ── DDS decoding ────────────────────────────────────────────────── */
+/** @} */
+
+/** @defgroup stitch_dds DDS texture decoding
+ *  @{
+ */
+
+/**
+ * @brief Decode a DDS texture buffer to raw RGBA pixels.
+ *
+ * Supports the BC1/BC3/BC5/BC7 block-compressed formats used in WoWs.
+ *
+ * @param d   Pointer to the DDS file data in memory.
+ * @param sz  Size of the DDS data in bytes.
+ * @param W   Output: decoded image width in pixels.
+ * @param H   Output: decoded image height in pixels.
+ * @return RGBA pixel data (`W × H × 4` bytes), or empty on failure.
+ */
 std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H);
+
+/**
+ * @brief Load a `.dds` file from disk and encode it as a PNG byte buffer.
+ *
+ * If either dimension exceeds @p max_sz the image is downscaled to fit.
+ *
+ * @param path    Filesystem path to the `.dds` file.
+ * @param max_sz  Maximum allowed width or height; 0 means no limit.
+ * @return PNG-encoded bytes, or empty on failure.
+ */
 std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz);
 
-/* ── texture application ─────────────────────────────────────────── */
+/** @} */
+
+/** @defgroup stitch_tex Texture application
+ *  @{
+ */
+
+/**
+ * @brief Attach textures from `assets.bin` to the materials in a glTF model.
+ *
+ * Looks up each mesh section's MFM path via the PDB, locates the corresponding
+ * `.dds` file, decodes it, and embeds the result as a PNG in the model.
+ *
+ * @param model       glTF model whose materials will be updated.
+ * @param geom_order  Ordered list of `.geometry` file paths that contributed meshes.
+ * @param pdb         Open `assets.bin` handle for material lookups.
+ * @param game_dir    Root resource directory used to resolve texture paths.
+ * @param lod_level   LOD level to use when selecting render sets (-1 = auto).
+ * @param excl_damage If `true`, damage-geometry render sets are skipped.
+ * @param max_tex     Maximum texture dimension; larger textures are downscaled.
+ */
 void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, assets_bin_pdb_t *pdb,
                            const std::string &game_dir, int lod_level, bool excl_damage, int max_tex);
+
+/**
+ * @brief Apply a uniform grey default material to all primitives in a model.
+ *
+ * Used as a fallback when texture lookup fails or textures are disabled.
+ *
+ * @param model  glTF model to modify in-place.
+ */
 void stitch_apply_default_material(tinygltf::Model &model);
+
+/** @} */

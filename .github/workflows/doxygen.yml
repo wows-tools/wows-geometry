@@ -1,0 +1,44 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-doc:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install packages
+      run: |
+        sudo apt update
+        sudo apt install cmake zlib1g-dev libpcre2-dev clang \
+          libmeshoptimizer-dev libtinygltf-dev libstb-dev python3-dev doxygen
+
+    - name: Fetch missing STB headers
+      run: |
+        sudo mkdir -p /usr/include/stb
+        for f in stb_image_resize2.h stb_image_write.h; do
+          [ -f /usr/include/stb/$f ] || sudo curl -fsSL \
+            "https://raw.githubusercontent.com/nothings/stb/master/$f" \
+            -o /usr/include/stb/$f
+        done
+
+    - name: Get Doxygen awesome CSS
+      run: ./misc/setup_doxycss.sh
+
+    - name: Configure CMake
+      run: cmake -DBUILD_DOC=ON .
+
+    - name: Build documentation
+      run: make doc_doxygen
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html/
