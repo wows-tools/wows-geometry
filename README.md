@@ -30,6 +30,19 @@ wows-geometry-cli -i <file.geometry> [-p] [-v] [-g output.glb] [-s 0,1,...]
   -s 0,1,…   Comma-separated vertex section indices to export (default: all)
 ```
 
+### `wows-list-ships` — enumerate available ships
+
+Lists all ships found in `GameParams.data`, with optional filtering by nation or type.
+
+```
+wows-list-ships [-d <game-dir>] [-g GameParams.data] [-n nation] [-t type]
+
+  -d DIR     Root game directory (auto-detects GameParams.data)
+  -g FILE    GameParams.data (alternative to -d)
+  -n STR     Filter by nation (case-insensitive substring)
+  -t STR     Filter by ship type (case-insensitive substring)
+```
+
 ### `wows-gltf-exporter` — full ship GLB assembler
 
 Reads `GameParams.data` to find hull and mount-point models, loads HP_ transforms
@@ -72,41 +85,41 @@ wows-gltf-exporter -d /opt/wows -s Kongo -H HullB -t -L 0 -o kongo_hullb.glb
 ## Library API
 
 `wows-geometry` exposes a C++ API for embedding ship export into your own tools.
-The main entry point is `stitch_export_ship()` from `inc/stitch.h`.
+The main entry point is `wows_stitch_export_ship()` from `inc/wows-model-exporter.h`.
 
 Full API reference: **[wows-tools.github.io/wows-model-exporter](https://wows-tools.github.io/wows-model-exporter/)**
 
 ### Quick start
 
 ```cpp
-#include "stitch.h"
+#include "wows-model-exporter.h"
 
-ShipExportOptions opts;
+wows_ship_export_options opts;
 // all fields have sensible defaults; override only what you need:
-// opts.hull_upgrade    = "HullB";   // empty = latest
-// opts.with_turrets    = false;
-// opts.with_textures   = false;
-// opts.max_tex_size    = 1024;
-// opts.lod_level       = 0;         // -1 = auto
-// opts.exclude_damage  = false;
-// opts.gameparams_path = "/explicit/path/GameParams.data";  // auto-detected if empty
-// opts.assets_bin_path = "/explicit/path/assets.bin";       // auto-detected if empty
+// opts.hull_upgrade         = "HullB";   // empty = latest
+// opts.with_turrets         = false;
+// opts.with_textures        = false;
+// opts.max_tex_size         = 1024;
+// opts.lod_level            = 0;         // -1 = auto
+// opts.exclude_damage       = false;
+// opts.gameparams_path      = "/explicit/path/GameParams.data";  // auto-detected if empty
+// opts.wows_assets_bin_path = "/explicit/path/assets.bin";       // auto-detected if empty
 
-bool ok = stitch_export_ship("/opt/wows", "Kongo", "kongo.glb", opts);
+bool ok = wows_stitch_export_ship("/opt/wows", "Kongo", "kongo.glb", opts);
 ```
 
-`stitch_export_ship` handles everything: auto-detecting `GameParams.data` and
+`wows_stitch_export_ship` handles everything: auto-detecting `GameParams.data` and
 `assets.bin` under `game_dir`, resolving hull and turret models, loading HP_
 transforms and BlendBone corrections, decoding geometry, merging, texturing, and
 writing the GLB. Errors are printed to stderr; Python is initialised and finalised
 internally.
 
-### `ShipExportOptions` fields
+### `wows_ship_export_options` fields
 
 | Field | Default | Description |
 |-------|---------|-------------|
 | `gameparams_path` | `""` | Path to `GameParams.data`; auto-detected from `game_dir` if empty |
-| `assets_bin_path` | `""` | Path to `assets.bin`; auto-detected from `game_dir` if empty |
+| `wows_assets_bin_path` | `""` | Path to `assets.bin`; auto-detected from `game_dir` if empty |
 | `hull_upgrade` | `""` | Hull upgrade name substring (e.g. `"HullB"`); empty = latest |
 | `with_turrets` | `true` | Include turret / mount geometry |
 | `with_textures` | `true` | Apply DDS albedo textures |
@@ -117,7 +130,7 @@ internally.
 ### Verbose output
 
 ```cpp
-g_stitch_verbose = true;   // prints progress to stderr
+wows_stitch_verbose = true;   // prints progress to stderr
 ```
 
 ### Linking
@@ -131,10 +144,10 @@ Python 3 and all other dependencies are already linked into `wows-geometry`.
 ### Lower-level API
 
 If you need finer control (custom merge logic, streaming parts, etc.) the
-building-block functions used internally by `stitch_export_ship` are also public:
-`load_hull_info`, `stitch_find_hull_geoms`, `stitch_geom_to_model`,
-`stitch_merge_parts`, `stitch_apply_textures`, and the `assets_bin_*` helpers
-in `inc/assets_bin.h`.
+building-block functions used internally by `wows_stitch_export_ship` are also public:
+`wows_stitch_find_hull_geoms`, `wows_stitch_geom_to_model`,
+`wows_stitch_merge_parts`, `wows_stitch_apply_textures`, and the `wows_assets_bin_*`
+helpers in `inc/wows-assets-bin.h`.
 
 ---
 
