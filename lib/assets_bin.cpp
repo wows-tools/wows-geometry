@@ -707,9 +707,6 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
     /* mark render sets absent from every LOD as damage geometry */
     std::set<uint32_t> in_any_lod;
     for (uint8_t i = 0; i < lod_count; ++i)
-        for (size_t j = 0; j < info->lods[i].count; ++j)
-            in_any_lod.insert(info->lods[i].mapping_ids[j]);
-    vlog(vis_tag, "  damage classification (absent from all LODs = damage):\n");
     {
         std::map<std::string, int> rs_name_count, rs_name_seq;
         for (uint16_t i = 0; i < rs_count; ++i) {
@@ -718,13 +715,15 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
         }
         for (uint16_t i = 0; i < rs_count; ++i) {
             assets_bin_rs_t &rs = info->render_sets[i];
-            rs.is_damage = in_any_lod.count(rs.indices_mapping_id) ? 0 : 1;
             const char *primary = rs.section_name[0] ? rs.section_name
                                   : rs.node_name[0]  ? rs.node_name : "(unnamed)";
             std::string base_name(primary);
             std::string label = base_name;
             if (rs_name_count[base_name] > 1)
                 label += "[" + std::to_string(rs_name_seq[base_name]++) + "]";
+            rs.is_damage = (label.find("_crack") != std::string::npos)
+                               ? 1
+                               : 0;
             vlog(vis_tag, "    %-40s geo_map_id=%08x is_damage=%d\n",
                  label.c_str(), rs.indices_mapping_id, rs.is_damage);
         }
