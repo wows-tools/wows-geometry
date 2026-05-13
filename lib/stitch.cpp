@@ -959,6 +959,7 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
         std::vector<uint32_t> mids;
         std::set<uint32_t> allowed;
         std::map<uint32_t, int> mid_mat;
+        std::map<uint32_t, std::string> mid_name;
     };
     std::map<std::string, GtData> cache;
 
@@ -996,12 +997,23 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
             vlog("  Visual %s: LOD%d/%zu, %zu render sets\n", stitch_path_basename(gp).c_str(), clod, vi->lod_count,
                  vi->rs_count);
 
-            if (vi->lod_count > 0 && (size_t)clod < vi->lod_count)
+            if (vi->lod_count > 0 && (size_t)clod < vi->lod_count) {
                 for (size_t j = 0; j < vi->lods[clod].count; ++j)
                     gt.allowed.insert(vi->lods[clod].mapping_ids[j]);
-            else
+                /* also allow render sets that don't appear in any LOD */
+                std::set<uint32_t> in_any_lod;
+                for (size_t i = 0; i < vi->lod_count; ++i)
+                    for (size_t j = 0; j < vi->lods[i].count; ++j)
+                        in_any_lod.insert(vi->lods[i].mapping_ids[j]);
+                for (size_t ri = 0; ri < vi->rs_count; ++ri) {
+                    uint32_t mid = vi->render_sets[ri].indices_mapping_id;
+                    if (!in_any_lod.count(mid))
+                        gt.allowed.insert(mid);
+                }
+            } else {
                 for (size_t ri = 0; ri < vi->rs_count; ++ri)
                     gt.allowed.insert(vi->render_sets[ri].indices_mapping_id);
+            }
 
             if (excl_damage)
                 for (uint32_t m : dmg)
@@ -1010,7 +1022,13 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
             for (size_t ri = 0; ri < vi->rs_count; ++ri) {
                 const assets_bin_rs_t &rs = vi->render_sets[ri];
                 uint32_t mid = rs.indices_mapping_id;
-                if (!gt.allowed.count(mid) || !rs.mfm_path[0])
+                if (!gt.allowed.count(mid))
+                    continue;
+
+                if (rs.node_name[0])
+                    gt.mid_name[mid] = rs.node_name;
+
+                if (!rs.mfm_path[0] || max_tex <= 0)
                     continue;
 
                 std::string mfm = stitch_normalize_slashes(rs.mfm_path);
@@ -1041,8 +1059,10 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
 
         GtData &gt = cache.at(gp);
         std::vector<tinygltf::Primitive> kept;
+        std::vector<std::string> kept_names;
         for (size_t pi = 0; pi < model.meshes[mi].primitives.size(); ++pi) {
             tinygltf::Primitive &prim = model.meshes[mi].primitives[pi];
+            std::string rs_name;
             if (pi < gt.mids.size()) {
                 uint32_t mid = gt.mids[pi];
                 if (!gt.allowed.empty() && !gt.allowed.count(mid))
@@ -1050,9 +1070,47 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                 auto it = gt.mid_mat.find(mid);
                 if (it != gt.mid_mat.end())
                     prim.material = it->second;
+                auto nit = gt.mid_name.find(mid);
+                if (nit != gt.mid_name.end())
+                    rs_name = nit->second;
             }
             kept.push_back(prim);
+            kept_names.push_back(rs_name);
         }
         model.meshes[mi].primitives = std::move(kept);
+
+        /* split primitives into named child nodes */
+        for (size_t pi = 0; pi < kept_names.size(); ++pi)
+            if (kept_names[pi].empty())
+                kept_names[pi] = model.meshes[mi].name + "_prim_" + std::to_string(pi);
+        {
+            int parent_ni = -1;
+            for (int ni = 0; ni < (int)model.nodes.size(); ++ni)
+                if (model.nodes[ni].mesh == (int)mi) {
+                    parent_ni = ni;
+                    break;
+                }
+            if (parent_ni >= 0) {
+                /* copy primitives before pushing to model.meshes to avoid reallocation invalidating refs */
+                std::vector<tinygltf::Primitive> prims = model.meshes[mi].primitives;
+                std::vector<int> children;
+                for (size_t pi = 0; pi < prims.size(); ++pi) {
+                    tinygltf::Mesh cmesh;
+                    cmesh.name = kept_names[pi];
+                    cmesh.primitives.push_back(prims[pi]);
+                    int cmesh_idx = (int)model.meshes.size();
+                    model.meshes.push_back(cmesh);
+                    tinygltf::Node cnode;
+                    cnode.name = kept_names[pi];
+                    cnode.mesh = cmesh_idx;
+                    int cnode_idx = (int)model.nodes.size();
+                    model.nodes.push_back(cnode);
+                    children.push_back(cnode_idx);
+                }
+                model.nodes[parent_ni].mesh = -1;
+                model.nodes[parent_ni].children = children;
+                model.meshes[mi].primitives.clear();
+            }
+        }
     }
 }
