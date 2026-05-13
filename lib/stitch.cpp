@@ -659,23 +659,12 @@ void stitch_apply_textures(tinygltf::Model &model,
         return ti;
     };
 
-    auto vflip_tex=[](int ti)->tinygltf::TextureInfo{
-        tinygltf::TextureInfo t; t.index=ti; t.texCoord=0;
-        tinygltf::Value::Object khr;
-        tinygltf::Value::Array sc,of;
-        sc.push_back(tinygltf::Value(1.0)); sc.push_back(tinygltf::Value(-1.0));
-        of.push_back(tinygltf::Value(0.0)); of.push_back(tinygltf::Value( 1.0));
-        khr["scale"]=tinygltf::Value(sc); khr["offset"]=tinygltf::Value(of);
-        t.extensions["KHR_texture_transform"]=tinygltf::Value(khr);
-        return t;
-    };
-
     auto ensure_mat=[&](const std::string&name,const std::vector<uint8_t>&png)->int{
         auto it=stem_to_mat.find(name);
         if(it!=stem_to_mat.end()) return it->second;
         int ti=embed_png(png);
         tinygltf::Material mat; mat.name=name; mat.doubleSided=true;
-        mat.pbrMetallicRoughness.baseColorTexture=vflip_tex(ti);
+        mat.pbrMetallicRoughness.baseColorTexture.index=ti;
         mat.pbrMetallicRoughness.metallicFactor=0.0;
         mat.pbrMetallicRoughness.roughnessFactor=0.8;
         int mi=(int)model.materials.size(); model.materials.push_back(mat);
@@ -769,9 +758,4 @@ void stitch_apply_textures(tinygltf::Model &model,
         model.meshes[mi].primitives=std::move(kept);
     }
 
-    if(!stem_to_mat.empty()){
-        auto&eu=model.extensionsUsed;
-        if(std::find(eu.begin(),eu.end(),"KHR_texture_transform")==eu.end())
-            eu.push_back("KHR_texture_transform");
-    }
 }
