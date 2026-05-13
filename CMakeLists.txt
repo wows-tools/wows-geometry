@@ -12,7 +12,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 find_library(CUNIT_LIBRARY cunit)
 find_library(MESHOPTIMIZER_LIBRARY meshoptimizer)
 find_library(TINYGLTF_LIBRARY tinygltf)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(
+  Python3
+  COMPONENTS Interpreter Development
+  REQUIRED)
 
 set(wows-geometry_VERSION
     ${wows-geometry_VERSION_MAJOR}.${wows-geometry_VERSION_MINOR}.${wows-geometry_VERSION_PATCH}
@@ -92,9 +95,9 @@ set_target_properties(
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
 target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
-target_link_libraries(wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY}
-                      ${MESHOPTIMIZER_LIBRARY} ${TINYGLTF_LIBRARY}
-                      ${Python3_LIBRARIES})
+target_link_libraries(
+  wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
+  ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
 
 target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
                       ${PCRE_LIBRARY})

@@ -12,24 +12,26 @@ extern bool g_stitch_verbose;
 /* ── high-level ship export ──────────────────────────────────────── */
 
 struct ShipExportOptions {
-    std::string gameparams_path;   /* auto-detected from game_dir if empty */
-    std::string assets_bin_path;   /* auto-detected from game_dir if empty */
-    std::string hull_upgrade;      /* upgrade name substring; empty = latest */
-    bool        with_turrets   = true;
-    bool        with_textures  = true;
-    int         max_tex_size   = 2048;
-    int         lod_level      = -1;   /* -1 = auto */
-    bool        exclude_damage = true;
+    std::string gameparams_path; /* auto-detected from game_dir if empty */
+    std::string assets_bin_path; /* auto-detected from game_dir if empty */
+    std::string hull_upgrade;    /* upgrade name substring; empty = latest */
+    bool with_turrets = true;
+    bool with_textures = true;
+    int max_tex_size = 2048;
+    int lod_level = -1; /* -1 = auto */
+    bool exclude_damage = true;
 };
 
 /* Export a full ship to a GLB file. Returns true on success.
  * Errors are printed to stderr. Python must NOT be initialised by the
  * caller; this function manages Py_Initialize / Py_Finalize internally. */
-bool stitch_export_ship(const std::string &game_dir,
-                        const std::string &ship_name,
-                        const std::string &output_path,
+bool stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
                         const ShipExportOptions &opts = {});
-#define stitch_vlog(...) do { if (g_stitch_verbose) fprintf(stderr, __VA_ARGS__); } while(0)
+#define stitch_vlog(...)                                                                                               \
+    do {                                                                                                               \
+        if (g_stitch_verbose)                                                                                          \
+            fprintf(stderr, __VA_ARGS__);                                                                              \
+    } while (0)
 
 /* column-major 4×4 matrix as a flat double vector */
 using Mat16d = std::vector<double>;
@@ -46,9 +48,9 @@ struct HullInfo {
 
 struct GlbPart {
     tinygltf::Model model;
-    std::string     mesh_name;
-    std::string     geom_path;
-    Mat16d          matrix;    /* empty → identity */
+    std::string mesh_name;
+    std::string geom_path;
+    Mat16d matrix; /* empty → identity */
 };
 
 /* ── path / file utilities ───────────────────────────────────────── */
@@ -56,33 +58,25 @@ std::string stitch_path_basename(const std::string &p);
 std::string stitch_path_dirname(const std::string &p);
 std::string stitch_stem(const std::string &filename);
 std::string stitch_normalize_slashes(std::string s);
-bool        stitch_file_exists(const std::string &p);
+bool stitch_file_exists(const std::string &p);
 
-std::string stitch_model_to_geom_path(const std::string &model,
-                                       const std::string &game_dir);
+std::string stitch_model_to_geom_path(const std::string &model, const std::string &game_dir);
 std::string stitch_geom_to_visual_suffix(const std::string &geom_path);
-std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model,
-                                                 const std::string &game_dir);
-std::string stitch_find_game_file(const std::string &game_dir,
-                                   const std::string &filename);
+std::vector<std::string> stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir);
+std::string stitch_find_game_file(const std::string &game_dir, const std::string &filename);
 
 /* ── math helpers ────────────────────────────────────────────────── */
 Mat16d stitch_mat4_mul_d(const Mat16d &a, const Mat16d &b);
 Mat16d stitch_float_to_double_mat(const float m[16]);
 
 /* ── geometry I/O ────────────────────────────────────────────────── */
-bool            stitch_geom_to_model(const std::string &geom_path,
-                                      tinygltf::Model &model_out);
+bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out);
 tinygltf::Model stitch_merge_parts(std::vector<GlbPart> &parts);
 
 /* ── DDS decoding ────────────────────────────────────────────────── */
-std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz,
-                                        int *W, int *H);
+std::vector<uint8_t> stitch_decode_dds(const uint8_t *d, size_t sz, int *W, int *H);
 std::vector<uint8_t> stitch_dds_to_png(const std::string &path, int max_sz);
 
 /* ── texture application ─────────────────────────────────────────── */
-void stitch_apply_textures(tinygltf::Model &model,
-                            const std::vector<std::string> &geom_order,
-                            assets_bin_pdb_t *pdb,
-                            const std::string &game_dir,
-                            int lod_level, bool excl_damage, int max_tex);
+void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, assets_bin_pdb_t *pdb,
+                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex);
