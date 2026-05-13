@@ -8,20 +8,19 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/cache
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install packages
       run: |
         sudo apt update
         sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev valgrind \
-          libmeshoptimizer-dev libtinygltf-dev
+          libmeshoptimizer-dev libtinygltf-dev python3-dev
     - name: Configure CMake
       run: cmake -DCOVERAGE=ON -DBUILD_TESTS=ON .
     - name: Build
