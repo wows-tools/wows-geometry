@@ -2,6 +2,7 @@
 #include <stddef.h>
 
 #ifdef __cplusplus
+extern bool g_assets_bin_verbose;
 extern "C" {
 #endif
 
@@ -40,9 +41,10 @@ void assets_bin_pdb_free(assets_bin_pdb_t *pdb);
 
 typedef struct {
     unsigned int indices_mapping_id;
-    char mfm_path[512];  /* full MFM path in game tree */
-    char node_name[256]; /* render-set node name */
-    int is_damage;       /* 1 if this is damage/cross-section geometry */
+    char mfm_path[512];    /* full MFM path in game tree */
+    char section_name[256]; /* render-set section name (from name_id at +00) */
+    char node_name[256];   /* node name (from node_name_ids array, may be shared) */
+    int is_damage;         /* 1 if this is damage/cross-section geometry */
 } assets_bin_rs_t;
 
 typedef struct {

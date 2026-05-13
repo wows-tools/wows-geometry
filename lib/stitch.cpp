@@ -22,10 +22,15 @@ extern "C" {
 #include <sys/stat.h>
 
 bool g_stitch_verbose = false;
-#define vlog(...)                                                                                                      \
+/* mirror verbosity into assets_bin */
+void stitch_set_verbose(bool v) {
+    g_stitch_verbose = v;
+    g_assets_bin_verbose = v;
+}
+#define vlog(tag, fmt, ...)                                                                                           \
     do {                                                                                                               \
         if (g_stitch_verbose)                                                                                          \
-            fprintf(stderr, __VA_ARGS__);                                                                              \
+            fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__);                                                         \
     } while (0)
 
 /* ── path / file utilities ───────────────────────────────────────── */
@@ -271,7 +276,7 @@ bool stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_o
     std::vector<char> gp_buf(geom_path.begin(), geom_path.end());
     gp_buf.push_back('\0');
     if (wows_parse_geometry(gp_buf.data(), &geom) != 0) {
-        fprintf(stderr, "  Warning: failed to parse %s\n", geom_path.c_str());
+        vlog(stitch_path_basename(geom_path).c_str(), "Warning: failed to parse geometry\n");
         return false;
     }
 
@@ -956,10 +961,10 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
     };
 
     struct GtData {
-        std::vector<uint32_t> mids;
+        std::vector<uint32_t> geo_map_ids;
         std::set<uint32_t> allowed;
-        std::map<uint32_t, int> mid_mat;
-        std::map<uint32_t, std::string> mid_name;
+        std::map<uint32_t, int> geo_map_mat;
+        std::map<uint32_t, std::string> geo_map_name;
     };
     std::map<std::string, GtData> cache;
 
@@ -979,7 +984,9 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                 continue;
             }
 
-            gt.mids = read_geom_mapping_ids(gp);
+            gt.geo_map_ids = read_geom_mapping_ids(gp);
+
+            const std::string geom_tag = stitch_path_basename(gp);
 
             std::set<uint32_t> dmg;
             for (size_t ri = 0; ri < vi->rs_count; ++ri)
@@ -994,26 +1001,14 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
                 clod = std::max(0, lod_level);
             }
 
-            vlog("  Visual %s: LOD%d/%zu, %zu render sets\n", stitch_path_basename(gp).c_str(), clod, vi->lod_count,
-                 vi->rs_count);
+            vlog(geom_tag.c_str(), "LOD%d/%zu, %zu render sets\n", clod, vi->lod_count, vi->rs_count);
 
-            if (vi->lod_count > 0 && (size_t)clod < vi->lod_count) {
+            if (vi->lod_count > 0 && (size_t)clod < vi->lod_count)
                 for (size_t j = 0; j < vi->lods[clod].count; ++j)
                     gt.allowed.insert(vi->lods[clod].mapping_ids[j]);
-                /* also allow render sets that don't appear in any LOD */
-                std::set<uint32_t> in_any_lod;
-                for (size_t i = 0; i < vi->lod_count; ++i)
-                    for (size_t j = 0; j < vi->lods[i].count; ++j)
-                        in_any_lod.insert(vi->lods[i].mapping_ids[j]);
-                for (size_t ri = 0; ri < vi->rs_count; ++ri) {
-                    uint32_t mid = vi->render_sets[ri].indices_mapping_id;
-                    if (!in_any_lod.count(mid))
-                        gt.allowed.insert(mid);
-                }
-            } else {
+            else
                 for (size_t ri = 0; ri < vi->rs_count; ++ri)
                     gt.allowed.insert(vi->render_sets[ri].indices_mapping_id);
-            }
 
             if (excl_damage)
                 for (uint32_t m : dmg)
@@ -1021,12 +1016,14 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
 
             for (size_t ri = 0; ri < vi->rs_count; ++ri) {
                 const assets_bin_rs_t &rs = vi->render_sets[ri];
-                uint32_t mid = rs.indices_mapping_id;
-                if (!gt.allowed.count(mid))
+                uint32_t geo_map_id = rs.indices_mapping_id;
+                if (!gt.allowed.count(geo_map_id))
                     continue;
 
-                if (rs.node_name[0])
-                    gt.mid_name[mid] = rs.node_name;
+                if (rs.section_name[0])
+                    gt.geo_map_name[geo_map_id] = rs.section_name;
+                else if (rs.node_name[0])
+                    gt.geo_map_name[geo_map_id] = rs.node_name;
 
                 if (!rs.mfm_path[0] || max_tex <= 0)
                     continue;
@@ -1042,17 +1039,18 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
 
                 std::string dds = find_texture(tdir, tstem, "_a");
                 if (dds.empty()) {
-                    vlog("    no albedo: %s\n", tstem.c_str());
+                    vlog(geom_tag.c_str(), "no albedo texture: %s\n", tstem.c_str());
                     continue;
                 }
                 std::vector<uint8_t> png = stitch_dds_to_png(dds, max_tex);
                 if (png.empty()) {
-                    vlog("    decode fail: %s\n", stitch_path_basename(dds).c_str());
+                    vlog(geom_tag.c_str(), "failed to decode: %s\n", stitch_path_basename(dds).c_str());
                     continue;
                 }
                 int mat = ensure_mat(tstem, png);
-                gt.mid_mat[mid] = mat;
-                vlog("    %s → mat%d (%zuKB)\n", stitch_path_basename(dds).c_str(), mat, png.size() / 1024);
+                gt.geo_map_mat[geo_map_id] = mat;
+                vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n",
+                     stitch_path_basename(dds).c_str(), mat, png.size() / 1024);
             }
             assets_bin_visual_info_free(vi);
         }
@@ -1063,15 +1061,15 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
         for (size_t pi = 0; pi < model.meshes[mi].primitives.size(); ++pi) {
             tinygltf::Primitive &prim = model.meshes[mi].primitives[pi];
             std::string rs_name;
-            if (pi < gt.mids.size()) {
-                uint32_t mid = gt.mids[pi];
-                if (!gt.allowed.empty() && !gt.allowed.count(mid))
+            if (pi < gt.geo_map_ids.size()) {
+                uint32_t geo_map_id = gt.geo_map_ids[pi];
+                if (!gt.allowed.empty() && !gt.allowed.count(geo_map_id))
                     continue;
-                auto it = gt.mid_mat.find(mid);
-                if (it != gt.mid_mat.end())
+                auto it = gt.geo_map_mat.find(geo_map_id);
+                if (it != gt.geo_map_mat.end())
                     prim.material = it->second;
-                auto nit = gt.mid_name.find(mid);
-                if (nit != gt.mid_name.end())
+                auto nit = gt.geo_map_name.find(geo_map_id);
+                if (nit != gt.geo_map_name.end())
                     rs_name = nit->second;
             }
             kept.push_back(prim);
@@ -1083,6 +1081,15 @@ void stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string
         for (size_t pi = 0; pi < kept_names.size(); ++pi)
             if (kept_names[pi].empty())
                 kept_names[pi] = model.meshes[mi].name + "_prim_" + std::to_string(pi);
+        {
+            std::map<std::string, int> name_count;
+            for (const auto &n : kept_names)
+                name_count[n]++;
+            std::map<std::string, int> name_idx;
+            for (auto &n : kept_names)
+                if (name_count[n] > 1)
+                    n += "[" + std::to_string(name_idx[n]++) + "]";
+        }
         {
             int parent_ni = -1;
             for (int ni = 0; ni < (int)model.nodes.size(); ++ni)

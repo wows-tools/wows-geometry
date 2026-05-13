@@ -1,6 +1,8 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+extern bool g_stitch_verbose;
+#define vlog(tag, fmt, ...) do { if (g_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 #include <cmath>
 #include <limits>
 #include <vector>
@@ -358,7 +360,7 @@ extern "C" int wows_geometry_to_glb_sections(wows_geometry *geometry, const char
                                           /* writeBinary */ true);
 
     if (!ok) {
-        fprintf(stderr, "tinygltf write failed\n");
+        vlog("output.glb", "tinygltf write failed\n");
         return WOWS_ERROR_UNKNOWN;
     }
     return 0;

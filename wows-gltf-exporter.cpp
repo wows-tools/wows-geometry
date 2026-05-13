@@ -2,6 +2,7 @@
 #include <argp.h>
 
 #include "stitch.h"
+#define vlog(tag, fmt, ...) do { if (g_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 
 /* ── argp ─────────────────────────────────────────────────────────── */
 
@@ -95,10 +96,10 @@ static struct argp argp = {options, parse_opt, nullptr, doc};
 int main(int argc, char **argv) {
     Args args;
     argp_parse(&argp, argc, argv, 0, nullptr, &args);
-    g_stitch_verbose = args.verbose;
+    stitch_set_verbose(args.verbose);
 
     if (!args.game_dir || !args.ship || !args.output) {
-        fprintf(stderr, "Error: -d, -s, and -o are required.\n");
+        vlog("wows-gltf-exporter", "Error: -d, -s, and -o are required.\n");
         return 1;
     }
 

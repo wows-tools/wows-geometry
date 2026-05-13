@@ -8,6 +8,7 @@
 
 /* verbose flag — set to true before calling library functions */
 extern bool g_stitch_verbose;
+void stitch_set_verbose(bool v);
 
 /* ── high-level ship export ──────────────────────────────────────── */
 

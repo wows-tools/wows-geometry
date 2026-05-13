@@ -8,9 +8,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+bool g_assets_bin_verbose = false;
+#define vlog(tag, fmt, ...) do { if (g_assets_bin_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 
 /* ── raw read helpers ─────────────────────────────────────────────── */
 static inline uint32_t ru32(const uint8_t *d, size_t o) {
@@ -549,36 +554,6 @@ void assets_bin_pdb_free(assets_bin_pdb_t *handle) {
     delete reinterpret_cast<PDB *>(handle);
 }
 
-/* ── damage detection (no regex) ────────────────────────────────── */
-
-static bool is_damage_node(const std::string &name) {
-    if (name.find("_hide") != std::string::npos)
-        return true;
-    if (name.find("_crack_") == std::string::npos)
-        return false;
-    /* _in followed by digit | _ | end, or _inside followed by _ | end */
-    size_t p = 0;
-    while (p < name.size()) {
-        size_t pos = name.find("_in", p);
-        if (pos == std::string::npos)
-            break;
-        size_t after = pos + 3;
-        /* check _inside */
-        if (name.size() >= after + 4 && name.compare(after, 4, "side") == 0) {
-            size_t e = after + 4;
-            if (e >= name.size() || name[e] == '_')
-                return true;
-            p = pos + 1;
-            continue;
-        }
-        /* check _in<digit|_|end> */
-        if (after >= name.size() || std::isdigit((unsigned char)name[after]) || name[after] == '_')
-            return true;
-        p = pos + 1;
-    }
-    return false;
-}
-
 /* ── visual info (render sets + LODs) ───────────────────────────── */
 
 #define RENDER_SET_SIZE 0x28u
@@ -605,6 +580,11 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
 
     uint16_t rs_count = ru16(d, rd_off + VIS_RS_COUNT_OFF);
     uint8_t lod_count = d[rd_off + VIS_LOD_COUNT_OFF];
+
+    const char *vis_sl = strrchr(visual_suffix, '/');
+    const char *vis_tag = vis_sl ? vis_sl + 1 : visual_suffix;
+
+    vlog(vis_tag, "%u render sets, %u LODs\n", rs_count, lod_count);
 
     /* absolute start of render sets and LOD arrays */
     size_t rs_abs = (size_t)((int64_t)rd_off + ri64(d, rd_off + VIS_RS_RP_OFF));
@@ -635,8 +615,16 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
         assets_bin_rs_t &rs = info->render_sets[i];
         rs.indices_mapping_id = indices_mapping_id;
         rs.mfm_path[0] = '\0';
+        rs.section_name[0] = '\0';
         rs.node_name[0] = '\0';
         rs.is_damage = 0;
+
+        /* resolve render-set section name */
+        {
+            std::string sn = pdb.str.get(d, dlen, name_id);
+            strncpy(rs.section_name, sn.c_str(), 255);
+            rs.section_name[255] = '\0';
+        }
 
         /* resolve MFM full path */
         auto it = pdb.sid_idx.find(mfm_path_id);
@@ -654,8 +642,40 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
                 std::string nm = pdb.str.get(d, dlen, node_name_id);
                 strncpy(rs.node_name, nm.c_str(), 255);
                 rs.node_name[255] = '\0';
-                rs.is_damage = is_damage_node(nm) ? 1 : 0;
             }
+        }
+
+    }
+
+    if (g_assets_bin_verbose) {
+        std::map<std::string, int> rs_name_count, rs_name_seq;
+        for (uint16_t i = 0; i < rs_count; ++i) {
+            const char *n = info->render_sets[i].node_name;
+            rs_name_count[n[0] ? n : "(unnamed)"]++;
+        }
+        for (uint16_t i = 0; i < rs_count; ++i) {
+            size_t base = rs_abs + i * RENDER_SET_SIZE;
+            const assets_bin_rs_t &rs = info->render_sets[i];
+            const char *primary = rs.section_name[0] ? rs.section_name
+                                  : rs.node_name[0]  ? rs.node_name : "(unnamed)";
+            std::string base_name(primary);
+            std::string label = base_name;
+            if (rs_name_count[base_name] > 1)
+                label += "[" + std::to_string(rs_name_seq[base_name]++) + "]";
+            uint32_t name_id = ru32(d, base);
+            vlog(vis_tag, "  render_set %s (node: %s):\n", label.c_str(),
+                 rs.node_name[0] ? rs.node_name : "(none)");
+            vlog(vis_tag, "    +00 rs_name_id=%08x  +04 id_a=%08x  +08 id_b=%08x\n",
+                 name_id, ru32(d, base + 4), ru32(d, base + 8));
+            vlog(vis_tag, "    +0c geo_map_id=%08x  +10 material_id_lo=%08x  +14 material_id_hi=%08x\n",
+                 rs.indices_mapping_id, ru32(d, base + 16), ru32(d, base + 20));
+            uint16_t pad16 = (uint16_t)(d[base + 26] | (d[base + 27] << 8));
+            uint32_t pad32 = ru32(d, base + 28);
+            uint8_t nodes_cnt = d[base + 25];
+            vlog(vis_tag, "    +18 multi_use=%02x  +19 nodes_cnt=%02x", d[base + 24], nodes_cnt);
+            if (pad16) vlog(vis_tag, "  +1a pad16=%04x", pad16);
+            if (pad32) vlog(vis_tag, "  +1c pad32=%08x", pad32);
+            vlog(vis_tag, "\n");
         }
     }
 
@@ -681,6 +701,32 @@ assets_bin_visual_info_t *assets_bin_get_visual_info(assets_bin_pdb_t *handle, c
             auto it = name_to_mid.find(nid);
             if (it != name_to_mid.end())
                 lod.mapping_ids[lod.count++] = it->second;
+        }
+    }
+
+    /* mark render sets absent from every LOD as damage geometry */
+    std::set<uint32_t> in_any_lod;
+    for (uint8_t i = 0; i < lod_count; ++i)
+        for (size_t j = 0; j < info->lods[i].count; ++j)
+            in_any_lod.insert(info->lods[i].mapping_ids[j]);
+    vlog(vis_tag, "  damage classification (absent from all LODs = damage):\n");
+    {
+        std::map<std::string, int> rs_name_count, rs_name_seq;
+        for (uint16_t i = 0; i < rs_count; ++i) {
+            const char *n = info->render_sets[i].node_name;
+            rs_name_count[n[0] ? n : "(unnamed)"]++;
+        }
+        for (uint16_t i = 0; i < rs_count; ++i) {
+            assets_bin_rs_t &rs = info->render_sets[i];
+            rs.is_damage = in_any_lod.count(rs.indices_mapping_id) ? 0 : 1;
+            const char *primary = rs.section_name[0] ? rs.section_name
+                                  : rs.node_name[0]  ? rs.node_name : "(unnamed)";
+            std::string base_name(primary);
+            std::string label = base_name;
+            if (rs_name_count[base_name] > 1)
+                label += "[" + std::to_string(rs_name_seq[base_name]++) + "]";
+            vlog(vis_tag, "    %-40s geo_map_id=%08x is_damage=%d\n",
+                 label.c_str(), rs.indices_mapping_id, rs.is_damage);
         }
     }
 

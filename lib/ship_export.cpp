@@ -14,6 +14,7 @@ extern "C" {
 #include <algorithm>
 #include <cstdio>
 #include <map>
+#define vlog(tag, fmt, ...) do { if (g_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
 #include <set>
 #include <string>
 #include <vector>
@@ -26,23 +27,22 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
     if (gameparams_path.empty()) {
         gameparams_path = stitch_find_game_file(norm_dir, "GameParams.data");
         if (gameparams_path.empty()) {
-            fprintf(stderr,
-                    "Error: GameParams.data not found under %s.\n"
-                    "       Supply opts.gameparams_path to specify it explicitly.\n",
-                    norm_dir.c_str());
+            vlog("GameParams.data", "not found under %s\n"
+                 "       Supply opts.gameparams_path to specify it explicitly.\n",
+                 norm_dir.c_str());
             return false;
         }
-        stitch_vlog("Auto-detected GameParams: %s\n", gameparams_path.c_str());
+        vlog("GameParams.data", "auto-detected: %s\n", gameparams_path.c_str());
     }
 
     std::string assets_bin_path = opts.assets_bin_path;
     if (assets_bin_path.empty()) {
         assets_bin_path = stitch_find_game_file(norm_dir, "assets.bin");
         if (!assets_bin_path.empty())
-            stitch_vlog("Auto-detected assets.bin: %s\n", assets_bin_path.c_str());
+            vlog("assets.bin", "auto-detected: %s\n", assets_bin_path.c_str());
     }
 
-    stitch_vlog("Loading GameParams …\n");
+    vlog("GameParams.data", "loading …\n");
     Py_Initialize();
 
     HullInfo hull;
@@ -53,21 +53,21 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
     }
     Py_Finalize();
 
-    stitch_vlog("Hull model: %s\n", hull.hull_model.c_str());
-    stitch_vlog("Mounts:     %zu\n", hull.mounts.size());
+    vlog("GameParams.data", "hull model: %s\n", hull.hull_model.c_str());
+    vlog("GameParams.data", "mounts: %zu\n", hull.mounts.size());
 
     std::vector<std::string> hull_geoms = stitch_find_hull_geoms(hull.hull_model, norm_dir);
     if (hull_geoms.empty()) {
-        fprintf(stderr, "Error: no hull geometry files found for %s\n", hull.hull_model.c_str());
+        vlog(stitch_path_basename(hull.hull_model).c_str(), "no geometry files found\n");
         return false;
     }
-    stitch_vlog("Hull parts: %zu\n", hull_geoms.size());
+    vlog("GameParams.data", "hull geometry parts: %zu\n", hull_geoms.size());
 
     std::map<std::string, Mat16d> hp_transforms;
     std::map<std::string, Mat16d> bb_corrections;
 
     if (opts.with_turrets && !assets_bin_path.empty()) {
-        stitch_vlog("Loading HP transforms from assets.bin …\n");
+        vlog("assets.bin", "loading HP transforms …\n");
 
         for (const auto &gp : hull_geoms) {
             std::string suffix = stitch_geom_to_visual_suffix(gp);
@@ -78,7 +78,7 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
                 hp_transforms[hp->entries[i].name] = stitch_float_to_double_mat(hp->entries[i].mat);
             assets_bin_hp_list_free(hp);
         }
-        stitch_vlog("  %zu HP_ transforms.\n", hp_transforms.size());
+        vlog("assets.bin", "%zu HP_ transforms loaded\n", hp_transforms.size());
 
         std::vector<std::string> unique_models;
         std::set<std::string> seen;
@@ -103,7 +103,7 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
     std::vector<GlbPart> parts;
 
     for (const auto &gp : hull_geoms) {
-        stitch_vlog("  Hull part: %s …\n", stitch_path_basename(gp).c_str());
+        vlog(stitch_path_basename(gp).c_str(), "loading geometry …\n");
         GlbPart part;
         part.mesh_name = stitch_stem(stitch_path_basename(gp));
         part.geom_path = gp;
@@ -112,7 +112,7 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
     }
 
     if (parts.empty()) {
-        fprintf(stderr, "Error: no hull parts could be converted.\n");
+        vlog(ship_name.c_str(), "no hull parts could be converted\n");
         return false;
     }
 
@@ -144,7 +144,7 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
             }
 
             std::string label = stitch_stem(stitch_path_basename(geom_path)) + " (" + m.hp_name + ")";
-            stitch_vlog("  Turret: %s …\n", label.c_str());
+            vlog(stitch_path_basename(geom_path).c_str(), "loading turret geometry (%s) …\n", m.hp_name.c_str());
 
             GlbPart part;
             part.mesh_name = label;
@@ -155,15 +155,15 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
         }
     }
 
-    stitch_vlog("Merging %zu part(s) …\n", parts.size());
+    vlog(ship_name.c_str(), "merging %zu part(s) …\n", parts.size());
     tinygltf::Model merged = stitch_merge_parts(parts);
 
     if (opts.with_textures && !assets_bin_path.empty()) {
-        stitch_vlog("Applying textures (size=%d, lod=%d, damage=%s) …\n", opts.max_tex_size, opts.lod_level,
-                    opts.exclude_damage ? "excluded" : "included");
+        vlog(ship_name.c_str(), "applying textures (max_size=%d, lod=%d, damage=%s) …\n",
+             opts.max_tex_size, opts.lod_level, opts.exclude_damage ? "excluded" : "included");
         assets_bin_pdb_t *pdb = assets_bin_pdb_open(assets_bin_path.c_str());
         if (!pdb) {
-            fprintf(stderr, "Warning: failed to open assets.bin for textures.\n");
+            vlog("assets.bin", "failed to open for texture lookup\n");
         } else {
             std::vector<std::string> geom_order;
             for (const auto &p : parts)
@@ -173,8 +173,8 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
             assets_bin_pdb_free(pdb);
         }
     } else if (opts.with_textures) {
-        fprintf(stderr, "Warning: textures enabled but assets.bin not found "
-                        "(use opts.assets_bin_path or supply game_dir).\n");
+        vlog("assets.bin", "not found — textures skipped "
+             "(use opts.assets_bin_path or supply game_dir)\n");
     }
 
     tinygltf::TinyGLTF writer;
@@ -182,17 +182,19 @@ bool stitch_export_ship(const std::string &game_dir, const std::string &ship_nam
                                           /*embedImages*/ true, /*embedBuffers*/ true,
                                           /*prettyPrint*/ false, /*writeBinary*/ true);
 
+    std::string out_tag_str = stitch_path_basename(output_path);
+    const char *out_tag = out_tag_str.c_str();
     if (!ok) {
-        fprintf(stderr, "Error: failed to write GLB to %s\n", output_path.c_str());
+        vlog(out_tag, "failed to write GLB\n");
         return false;
     }
 
     struct stat st;
     stat(output_path.c_str(), &st);
-    fprintf(stderr, "Written: %s (%.1f KB)\n", output_path.c_str(), st.st_size / 1024.0);
-    fprintf(stderr, "  Meshes:      %zu\n", merged.meshes.size());
-    fprintf(stderr, "  Accessors:   %zu\n", merged.accessors.size());
-    fprintf(stderr, "  BufferViews: %zu\n", merged.bufferViews.size());
+    vlog(out_tag, "written %.1f KB\n", st.st_size / 1024.0);
+    vlog(out_tag, "  meshes:       %zu\n", merged.meshes.size());
+    vlog(out_tag, "  accessors:    %zu\n", merged.accessors.size());
+    vlog(out_tag, "  buffer views: %zu\n", merged.bufferViews.size());
 
     return true;
 }
