@@ -164,17 +164,20 @@ static float f16_to_f32(uint16_t h) {
 }
 
 static void unpack_normal(uint32_t packed, float *nx, float *ny, float *nz) {
-    uint16_t hx = (uint16_t)(packed & 0xffff);
-    uint16_t hy = (uint16_t)(packed >> 16);
-    float fx = f16_to_f32(hx), fy = f16_to_f32(hy);
-    float fz2 = 1.0f - fx*fx - fy*fy;
-    *nx = fx; *ny = fy; *nz = (fz2 > 0.0f) ? sqrtf(fz2) : 0.0f;
+    int8_t bytes[4];
+    memcpy(bytes, &packed, 4);
+    *nx = bytes[0] / 127.0f;
+    *ny = bytes[1] / 127.0f;
+    *nz = bytes[2] / 127.0f;
 }
 
 static void unpack_uv(uint32_t packed, float *u, float *v) {
-    uint16_t hu = (uint16_t)(packed & 0xffff);
-    uint16_t hv = (uint16_t)(packed >> 16);
-    *u = f16_to_f32(hu); *v = f16_to_f32(hv);
+    uint16_t hu, hv;
+    memcpy(&hu, (uint8_t *)&packed + 0, 2);
+    memcpy(&hv, (uint8_t *)&packed + 2, 2);
+    /* UV is stored as actual_uv - 0.5 in half-float */
+    *u = f16_to_f32(hu) + 0.5f;
+    *v = f16_to_f32(hv) + 0.5f;
 }
 
 static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vtype_out) {
