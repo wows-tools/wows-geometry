@@ -8,7 +8,7 @@ var searchData=
   ['relptr_20base_20body_5fbase_5',['Databases Array (base = 0x60 in body, relptr base = body_base)',['../md__f_o_r_m_a_t.html#autotoc_md45',1,'']]],
   ['render_20set_20and_20lod_20info_6',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
   ['render_20set_20lod_20in_20assets_20bin_7',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md31',1,'']]],
-  ['render_5fsets_8',['render_sets',['../structassets__bin__visual__info__t.html#a76503a72aca7da316382ae66f54f862d',1,'assets_bin_visual_info_t']]],
+  ['render_5fsets_8',['render_sets',['../structwows__assets__bin__visual__info__t.html#adb585c36c4479fd174661caa5e117e24',1,'wows_assets_bin_visual_info_t']]],
   ['renderset_200x28_2040_20bytes_20each_9',['RenderSet (0x28 = 40 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md47',1,'']]],
-  ['rs_5fcount_10',['rs_count',['../structassets__bin__visual__info__t.html#adfef1ac07f54ca507b645dd5d6ff3d67',1,'assets_bin_visual_info_t']]]
+  ['rs_5fcount_10',['rs_count',['../structwows__assets__bin__visual__info__t.html#adfef1ac07f54ca507b645dd5d6ff3d67',1,'wows_assets_bin_visual_info_t']]]
 ];

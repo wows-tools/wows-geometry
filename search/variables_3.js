@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['correction_0',['correction',['../structassets__bin__bb__t.html#a3177c10f425d10e48bf54639ce0e4127',1,'assets_bin_bb_t']]],
-  ['count_1',['count',['../structassets__bin__hp__list__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'assets_bin_hp_list_t::count'],['../structassets__bin__bb__list__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'assets_bin_bb_list_t::count'],['../structassets__bin__lod__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'assets_bin_lod_t::count']]]
+  ['data_5frelptr_0',['data_relptr',['../structwows__geometry__index__section__metadata.html#aaea164adae2be40c063e54f5d9105e90',1,'wows_geometry_index_section_metadata']]],
+  ['debug_5flevel_1',['debug_level',['../struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html#ae75c1ab19ff77896df24af10974f6b85',1,'WOWS_GEOMETRY_CONTEXT']]]
 ];

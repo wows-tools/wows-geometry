@@ -1,7 +1,10 @@
 var searchData=
 [
-  ['r_0',['r',['../structwows__vert__xyznuvrpc.html#a413edc541329f74cfb9c1eede873c9e8',1,'wows_vert_xyznuvrpc']]],
-  ['raw_5fdata_1',['raw_data',['../structwows__geometry__vertex__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_vertex_section::raw_data'],['../structwows__geometry__index__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_index_section::raw_data']]],
-  ['render_5fsets_2',['render_sets',['../structassets__bin__visual__info__t.html#a76503a72aca7da316382ae66f54f862d',1,'assets_bin_visual_info_t']]],
-  ['rs_5fcount_3',['rs_count',['../structassets__bin__visual__info__t.html#adfef1ac07f54ca507b645dd5d6ff3d67',1,'assets_bin_visual_info_t']]]
+  ['s_5fidx_5fbloc_5fsize_0',['s_idx_bloc_size',['../structwows__geometry__index__section__metadata.html#a66511918a25671309476cec196e848b3',1,'wows_geometry_index_section_metadata']]],
+  ['s_5findex_5fsize_1',['s_index_size',['../structwows__geometry__index__section__metadata.html#a497e14fda4b35f6659fe6321575f5a45',1,'wows_geometry_index_section_metadata']]],
+  ['s_5fver_5fbloc_5fsize_2',['s_ver_bloc_size',['../structwows__geometry__vertex__section__metadata.html#a28611938c54f0dd00414b8e0046c405a',1,'wows_geometry_vertex_section_metadata']]],
+  ['s_5fvertex_5fsize_3',['s_vertex_size',['../structwows__geometry__vertex__section__metadata.html#af0da9af504e39268dbe0de32d86dc7a0',1,'wows_geometry_vertex_section_metadata']]],
+  ['section_5f1_4',['section_1',['../structwows__geometry.html#a1be058722710a0a10a2aea512af9c1f5',1,'wows_geometry']]],
+  ['section_5f2_5',['section_2',['../structwows__geometry.html#aa77b6247626a98663e3a3dd79835494c',1,'wows_geometry']]],
+  ['section_5fname_6',['section_name',['../structwows__assets__bin__rs__t.html#aa107a62377d5ea316504b8956630c0c9',1,'wows_assets_bin_rs_t']]]
 ];

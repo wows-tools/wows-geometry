@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['geometry_20i_20o_0',['Geometry I/O',['../group__stitch__geom.html',1,'']]]
+  ['geometry_20i_20o_0',['Geometry I/O',['../group__wows__stitch__geom.html',1,'']]]
 ];

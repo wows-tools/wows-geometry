@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['g_5fstitch_5fverbose_0',['g_stitch_verbose',['../stitch_8h.html#acb296800584c189137d7ca301c8bcfea',1,'stitch.h']]],
-  ['gameparams_5fpath_1',['gameparams_path',['../struct_ship_export_options.html#a5047eda7472142635da8766b27ff5a90',1,'ShipExportOptions']]],
-  ['geom_5fpath_2',['geom_path',['../struct_glb_part.html#a27b5dda850bf3c074082c49ff20c1d4e',1,'GlbPart']]]
+  ['header_0',['header',['../structwows__geometry.html#a25f4e92498de7a8e3d1512d26b945698',1,'wows_geometry']]],
+  ['hp_5fname_1',['hp_name',['../structwows__mount__entry.html#a88120514b11191ebc0e556bd0028d14e',1,'wows_mount_entry']]],
+  ['hull_5fmodel_2',['hull_model',['../structwows__hull__info.html#ab857cfc6baef927c9be6f31548ca9b3a',1,'wows_hull_info']]],
+  ['hull_5fupgrade_3',['hull_upgrade',['../structwows__ship__export__options.html#a7a9dd8c3f6eda700abc4e1a4abc6dbef',1,'wows_ship_export_options']]]
 ];

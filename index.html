@@ -139,13 +139,13 @@ Tools</h1>
 </div><!-- fragment --><p><b>Example — specific hull, no turrets, LOD 0:</b> </p><div class="fragment"><div class="line">wows-gltf-exporter -d /opt/wows -s Kongo -H HullB -t -L 0 -o kongo_hullb.glb</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md5"></a>
 Library API</h1>
-<p><code>wows-geometry</code> exposes a C++ API for embedding ship export into your own tools. The main entry point is <code><a class="el" href="group__stitch__export.html#gaa274c9673a0ab7638a31a50dc2a1d379" title="Export a complete ship model to a binary glTF (GLB) file.">stitch_export_ship()</a></code> from <code><a class="el" href="stitch_8h.html" title="High-level ship assembly and GLB export API.">inc/stitch.h</a></code>.</p>
+<p><code>wows-geometry</code> exposes a C++ API for embedding ship export into your own tools. The main entry point is <code>stitch_export_ship()</code> from <code>inc/stitch.h</code>.</p>
 <p>Full API reference: <b><a href="https://wows-tools.github.io/wows-model-exporter/">wows-tools.github.io/wows-model-exporter</a></b></p>
 <h2><a class="anchor" id="autotoc_md6"></a>
 Quick start</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="stitch_8h.html">stitch.h</a>&quot;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;stitch.h&quot;</span></div>
 <div class="line"> </div>
-<div class="line"><a class="code hl_struct" href="struct_ship_export_options.html">ShipExportOptions</a> opts;</div>
+<div class="line">ShipExportOptions opts;</div>
 <div class="line"><span class="comment">// all fields have sensible defaults; override only what you need:</span></div>
 <div class="line"><span class="comment">// opts.hull_upgrade    = &quot;HullB&quot;;   // empty = latest</span></div>
 <div class="line"><span class="comment">// opts.with_turrets    = false;</span></div>
@@ -156,10 +156,7 @@ Quick start</h2>
 <div class="line"><span class="comment">// opts.gameparams_path = &quot;/explicit/path/GameParams.data&quot;;  // auto-detected if empty</span></div>
 <div class="line"><span class="comment">// opts.assets_bin_path = &quot;/explicit/path/assets.bin&quot;;       // auto-detected if empty</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keywordtype">bool</span> ok = <a class="code hl_function" href="group__stitch__export.html#gaa274c9673a0ab7638a31a50dc2a1d379">stitch_export_ship</a>(<span class="stringliteral">&quot;/opt/wows&quot;</span>, <span class="stringliteral">&quot;Kongo&quot;</span>, <span class="stringliteral">&quot;kongo.glb&quot;</span>, opts);</div>
-<div class="ttc" id="agroup__stitch__export_html_gaa274c9673a0ab7638a31a50dc2a1d379"><div class="ttname"><a href="group__stitch__export.html#gaa274c9673a0ab7638a31a50dc2a1d379">stitch_export_ship</a></div><div class="ttdeci">bool stitch_export_ship(const std::string &amp;game_dir, const std::string &amp;ship_name, const std::string &amp;output_path, const ShipExportOptions &amp;opts={})</div><div class="ttdoc">Export a complete ship model to a binary glTF (GLB) file.</div></div>
-<div class="ttc" id="astitch_8h_html"><div class="ttname"><a href="stitch_8h.html">stitch.h</a></div><div class="ttdoc">High-level ship assembly and GLB export API.</div></div>
-<div class="ttc" id="astruct_ship_export_options_html"><div class="ttname"><a href="struct_ship_export_options.html">ShipExportOptions</a></div><div class="ttdoc">Options controlling a full-ship GLB export.</div><div class="ttdef"><b>Definition</b> stitch.h:56</div></div>
+<div class="line"><span class="keywordtype">bool</span> ok = stitch_export_ship(<span class="stringliteral">&quot;/opt/wows&quot;</span>, <span class="stringliteral">&quot;Kongo&quot;</span>, <span class="stringliteral">&quot;kongo.glb&quot;</span>, opts);</div>
 </div><!-- fragment --><p><code>stitch_export_ship</code> handles everything: auto-detecting <code>GameParams.data</code> and <code>assets.bin</code> under <code>game_dir</code>, resolving hull and turret models, loading HP_ transforms and BlendBone corrections, decoding geometry, merging, texturing, and writing the GLB. Errors are printed to stderr; Python is initialised and finalised internally.</p>
 <h2><a class="anchor" id="autotoc_md7"></a>
 &lt;tt&gt;ShipExportOptions&lt;/tt&gt; fields</h2>
@@ -185,15 +182,14 @@ Quick start</h2>
 </table>
 <h2><a class="anchor" id="autotoc_md8"></a>
 Verbose output</h2>
-<div class="fragment"><div class="line"><a class="code hl_variable" href="stitch_8h.html#acb296800584c189137d7ca301c8bcfea">g_stitch_verbose</a> = <span class="keyword">true</span>;   <span class="comment">// prints progress to stderr</span></div>
-<div class="ttc" id="astitch_8h_html_acb296800584c189137d7ca301c8bcfea"><div class="ttname"><a href="stitch_8h.html#acb296800584c189137d7ca301c8bcfea">g_stitch_verbose</a></div><div class="ttdeci">bool g_stitch_verbose</div><div class="ttdoc">Set to true before calling any stitch function to enable verbose logging to stderr.</div></div>
+<div class="fragment"><div class="line">g_stitch_verbose = <span class="keyword">true</span>;   <span class="comment">// prints progress to stderr</span></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
 Linking</h2>
 <div class="fragment"><div class="line">target_link_libraries(my_tool wows-geometry)</div>
 </div><!-- fragment --><p>Python 3 and all other dependencies are already linked into <code>wows-geometry</code>.</p>
 <h2><a class="anchor" id="autotoc_md10"></a>
 Lower-level API</h2>
-<p>If you need finer control (custom merge logic, streaming parts, etc.) the building-block functions used internally by <code>stitch_export_ship</code> are also public: <code>load_hull_info</code>, <code>stitch_find_hull_geoms</code>, <code>stitch_geom_to_model</code>, <code>stitch_merge_parts</code>, <code>stitch_apply_textures</code>, and the <code>assets_bin_*</code> helpers in <code><a class="el" href="assets__bin_8h.html" title="API for extracting model metadata from a BigWorld assets.bin packed database.">inc/assets_bin.h</a></code>.</p>
+<p>If you need finer control (custom merge logic, streaming parts, etc.) the building-block functions used internally by <code>stitch_export_ship</code> are also public: <code>load_hull_info</code>, <code>stitch_find_hull_geoms</code>, <code>stitch_geom_to_model</code>, <code>stitch_merge_parts</code>, <code>stitch_apply_textures</code>, and the <code>assets_bin_*</code> helpers in <code>inc/assets_bin.h</code>.</p>
 <hr  />
 <h1><a class="anchor" id="autotoc_md12"></a>
 Build</h1>
