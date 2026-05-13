@@ -9,5 +9,6 @@ var searchData=
   ['n_5fvertex_5ftype_6',['n_vertex_type',['../structwows__geometry__header.html#abbbec893f2fd0da61e6a8b7a79c12b85',1,'wows_geometry_header']]],
   ['name_7',['name',['../structassets__bin__hp__t.html#a8e03167ce04350be901b028cc4cf1ce1',1,'assets_bin_hp_t']]],
   ['naming_20convention_8',['File Naming Convention',['../md__f_o_r_m_a_t.html#autotoc_md30',1,'']]],
-  ['node_5fname_9',['node_name',['../structassets__bin__rs__t.html#a514a67df71ffe1070cb4df1cf454a3cf',1,'assets_bin_rs_t']]]
+  ['nation_9',['nation',['../struct_ship_entry.html#aedf4b65ec08a77adac7d984dae5443c1',1,'ShipEntry']]],
+  ['node_5fname_10',['node_name',['../structassets__bin__rs__t.html#a514a67df71ffe1070cb4df1cf454a3cf',1,'assets_bin_rs_t']]]
 ];

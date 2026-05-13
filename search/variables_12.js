@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['with_5ftextures_0',['with_textures',['../struct_ship_export_options.html#a395d90823c49d7e1148ed89b4e1cb15b',1,'ShipExportOptions']]],
-  ['with_5fturrets_1',['with_turrets',['../struct_ship_export_options.html#a2932f40bfec8b66f9e898c125a72479c',1,'ShipExportOptions']]]
+  ['vertex_5fcount_0',['vertex_count',['../structwows__geometry__vertex__section.html#a02b8daf7a6ad82b7d60bb09fdd4c4c6f',1,'wows_geometry_vertex_section']]],
+  ['vertex_5fmeta_5fsections_1',['vertex_meta_sections',['../structwows__geometry.html#ac3c64c518f544fe14bd9d608d84f34e0',1,'wows_geometry']]],
+  ['vertexes_2',['vertexes',['../structwows__geometry.html#a36d3035c4bea135666e3d1acc60a45e0',1,'wows_geometry']]]
 ];

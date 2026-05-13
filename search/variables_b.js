@@ -1,12 +1,14 @@
 var searchData=
 [
-  ['n_5farmor_5fbloc_0',['n_armor_bloc',['../structwows__geometry__header.html#a0846e7c994c05b2107b559a42c2faa5d',1,'wows_geometry_header']]],
-  ['n_5fcollision_5fbloc_1',['n_collision_bloc',['../structwows__geometry__header.html#ada232ec4352b4c35ddc585ff5594901b',1,'wows_geometry_header']]],
-  ['n_5findex_5fbloc_2',['n_index_bloc',['../structwows__geometry__header.html#afc6af8ded4c0440cab7182bb4fc093c4',1,'wows_geometry_header']]],
-  ['n_5findex_5ftype_3',['n_index_type',['../structwows__geometry__header.html#a32783bce78c4b5b5cebd01abcc4be2c2',1,'wows_geometry_header']]],
-  ['n_5fsize_5ftype_5fstr_4',['n_size_type_str',['../structwows__geometry__vertex__section__metadata.html#a14d6710d9aeac1c9ade721555c6843a0',1,'wows_geometry_vertex_section_metadata']]],
-  ['n_5fvertex_5fbloc_5',['n_vertex_bloc',['../structwows__geometry__header.html#a187f699236c172bee93605b77d8fe1d2',1,'wows_geometry_header']]],
-  ['n_5fvertex_5ftype_6',['n_vertex_type',['../structwows__geometry__header.html#abbbec893f2fd0da61e6a8b7a79c12b85',1,'wows_geometry_header']]],
-  ['name_7',['name',['../structassets__bin__hp__t.html#a8e03167ce04350be901b028cc4cf1ce1',1,'assets_bin_hp_t']]],
-  ['node_5fname_8',['node_name',['../structassets__bin__rs__t.html#a514a67df71ffe1070cb4df1cf454a3cf',1,'assets_bin_rs_t']]]
+  ['mapping_5fid_0',['mapping_id',['../structwows__geometry__info.html#aa12603a40d5d546e92a430513bbf73ae',1,'wows_geometry_info']]],
+  ['mapping_5fids_1',['mapping_ids',['../structassets__bin__lod__t.html#a08f427da360ef4b632282f4dad0363dd',1,'assets_bin_lod_t']]],
+  ['mat_2',['mat',['../structassets__bin__hp__t.html#a75bc4e91b435059a061afb2f056d591c',1,'assets_bin_hp_t']]],
+  ['matrix_3',['matrix',['../struct_glb_part.html#a17b06dbd012b176a537a73e3d5b1a450',1,'GlbPart']]],
+  ['max_5ftex_5fsize_4',['max_tex_size',['../struct_ship_export_options.html#a2ceede151c588993b1ad4cd7528aadcb',1,'ShipExportOptions']]],
+  ['merged_5fbuffer_5findex_5',['merged_buffer_index',['../structwows__geometry__info.html#ae34ded47da9dd0a57de2c97b39d63f90',1,'wows_geometry_info']]],
+  ['mesh_5fname_6',['mesh_name',['../struct_glb_part.html#a9781d1b74956d5fe6ad475f041e483a8',1,'GlbPart']]],
+  ['mfm_5fpath_7',['mfm_path',['../structassets__bin__rs__t.html#a4079ad413636e38665f025a157aeff03',1,'assets_bin_rs_t']]],
+  ['model_8',['model',['../struct_glb_part.html#a882939d3313cb512d4105ac79ef8eda2',1,'GlbPart']]],
+  ['model_5fpath_9',['model_path',['../structassets__bin__bb__t.html#a3cb7b5b57c12901ab19a9590e28443a6',1,'assets_bin_bb_t::model_path'],['../struct_mount_entry.html#a4f479489d1860644526a4ecfc8889575',1,'MountEntry::model_path']]],
+  ['mounts_10',['mounts',['../struct_hull_info.html#a4f3a551a3510b5eeed85e32e84bf0eb9',1,'HullInfo']]]
 ];

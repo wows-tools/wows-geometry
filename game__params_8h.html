@@ -94,7 +94,8 @@ $(document).ready(function(){initNavTree('game__params_8h.html',''); initResizab
 
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#nested-classes">Data Structures</a>  </div>
   <div class="headertitle"><div class="title">game_params.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -102,6 +103,8 @@ $(document).ready(function(){initNavTree('game__params_8h.html',''); initResizab
 <p>GameParams.data loader for ship hull and mount information.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="stitch_8h_source.html">stitch.h</a>&quot;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 </div>
 <p><a href="game__params_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -110,11 +113,59 @@ Functions</h2></td></tr>
 <tr class="memitem:a42adc058cecbe374ff767a91d7c1d7e4" id="r_a42adc058cecbe374ff767a91d7c1d7e4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="game__params_8h.html#a42adc058cecbe374ff767a91d7c1d7e4">load_hull_info</a> (const char *gameparams_path, const char *ship_name, const char *hull_sel, <a class="el" href="struct_hull_info.html">HullInfo</a> &amp;out)</td></tr>
 <tr class="memdesc:a42adc058cecbe374ff767a91d7c1d7e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load hull and mount information for a ship from <code>GameParams.data</code>.  <br /></td></tr>
 <tr class="separator:a42adc058cecbe374ff767a91d7c1d7e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeeffe6ef2d8ef209fa8de27a598d8235" id="r_aeeffe6ef2d8ef209fa8de27a598d8235"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="game__params_8h.html#aeeffe6ef2d8ef209fa8de27a598d8235">list_ships</a> (const char *gameparams_path, std::vector&lt; <a class="el" href="struct_ship_entry.html">ShipEntry</a> &gt; &amp;out)</td></tr>
+<tr class="memdesc:aeeffe6ef2d8ef209fa8de27a598d8235"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerate all ships in <code>GameParams.data</code>, grouped by nation and type.  <br /></td></tr>
+<tr class="separator:aeeffe6ef2d8ef209fa8de27a598d8235"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_ship_entry.html">ShipEntry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One ship entry returned by <a class="el" href="game__params_8h.html#aeeffe6ef2d8ef209fa8de27a598d8235" title="Enumerate all ships in GameParams.data, grouped by nation and type.">list_ships()</a>.  <a href="struct_ship_entry.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>GameParams.data loader for ship hull and mount information. </p>
 <p><code>GameParams.data</code> is a Python-pickled binary file that contains the full ship configuration tree for the game client. This module uses the embedded CPython interpreter to unpickle the file and extract the hull geometry and mount point data for a requested ship. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
+<a id="aeeffe6ef2d8ef209fa8de27a598d8235" name="aeeffe6ef2d8ef209fa8de27a598d8235"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeeffe6ef2d8ef209fa8de27a598d8235">&#9670;&#160;</a></span>list_ships()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool list_ships </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>gameparams_path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="struct_ship_entry.html">ShipEntry</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enumerate all ships in <code>GameParams.data</code>, grouped by nation and type. </p>
+<p>Each returned entry carries the GameParams key, short index code, nation, and ship type as extracted from the <code>typeinfo</code> block inside each ship record.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gameparams_path</td><td>Filesystem path to <code>GameParams.data</code>. </td></tr>
+    <tr><td class="paramname">out</td><td>Output vector filled with one <a class="el" href="struct_ship_entry.html" title="One ship entry returned by list_ships().">ShipEntry</a> per ship. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> on success; errors are printed to stderr. </dd></dl>
+
+</div>
+</div>
 <a id="a42adc058cecbe374ff767a91d7c1d7e4" name="a42adc058cecbe374ff767a91d7c1d7e4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a42adc058cecbe374ff767a91d7c1d7e4">&#9670;&#160;</a></span>load_hull_info()</h2>
 

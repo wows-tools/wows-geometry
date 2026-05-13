@@ -10,6 +10,7 @@ var annotated_dup =
     [ "GlbPart", "struct_glb_part.html", "struct_glb_part" ],
     [ "HullInfo", "struct_hull_info.html", "struct_hull_info" ],
     [ "MountEntry", "struct_mount_entry.html", "struct_mount_entry" ],
+    [ "ShipEntry", "struct_ship_entry.html", "struct_ship_entry" ],
     [ "ShipExportOptions", "struct_ship_export_options.html", "struct_ship_export_options" ],
     [ "wows_geometry", "structwows__geometry.html", "structwows__geometry" ],
     [ "WOWS_GEOMETRY_CONTEXT", "struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html", "struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t" ],
