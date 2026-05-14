@@ -1,0 +1,6 @@
+[submodule "deps/wows-depack"]
+	path = deps/wows-depack
+	url = https://github.com/wows-tools/wows-depack.git
+[submodule "deps/stb"]
+	path = deps/stb
+	url = https://github.com/nothings/stb.git

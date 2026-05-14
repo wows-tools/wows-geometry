@@ -153,11 +153,54 @@ helpers in `inc/wows-assets-bin.h`.
 
 ## Build
 
-```sh
-# Dependencies (Debian/Ubuntu)
-sudo apt install cmake zlib1g-dev libmeshoptimizer-dev libtinygltf-dev \
-                 python3-dev libcunit1-dev
+### Clone with submodules
 
+The following libraries are bundled as git submodules under `deps/`:
+
+| Submodule | Purpose |
+|-----------|---------|
+| [`wows-depack`](https://github.com/wows-tools/wows-depack) | WoWs resource file unpacker |
+| [`stb`](https://github.com/nothings/stb) | Image resize and write headers |
+
+Clone with `--recurse-submodules`:
+
+```sh
+git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git
+```
+
+On an existing clone:
+
+```sh
+git submodule update --init --recursive
+```
+
+### Dependencies (Debian/Ubuntu)
+
+```sh
+sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev \
+                 libtinygltf-dev python3-dev
+```
+
+`libpcre2-dev` and `zlib1g-dev` are required by the `wows-depack` submodule.
+
+For the test suite, also install:
+
+```sh
+sudo apt install libcunit1-dev
+```
+
+### Compile
+
+```sh
 cmake .
 make
+```
+
+To build and run tests with coverage (requires GCC):
+
+```sh
+cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON .
+make
+make test
+make coverage
 ```

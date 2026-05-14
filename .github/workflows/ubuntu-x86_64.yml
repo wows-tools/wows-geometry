@@ -14,20 +14,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Install packages
       run: |
         sudo apt update
         sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev valgrind \
-          libmeshoptimizer-dev libtinygltf-dev libstb-dev python3-dev
-    - name: Fetch missing STB headers
-      run: |
-        sudo mkdir -p /usr/include/stb
-        for f in stb_image_resize2.h stb_image_write.h; do
-          [ -f /usr/include/stb/$f ] || sudo curl -fsSL \
-            "https://raw.githubusercontent.com/nothings/stb/master/$f" \
-            -o /usr/include/stb/$f
-        done
+          libmeshoptimizer-dev libtinygltf-dev python3-dev
     - name: Configure CMake
       run: cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON .
     - name: Build
