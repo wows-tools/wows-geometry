@@ -266,15 +266,8 @@ static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vty
     return 0;
 }
 
-bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out) {
-    wows_geometry *geom = nullptr;
-    std::vector<char> gp_buf(geom_path.begin(), geom_path.end());
-    gp_buf.push_back('\0');
-    if (wows_parse_geometry(gp_buf.data(), &geom) != 0) {
-        vlog(wows_stitch_path_basename(geom_path).c_str(), "Warning: failed to parse geometry\n");
-        return false;
-    }
-
+/* shared implementation: converts a parsed wows_geometry → tinygltf::Model */
+static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tinygltf::Model &model_out) {
     uint32_t n_vt = geom->header->n_vertex_type;
     uint32_t n_ibloc = geom->header->n_index_bloc;
     uint32_t n_it = geom->header->n_index_type;
@@ -318,10 +311,8 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
             pos[j * 3 + 2] = z;
             for (int i = 0; i < 3; i++) {
                 float c = (i == 0 ? x : i == 1 ? y : z);
-                if (c < mn[i])
-                    mn[i] = c;
-                if (c > mx[i])
-                    mx[i] = c;
+                if (c < mn[i]) mn[i] = c;
+                if (c > mx[i]) mx[i] = c;
             }
             uint32_t pn, puv;
             memcpy(&pn, v + 12, 4);
@@ -372,11 +363,9 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
             for (uint32_t j = 0; j < icnt; ++j) {
                 uint16_t tv;
                 memcpy(&tv, raw + j * 2, 2);
-                if ((uint32_t)tv > raw_max)
-                    raw_max = tv;
+                if ((uint32_t)tv > raw_max) raw_max = tv;
             }
-            if (raw_max + vbase > 65535u)
-                out_is = 4;
+            if (raw_max + vbase > 65535u) out_is = 4;
         }
         iinfo[i].idx_size = out_is;
         pad4();
@@ -399,7 +388,6 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
         }
     }
     pad4();
-    wows_geometry_free(geom);
 
     tinygltf::Buffer tbuf;
     tbuf.data = std::move(blob);
@@ -429,8 +417,7 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
 
     std::vector<int> pos_acc(n_vt, -1), norm_acc(n_vt, -1), uv_acc(n_vt, -1);
     for (uint32_t k = 0; k < n_vt; ++k) {
-        if (!vinfo[k].count)
-            continue;
+        if (!vinfo[k].count) continue;
         uint32_t vc = vinfo[k].count;
         int bvp = add_bv(vinfo[k].pos_bv, vc * 12, TINYGLTF_TARGET_ARRAY_BUFFER);
         int bvn = add_bv(vinfo[k].norm_bv, vc * 12, TINYGLTF_TARGET_ARRAY_BUFFER);
@@ -445,15 +432,13 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
 
     tinygltf::Mesh mesh;
     for (uint32_t i = 0; i < n_ibloc; ++i) {
-        if (!iinfo[i].count)
-            continue;
+        if (!iinfo[i].count) continue;
         uint16_t k = iinfo[i].vtype;
-        if (k >= n_vt || pos_acc[k] < 0)
-            continue;
-        int bvi =
-            add_bv(iinfo[i].bv_off, (size_t)iinfo[i].count * iinfo[i].idx_size, TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER);
-        int comp =
-            (iinfo[i].idx_size == 2) ? TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+        if (k >= n_vt || pos_acc[k] < 0) continue;
+        int bvi = add_bv(iinfo[i].bv_off, (size_t)iinfo[i].count * iinfo[i].idx_size,
+                         TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER);
+        int comp = (iinfo[i].idx_size == 2) ? TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+                                            : TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
         int ia = add_acc(bvi, comp, TINYGLTF_TYPE_SCALAR, iinfo[i].count);
         tinygltf::Primitive prim;
         prim.attributes["POSITION"] = pos_acc[k];
@@ -472,6 +457,35 @@ bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &mo
     model_out.scenes.push_back(scene);
     model_out.defaultScene = 0;
     return true;
+}
+
+bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out) {
+    wows_geometry *geom = nullptr;
+    std::vector<char> gp_buf(geom_path.begin(), geom_path.end());
+    gp_buf.push_back('\0');
+    if (wows_parse_geometry(gp_buf.data(), &geom) != 0) {
+        vlog(wows_stitch_path_basename(geom_path).c_str(), "Warning: failed to parse geometry\n");
+        return false;
+    }
+    bool ok = geom_to_model_impl(geom, wows_stitch_path_basename(geom_path), model_out);
+    wows_geometry_free(geom);
+    return ok;
+}
+
+bool wows_stitch_geom_to_model_from_memory(const uint8_t *data, size_t size, tinygltf::Model &model_out) {
+    if (!data || size == 0)
+        return false;
+    wows_geometry *geom = nullptr;
+    FILE *fp = fmemopen(const_cast<void *>(static_cast<const void *>(data)), size, "rb");
+    if (!fp)
+        return false;
+    int rc = wows_parse_geometry_fp(fp, &geom);
+    fclose(fp);
+    if (rc != 0 || !geom)
+        return false;
+    bool ok = geom_to_model_impl(geom, "memory", model_out);
+    wows_geometry_free(geom);
+    return ok;
 }
 
 /* ── GLB merge ──────────────────────────────────────────────────── */
@@ -600,6 +614,39 @@ static std::map<uint32_t, uint32_t> read_geom_tri_counts(const std::string &path
     return r;
 }
 
+static std::vector<uint32_t> read_geom_mapping_ids_from_mem(const uint8_t *data, size_t size) {
+    if (size < 72) return {};
+    uint32_t n;
+    memcpy(&n, data + 12, 4);
+    uint64_t off;
+    memcpy(&off, data + 32, 8);
+    if (off + (uint64_t)n * 16 > size) return {};
+    std::vector<uint32_t> ids;
+    for (uint32_t i = 0; i < n; ++i) {
+        uint32_t mid;
+        memcpy(&mid, data + off + i * 16, 4);
+        ids.push_back(mid);
+    }
+    return ids;
+}
+
+static std::map<uint32_t, uint32_t> read_geom_tri_counts_from_mem(const uint8_t *data, size_t size) {
+    if (size < 72) return {};
+    uint32_t n;
+    memcpy(&n, data + 12, 4);
+    uint64_t off;
+    memcpy(&off, data + 32, 8);
+    if (off + (uint64_t)n * 16 > size) return {};
+    std::map<uint32_t, uint32_t> r;
+    for (uint32_t i = 0; i < n; ++i) {
+        uint32_t mid, cnt;
+        memcpy(&mid, data + off + i * 16, 4);
+        memcpy(&cnt, data + off + i * 16 + 12, 4);
+        r[mid] = cnt / 3;
+    }
+    return r;
+}
+
 /* ── texture finder ─────────────────────────────────────────────── */
 
 static const char *MFM_STRIP[] = {"_skinned", "_alpha", "_ep", nullptr};
@@ -620,6 +667,44 @@ static std::string find_texture(const std::string &dir, const std::string &st, c
                 return p;
         }
     return "";
+}
+
+static std::vector<uint8_t> load_texture_bytes(
+    const std::string &tdir, const std::string &tstem,
+    const char *channel, const std::string &game_dir,
+    wows_file_provider_t file_provider, int max_sz)
+{
+    std::string dds = find_texture(tdir, tstem, channel);
+    if (!dds.empty())
+        return wows_stitch_dds_to_png(dds, max_sz);
+
+    if (!file_provider) return {};
+
+    std::string mdir = wows_stitch_normalize_slashes(tdir);
+    if (mdir.size() > game_dir.size() && mdir.compare(0, game_dir.size(), game_dir) == 0)
+        mdir = mdir.substr(game_dir.size());
+    if (!mdir.empty() && mdir[0] == '/')
+        mdir = mdir.substr(1);
+
+    std::vector<std::string> cands = {tstem};
+    for (const char **s = MFM_STRIP; *s; ++s) {
+        size_t sl = strlen(*s);
+        if (tstem.size() > sl && tstem.compare(tstem.size() - sl, sl, *s) == 0) {
+            cands.push_back(tstem.substr(0, tstem.size() - sl));
+            break;
+        }
+    }
+    for (const auto &cs : cands) {
+        for (const char *ext : {".dd0", ".dd1", ".dds"}) {
+            std::string rel = mdir + "/" + cs + channel + ext;
+            auto buf = file_provider(rel);
+            if (!buf.empty()) {
+                auto png = wows_stitch_dds_to_png_from_memory(buf.data(), buf.size(), max_sz);
+                if (!png.empty()) return png;
+            }
+        }
+    }
+    return {};
 }
 
 /* ── LOD selection ──────────────────────────────────────────────── */
@@ -648,7 +733,9 @@ static int best_lod(const wows_assets_bin_visual_info_t *vi, const std::set<uint
 /* ── texture application ────────────────────────────────────────── */
 
 void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
-                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex) {
+                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex,
+                           std::function<void(int)> progress_cb,
+                           wows_file_provider_t file_provider) {
     if (!pdb || geom_order.empty())
         return;
 
@@ -712,91 +799,115 @@ void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::s
     };
     std::map<std::string, GtData> cache;
 
+    /* denominator for per-geometry progress within each phase */
+    size_t n_geoms = geom_order.size();
+    if (n_geoms == 0) return;
+    auto report = [&](int pct) { if (progress_cb) progress_cb(pct); };
+
+    /* strip game_dir prefix to produce archive-relative path */
+    auto geom_rel = [&](const std::string &p) -> std::string {
+        std::string r = wows_stitch_normalize_slashes(p);
+        if (r.size() > game_dir.size() && r.compare(0, game_dir.size(), game_dir) == 0)
+            r = r.substr(game_dir.size());
+        if (!r.empty() && r[0] == '/') r = r.substr(1);
+        return r;
+    };
+
     for (size_t mi = 0; mi < model.meshes.size(); ++mi) {
         if (mi >= geom_order.size())
             break;
         const std::string &gp = geom_order[mi];
-        if (gp.empty())
+        if (gp.empty()) {
+            report(20 + (int)((mi + 1) * 80 / n_geoms));
             continue;
+        }
 
         if (!cache.count(gp)) {
             GtData &gt = cache[gp];
             std::string suf = wows_stitch_geom_to_visual_suffix(gp);
             wows_assets_bin_visual_info_t *vi = wows_assets_bin_get_visual_info(pdb, suf.c_str());
-            if (!vi) {
-                cache[gp] = {};
-                continue;
-            }
+            if (vi) {
+                gt.geo_map_ids = read_geom_mapping_ids(gp);
+                if (gt.geo_map_ids.empty() && file_provider) {
+                    auto fbuf = file_provider(geom_rel(gp));
+                    if (!fbuf.empty())
+                        gt.geo_map_ids = read_geom_mapping_ids_from_mem(fbuf.data(), fbuf.size());
+                }
 
-            gt.geo_map_ids = read_geom_mapping_ids(gp);
+                const std::string geom_tag = wows_stitch_path_basename(gp);
 
-            const std::string geom_tag = wows_stitch_path_basename(gp);
-
-            std::set<uint32_t> dmg;
-            for (size_t ri = 0; ri < vi->rs_count; ++ri)
-                if (vi->render_sets[ri].is_damage)
-                    dmg.insert(vi->render_sets[ri].indices_mapping_id);
-
-            int clod;
-            if (lod_level < 0 && vi->lod_count > 0) {
-                auto tc = read_geom_tri_counts(gp);
-                clod = best_lod(vi, dmg, tc);
-            } else {
-                clod = std::max(0, lod_level);
-            }
-
-            vlog(geom_tag.c_str(), "LOD%d/%zu, %zu render sets\n", clod, vi->lod_count, vi->rs_count);
-
-            if (vi->lod_count > 0 && (size_t)clod < vi->lod_count)
-                for (size_t j = 0; j < vi->lods[clod].count; ++j)
-                    gt.allowed.insert(vi->lods[clod].mapping_ids[j]);
-            else
+                std::set<uint32_t> dmg;
                 for (size_t ri = 0; ri < vi->rs_count; ++ri)
-                    gt.allowed.insert(vi->render_sets[ri].indices_mapping_id);
+                    if (vi->render_sets[ri].is_damage)
+                        dmg.insert(vi->render_sets[ri].indices_mapping_id);
 
-            if (excl_damage)
-                for (uint32_t m : dmg)
-                    gt.allowed.erase(m);
-
-            for (size_t ri = 0; ri < vi->rs_count; ++ri) {
-                const wows_assets_bin_rs_t &rs = vi->render_sets[ri];
-                uint32_t geo_map_id = rs.indices_mapping_id;
-                if (!gt.allowed.count(geo_map_id))
-                    continue;
-
-                if (rs.section_name[0])
-                    gt.geo_map_name[geo_map_id] = rs.section_name;
-                else if (rs.node_name[0])
-                    gt.geo_map_name[geo_map_id] = rs.node_name;
-
-                if (!rs.mfm_path[0] || max_tex <= 0)
-                    continue;
-
-                std::string mfm = wows_stitch_normalize_slashes(rs.mfm_path);
-                auto sl = mfm.rfind('/');
-                std::string mdir = (sl != std::string::npos) ? mfm.substr(0, sl) : ".";
-                std::string mfile = (sl != std::string::npos) ? mfm.substr(sl + 1) : mfm;
-                std::string tstem = mfile.size() > 4 && mfile.compare(mfile.size() - 4, 4, ".mfm") == 0
-                                        ? mfile.substr(0, mfile.size() - 4)
-                                        : mfile;
-                std::string tdir = game_dir + "/" + mdir;
-
-                std::string dds = find_texture(tdir, tstem, "_a");
-                if (dds.empty()) {
-                    vlog(geom_tag.c_str(), "no albedo texture: %s\n", tstem.c_str());
-                    continue;
+                int clod;
+                if (lod_level < 0 && vi->lod_count > 0) {
+                    auto tc = read_geom_tri_counts(gp);
+                    if (tc.empty() && file_provider) {
+                        auto fbuf = file_provider(geom_rel(gp));
+                        if (!fbuf.empty())
+                            tc = read_geom_tri_counts_from_mem(fbuf.data(), fbuf.size());
+                    }
+                    clod = best_lod(vi, dmg, tc);
+                } else {
+                    clod = std::max(0, lod_level);
                 }
-                std::vector<uint8_t> png = wows_stitch_dds_to_png(dds, max_tex);
-                if (png.empty()) {
-                    vlog(geom_tag.c_str(), "failed to decode: %s\n", wows_stitch_path_basename(dds).c_str());
-                    continue;
+
+                vlog(geom_tag.c_str(), "LOD%d/%zu, %zu render sets\n", clod, vi->lod_count, vi->rs_count);
+
+                if (vi->lod_count > 0 && (size_t)clod < vi->lod_count)
+                    for (size_t j = 0; j < vi->lods[clod].count; ++j)
+                        gt.allowed.insert(vi->lods[clod].mapping_ids[j]);
+                else
+                    for (size_t ri = 0; ri < vi->rs_count; ++ri)
+                        gt.allowed.insert(vi->render_sets[ri].indices_mapping_id);
+
+                if (excl_damage)
+                    for (uint32_t m : dmg)
+                        gt.allowed.erase(m);
+
+                /* pass 1: extract render-set metadata (names) — phase 2 */
+                for (size_t ri = 0; ri < vi->rs_count; ++ri) {
+                    const wows_assets_bin_rs_t &rs = vi->render_sets[ri];
+                    uint32_t geo_map_id = rs.indices_mapping_id;
+                    if (!gt.allowed.count(geo_map_id))
+                        continue;
+                    if (rs.section_name[0])
+                        gt.geo_map_name[geo_map_id] = rs.section_name;
+                    else if (rs.node_name[0])
+                        gt.geo_map_name[geo_map_id] = rs.node_name;
                 }
-                int mat = ensure_mat(tstem, png);
-                gt.geo_map_mat[geo_map_id] = mat;
-                vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n",
-                     wows_stitch_path_basename(dds).c_str(), mat, png.size() / 1024);
+                /* pass 2: load textures — phase 3 */
+                for (size_t ri = 0; ri < vi->rs_count; ++ri) {
+                    const wows_assets_bin_rs_t &rs = vi->render_sets[ri];
+                    uint32_t geo_map_id = rs.indices_mapping_id;
+                    if (!gt.allowed.count(geo_map_id))
+                        continue;
+                    if (!rs.mfm_path[0] || max_tex <= 0)
+                        continue;
+
+                    std::string mfm = wows_stitch_normalize_slashes(rs.mfm_path);
+                    auto sl = mfm.rfind('/');
+                    std::string mdir = (sl != std::string::npos) ? mfm.substr(0, sl) : ".";
+                    std::string mfile = (sl != std::string::npos) ? mfm.substr(sl + 1) : mfm;
+                    std::string tstem = mfile.size() > 4 && mfile.compare(mfile.size() - 4, 4, ".mfm") == 0
+                                            ? mfile.substr(0, mfile.size() - 4)
+                                            : mfile;
+                    std::string tdir = game_dir + "/" + mdir;
+
+                    std::vector<uint8_t> png = load_texture_bytes(tdir, tstem, "_a", game_dir, file_provider, max_tex);
+                    if (png.empty()) {
+                        vlog(geom_tag.c_str(), "no albedo texture: %s\n", tstem.c_str());
+                        continue;
+                    }
+                    int mat = ensure_mat(tstem, png);
+                    gt.geo_map_mat[geo_map_id] = mat;
+                    vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n",
+                         tstem.c_str(), mat, png.size() / 1024);
+                }
+                wows_assets_bin_visual_info_free(vi);
             }
-            wows_assets_bin_visual_info_free(vi);
         }
 
         GtData &gt = cache.at(gp);
@@ -863,6 +974,7 @@ void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::s
                 model.meshes[mi].primitives.clear();
             }
         }
+        report(20 + (int)((mi + 1) * 80 / n_geoms));
     }
 }
 

@@ -15,6 +15,7 @@
 
 #pragma once
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern bool wows_assets_bin_verbose; /**< Set to `true` before any call to enable verbose logging. */
@@ -90,11 +91,31 @@ typedef struct wows_assets_bin_pdb_s wows_assets_bin_pdb_t;
 wows_assets_bin_pdb_t *wows_assets_bin_pdb_open(const char *path);
 
 /**
+ * @brief Open and parse `assets.bin` from a memory buffer (contents are copied).
+ *
+ * @param data  Raw bytes of a valid `assets.bin` file.
+ * @param size  Length of @p data in bytes.
+ * @return A heap-allocated PDB handle, or `NULL` on failure.
+ */
+wows_assets_bin_pdb_t *wows_assets_bin_pdb_open_memory(const uint8_t *data, size_t size);
+
+/**
  * @brief Close an `assets.bin` handle and release all associated memory.
  *
- * @param pdb  Handle previously returned by ::wows_assets_bin_pdb_open.
+ * @param pdb  Handle previously returned by ::wows_assets_bin_pdb_open or ::wows_assets_bin_pdb_open_memory.
  */
 void wows_assets_bin_pdb_free(wows_assets_bin_pdb_t *pdb);
+
+/**
+ * @brief Like ::wows_assets_bin_get_hp_transforms but uses an already-open PDB handle.
+ */
+wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms_pdb(wows_assets_bin_pdb_t *pdb, const char *visual_suffix);
+
+/**
+ * @brief Like ::wows_assets_bin_get_blendbone_corrections but uses an already-open PDB handle.
+ */
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections_pdb(wows_assets_bin_pdb_t *pdb, const char **model_paths,
+                                                                          size_t n_paths);
 
 /** @} */
 

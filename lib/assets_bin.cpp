@@ -308,6 +308,13 @@ static bool load_pdb(const char *path, PDB &pdb) {
     return ok && parse_pdb(pdb);
 }
 
+static bool load_pdb_from_bytes(const uint8_t *data, size_t size, PDB &pdb) {
+    if (!data || !size)
+        return false;
+    pdb.raw.assign(data, data + size);
+    return parse_pdb(pdb);
+}
+
 /* ── VisualPrototype node parsing ─────────────────────────────────── */
 
 struct VisNodes {
@@ -462,13 +469,7 @@ static bool get_vis(const PDB &pdb, const char *suffix, VisNodes *vn_out) {
 
 /* ── public C API ─────────────────────────────────────────────────── */
 
-extern "C" {
-
-wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms(const char *path, const char *visual_suffix) {
-    PDB pdb;
-    if (!load_pdb(path, pdb))
-        return nullptr;
-
+static wows_assets_bin_hp_list_t *hp_transforms_from_pdb(const PDB &pdb, const char *visual_suffix) {
     VisNodes vn;
     if (!get_vis(pdb, visual_suffix, &vn))
         return nullptr;
@@ -495,18 +496,7 @@ wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms(const char *path, c
     return list;
 }
 
-void wows_assets_bin_hp_list_free(wows_assets_bin_hp_list_t *list) {
-    if (!list)
-        return;
-    delete[] list->entries;
-    delete list;
-}
-
-wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths) {
-    PDB pdb;
-    if (!load_pdb(path, pdb))
-        return nullptr;
-
+static wows_assets_bin_bb_list_t *blendbone_corrections_from_pdb(const PDB &pdb, const char **model_paths, size_t n_paths) {
     auto *list = new wows_assets_bin_bb_list_t;
     list->count = n_paths;
     list->entries = new wows_assets_bin_bb_t[n_paths];
@@ -532,6 +522,29 @@ wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char 
     return list;
 }
 
+extern "C" {
+
+wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms(const char *path, const char *visual_suffix) {
+    PDB pdb;
+    if (!load_pdb(path, pdb))
+        return nullptr;
+    return hp_transforms_from_pdb(pdb, visual_suffix);
+}
+
+void wows_assets_bin_hp_list_free(wows_assets_bin_hp_list_t *list) {
+    if (!list)
+        return;
+    delete[] list->entries;
+    delete list;
+}
+
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths) {
+    PDB pdb;
+    if (!load_pdb(path, pdb))
+        return nullptr;
+    return blendbone_corrections_from_pdb(pdb, model_paths, n_paths);
+}
+
 void wows_assets_bin_bb_list_free(wows_assets_bin_bb_list_t *list) {
     if (!list)
         return;
@@ -548,6 +561,26 @@ wows_assets_bin_pdb_t *wows_assets_bin_pdb_open(const char *path) {
         return nullptr;
     }
     return reinterpret_cast<wows_assets_bin_pdb_t *>(pdb);
+}
+
+wows_assets_bin_pdb_t *wows_assets_bin_pdb_open_memory(const uint8_t *data, size_t size) {
+    PDB *pdb = new PDB;
+    if (!load_pdb_from_bytes(data, size, *pdb)) {
+        delete pdb;
+        return nullptr;
+    }
+    return reinterpret_cast<wows_assets_bin_pdb_t *>(pdb);
+}
+
+wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms_pdb(wows_assets_bin_pdb_t *handle, const char *visual_suffix) {
+    PDB &pdb = *reinterpret_cast<PDB *>(handle);
+    return hp_transforms_from_pdb(pdb, visual_suffix);
+}
+
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections_pdb(wows_assets_bin_pdb_t *handle, const char **model_paths,
+                                                                          size_t n_paths) {
+    PDB &pdb = *reinterpret_cast<PDB *>(handle);
+    return blendbone_corrections_from_pdb(pdb, model_paths, n_paths);
 }
 
 void wows_assets_bin_pdb_free(wows_assets_bin_pdb_t *handle) {

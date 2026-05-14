@@ -3,6 +3,7 @@
 
 #include "wows-game-params.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <regex>
 #include <string>
@@ -59,6 +60,13 @@ class _PermissiveUnpickler(pickle.Unpickler):
 
 def load_game_params(path):
     with open(path, "rb") as f: data = f.read()
+    data = data[::-1]
+    data = zlib.decompress(data)
+    raw = _PermissiveUnpickler(io.BytesIO(data)).load()
+    return _to_plain(raw)
+
+def load_game_params_bytes(data):
+    data = bytes(data)
     data = data[::-1]
     data = zlib.decompress(data)
     raw = _PermissiveUnpickler(io.BytesIO(data)).load()
@@ -147,34 +155,39 @@ static std::string py_str(PyObject *o) {
     return s ? s : "";
 }
 
-bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, wows_hull_info &out) {
-    PyObject *mod = PyImport_AddModule("game_params");
-    if (!mod) {
-        PyErr_Print();
-        return false;
-    }
+static bool game_params_eval_embedded(PyObject *mod) {
     PyObject *ns = PyModule_GetDict(mod);
-    {
-        PyObject *code = Py_CompileString(GAME_PARAMS_PY, "game_params.py", Py_file_input);
-        if (!code) {
-            PyErr_Print();
-            return false;
-        }
-        PyObject *r = PyEval_EvalCode(code, ns, ns);
-        Py_DECREF(code);
-        if (!r) {
-            PyErr_Print();
-            return false;
-        }
-        Py_DECREF(r);
-    }
-
-    PyObject *gp = PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
-    if (!gp) {
+    PyObject *code = Py_CompileString(GAME_PARAMS_PY, "game_params.py", Py_file_input);
+    if (!code) {
         PyErr_Print();
         return false;
     }
+    PyObject *r = PyEval_EvalCode(code, ns, ns);
+    Py_DECREF(code);
+    if (!r) {
+        PyErr_Print();
+        return false;
+    }
+    Py_DECREF(r);
+    return true;
+}
 
+static PyObject *game_params_load_from_path(PyObject *mod, const char *gameparams_path) {
+    return PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
+}
+
+static PyObject *game_params_load_from_bytes(PyObject *mod, const uint8_t *data, size_t size) {
+    PyObject *b = PyBytes_FromStringAndSize(reinterpret_cast<const char *>(data), (Py_ssize_t)size);
+    if (!b)
+        return nullptr;
+    PyObject *gp = PyObject_CallMethod(mod, "load_game_params_bytes", "O", b);
+    Py_DECREF(b);
+    return gp;
+}
+
+/* @p gp is consumed (Py_DECREF) on all paths; must be non-null. */
+static bool wows_load_hull_info_from_gp(PyObject *mod, PyObject *gp, const char *ship_name, const char *hull_sel,
+                                        wows_hull_info &out) {
     PyObject *root = PyObject_CallMethod(mod, "get_params_root", "O", gp);
     Py_DECREF(gp);
     if (!root) {
@@ -305,18 +318,44 @@ bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, con
     return true;
 }
 
+bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, wows_hull_info &out) {
+    PyObject *mod = PyImport_AddModule("game_params");
+    if (!mod) {
+        PyErr_Print();
+        return false;
+    }
+    if (!game_params_eval_embedded(mod))
+        return false;
+    PyObject *gp = game_params_load_from_path(mod, gameparams_path);
+    if (!gp) {
+        PyErr_Print();
+        return false;
+    }
+    return wows_load_hull_info_from_gp(mod, gp, ship_name, hull_sel, out);
+}
+
+bool wows_load_hull_info_from_memory(const uint8_t *gameparams_data, size_t gameparams_size, const char *ship_name,
+                                     const char *hull_sel, wows_hull_info &out) {
+    PyObject *mod = PyImport_AddModule("game_params");
+    if (!mod) {
+        PyErr_Print();
+        return false;
+    }
+    if (!game_params_eval_embedded(mod))
+        return false;
+    PyObject *gp = game_params_load_from_bytes(mod, gameparams_data, gameparams_size);
+    if (!gp) {
+        PyErr_Print();
+        return false;
+    }
+    return wows_load_hull_info_from_gp(mod, gp, ship_name, hull_sel, out);
+}
+
 bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out) {
     PyObject *mod = PyImport_AddModule("game_params");
     if (!mod) { PyErr_Print(); return false; }
-    PyObject *ns = PyModule_GetDict(mod);
-    {
-        PyObject *code = Py_CompileString(GAME_PARAMS_PY, "game_params.py", Py_file_input);
-        if (!code) { PyErr_Print(); return false; }
-        PyObject *r = PyEval_EvalCode(code, ns, ns);
-        Py_DECREF(code);
-        if (!r) { PyErr_Print(); return false; }
-        Py_DECREF(r);
-    }
+    if (!game_params_eval_embedded(mod))
+        return false;
 
     PyObject *gp = PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
     if (!gp) { PyErr_Print(); return false; }

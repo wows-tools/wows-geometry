@@ -10,6 +10,8 @@
 
 #pragma once
 #include "wows-model-exporter.h"
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -40,6 +42,12 @@ struct wows_ship_entry {
  * @return `true` on success; errors are printed to stderr.
  */
 bool wows_load_hull_info(const char *gameparams_path, const char *ship_name, const char *hull_sel, wows_hull_info &out);
+
+/**
+ * @brief Same as ::wows_load_hull_info but reads pickled `GameParams.data` from a memory buffer.
+ */
+bool wows_load_hull_info_from_memory(const uint8_t *gameparams_data, size_t gameparams_size, const char *ship_name,
+                                     const char *hull_sel, wows_hull_info &out);
 
 /**
  * @brief Enumerate all ships in `GameParams.data`, grouped by nation and type.

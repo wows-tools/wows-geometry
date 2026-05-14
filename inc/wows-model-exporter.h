@@ -15,6 +15,7 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <functional>
 #include <tiny_gltf.h>
 #include "wows-assets-bin.h"
 
@@ -56,12 +57,19 @@ using wows_mat16d = std::vector<double>;
 struct wows_ship_export_options {
     std::string gameparams_path; /**< Path to `GameParams.data`; auto-detected from @p game_dir if empty. */
     std::string wows_assets_bin_path; /**< Path to `assets.bin`; auto-detected from @p game_dir if empty. */
+    /** If non-empty, GameParams is loaded from this buffer instead of @p gameparams_path (archive / in-memory workflows). */
+    std::vector<uint8_t> gameparams_data;
+    /** If non-empty, `assets.bin` is parsed from this buffer instead of @p wows_assets_bin_path. */
+    std::vector<uint8_t> assets_bin_data;
     std::string hull_upgrade;    /**< Upgrade name substring used to select a hull; empty = latest hull. */
     bool with_turrets = true;    /**< Include turret and module meshes. */
     bool with_textures = true;   /**< Embed textures in the output GLB. */
     int max_tex_size = 2048;     /**< Maximum texture dimension in pixels; larger textures are downscaled. */
     int lod_level = -1;          /**< LOD level to export; -1 = auto-select the highest detail level. */
     bool exclude_damage = true;  /**< Exclude damage and cross-section geometry sections. */
+    /** Optional progress callback. Called with values 0–100 during export:
+     *  0–20  geometry loading, 20–40  visual-info reading, 40–100  texture conversion. */
+    std::function<void(int)> progress_cb;
 };
 
 /**
@@ -113,6 +121,40 @@ struct wows_glb_part {
  */
 bool wows_stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
                         const wows_ship_export_options &opts = {});
+
+/**
+ * @brief Callback type for reading a file from an arbitrary storage backend.
+ *
+ * Takes a virtual file path (relative to the game root) and returns the
+ * file bytes. Returns an empty vector on failure.
+ */
+using wows_file_provider_t = std::function<std::vector<uint8_t>(const std::string &)>;
+
+/**
+ * @brief Export a complete ship model to a binary glTF (GLB) buffer in memory.
+ *
+ * Like ::wows_stitch_export_ship but writes the result to an in-memory buffer
+ * instead of a file. If @p file_provider is non-null, it is used to read
+ * geometry files instead of the filesystem (allowing archive-backed storage).
+ * GameParams.data and assets.bin may be supplied either as filesystem paths
+ * (including auto-detection under @p game_dir) or via @p opts.gameparams_data /
+ * @p opts.assets_bin_data when reading from archives or other non-file sources.
+ *
+ * @param game_dir      Path to the game's root resource directory (used as base
+ *                      for paths when @p file_provider is null).
+ * @param ship_name     Ship identifier in `GameParams.data`.
+ * @param glb_out       Output: filled with the GLB bytes on success.
+ * @param opts          Export options.
+ * @param file_provider Optional: callback to read geometry files from memory.
+ * @return `true` on success.
+ */
+bool wows_stitch_export_ship_to_glb_mem(
+    const std::string &game_dir,
+    const std::string &ship_name,
+    std::vector<uint8_t> &glb_out,
+    const wows_ship_export_options &opts = {},
+    wows_file_provider_t file_provider = nullptr
+);
 
 /** @} */
 
@@ -215,6 +257,16 @@ wows_mat16d wows_stitch_float_to_double_mat(const float m[16]);
 bool wows_stitch_geom_to_model(const std::string &geom_path, tinygltf::Model &model_out);
 
 /**
+ * @brief Load a `.geometry` file from a memory buffer and convert it to a tinygltf model.
+ *
+ * @param data      Pointer to the raw `.geometry` file data in memory.
+ * @param size      Size of the data buffer in bytes.
+ * @param model_out Output parameter filled with the parsed glTF model.
+ * @return `true` on success.
+ */
+bool wows_stitch_geom_to_model_from_memory(const uint8_t *data, size_t size, tinygltf::Model &model_out);
+
+/**
  * @brief Merge a list of ::wows_glb_part objects into a single tinygltf scene.
  *
  * Each part's mesh nodes are added under a root node and transformed by the
@@ -255,6 +307,19 @@ std::vector<uint8_t> wows_stitch_decode_dds(const uint8_t *d, size_t sz, int *W,
  */
 std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz);
 
+/**
+ * @brief Decode a DDS buffer in memory and encode it as a PNG byte buffer.
+ *
+ * Like ::wows_stitch_dds_to_png but operates on an already-loaded DDS buffer
+ * rather than a filesystem path.  Used when textures are archive-backed.
+ *
+ * @param data    Pointer to DDS file data in memory.
+ * @param size    Size of the DDS data in bytes.
+ * @param max_sz  Maximum allowed width or height; 0 means no limit.
+ * @return PNG-encoded bytes, or empty on failure.
+ */
+std::vector<uint8_t> wows_stitch_dds_to_png_from_memory(const uint8_t *data, size_t size, int max_sz);
+
 /** @} */
 
 /** @defgroup wows_stitch_tex Texture application
@@ -276,7 +341,9 @@ std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz)
  * @param max_tex     Maximum texture dimension; larger textures are downscaled.
  */
 void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
-                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex);
+                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex,
+                           std::function<void(int)> progress_cb = nullptr,
+                           wows_file_provider_t file_provider = nullptr);
 
 /**
  * @brief Apply a uniform grey default material to all primitives in a model.

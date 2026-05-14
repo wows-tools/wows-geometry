@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
     if (args.gameparams)
         opts.gameparams_path = args.gameparams;
     if (args.assets_bin)
-        opts.assets_bin_path = args.assets_bin;
+        opts.wows_assets_bin_path = args.assets_bin;
     if (args.hull)
         opts.hull_upgrade = args.hull;
     opts.with_turrets = args.with_turrets;
