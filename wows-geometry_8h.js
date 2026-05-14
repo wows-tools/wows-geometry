@@ -16,6 +16,7 @@ var wows_geometry_8h =
     [ "wows_geometry_to_glb", "group__api.html#gacd1236d1a400916c455df24273febc20", null ],
     [ "wows_geometry_to_glb_sections", "group__api.html#ga95e302601fa5f467820600faa920c201", null ],
     [ "wows_parse_geometry", "group__api.html#ga8dff806c2e3b159d6da939cfea1cf73f", null ],
+    [ "wows_parse_geometry_buffer", "group__api.html#ga0f238f35d3e2eefdb7f39a14b5f0294c", null ],
     [ "wows_parse_geometry_fp", "group__api.html#ga0203b3d26cae3c37bc5865a884155e7c", null ],
     [ "WOWS_BLOC_INFO_SIZE", "wows-geometry_8h.html#aabdaf7c2b49d72f0c64b5bcc71d822eb", null ],
     [ "WOWS_ERROR_NOT_A_DIR", "group__errors.html#gaa4d97fb13dd3c8badc270be5b2ff688e", null ],

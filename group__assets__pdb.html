@@ -105,9 +105,18 @@ Functions</h2></td></tr>
 <tr class="memitem:gab02d24d947a68c162e049876c72d1299" id="r_gab02d24d947a68c162e049876c72d1299"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__assets__pdb.html#gab02d24d947a68c162e049876c72d1299">wows_assets_bin_pdb_open</a> (const char *path)</td></tr>
 <tr class="memdesc:gab02d24d947a68c162e049876c72d1299"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open and parse an <code>assets.bin</code> file.  <br /></td></tr>
 <tr class="separator:gab02d24d947a68c162e049876c72d1299"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga849a4981ecec66c18c36c1ac63db6a36" id="r_ga849a4981ecec66c18c36c1ac63db6a36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__assets__pdb.html#ga849a4981ecec66c18c36c1ac63db6a36">wows_assets_bin_pdb_open_memory</a> (const uint8_t *data, size_t size)</td></tr>
+<tr class="memdesc:ga849a4981ecec66c18c36c1ac63db6a36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open and parse <code>assets.bin</code> from a memory buffer (contents are copied).  <br /></td></tr>
+<tr class="separator:ga849a4981ecec66c18c36c1ac63db6a36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0e4ace9abd6474cb7d05b5f46b8707ba" id="r_ga0e4ace9abd6474cb7d05b5f46b8707ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__assets__pdb.html#ga0e4ace9abd6474cb7d05b5f46b8707ba">wows_assets_bin_pdb_free</a> (<a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *pdb)</td></tr>
 <tr class="memdesc:ga0e4ace9abd6474cb7d05b5f46b8707ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close an <code>assets.bin</code> handle and release all associated memory.  <br /></td></tr>
 <tr class="separator:ga0e4ace9abd6474cb7d05b5f46b8707ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaefa31fe3a88fd52af8c59f00ad32b8dc" id="r_gaefa31fe3a88fd52af8c59f00ad32b8dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__assets__bin__hp__list__t.html">wows_assets_bin_hp_list_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__assets__pdb.html#gaefa31fe3a88fd52af8c59f00ad32b8dc">wows_assets_bin_get_hp_transforms_pdb</a> (<a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *pdb, const char *visual_suffix)</td></tr>
+<tr class="memdesc:gaefa31fe3a88fd52af8c59f00ad32b8dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Like <a class="el" href="group__assets__oneshot.html#gab4450f55ed66dbcb6117192b5269f8b7" title="Extract hardpoint transforms for a visual, opening the PDB internally.">wows_assets_bin_get_hp_transforms</a> but uses an already-open PDB handle.  <br /></td></tr>
+<tr class="separator:gaefa31fe3a88fd52af8c59f00ad32b8dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9a25d4edbc414c6a1fbae5a77219f6ef" id="r_ga9a25d4edbc414c6a1fbae5a77219f6ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__assets__bin__bb__list__t.html">wows_assets_bin_bb_list_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__assets__pdb.html#ga9a25d4edbc414c6a1fbae5a77219f6ef">wows_assets_bin_get_blendbone_corrections_pdb</a> (<a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *pdb, const char **model_paths, size_t n_paths)</td></tr>
+<tr class="memdesc:ga9a25d4edbc414c6a1fbae5a77219f6ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Like <a class="el" href="group__assets__oneshot.html#gaf67319812f412f47d68d36da6ed0fba0" title="Extract BlendBone correction matrices for a set of model paths.">wows_assets_bin_get_blendbone_corrections</a> but uses an already-open PDB handle.  <br /></td></tr>
+<tr class="separator:ga9a25d4edbc414c6a1fbae5a77219f6ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -118,6 +127,72 @@ Typedefs</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Opaque handle for an open <code>assets.bin</code> packed database. Opening the PDB is relatively expensive (full file parse); keep the handle alive and reuse it across multiple queries. </p>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ga9a25d4edbc414c6a1fbae5a77219f6ef" name="ga9a25d4edbc414c6a1fbae5a77219f6ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9a25d4edbc414c6a1fbae5a77219f6ef">&#9670;&#160;</a></span>wows_assets_bin_get_blendbone_corrections_pdb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwows__assets__bin__bb__list__t.html">wows_assets_bin_bb_list_t</a> * wows_assets_bin_get_blendbone_corrections_pdb </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *&#160;</td>
+          <td class="paramname"><em>pdb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char **&#160;</td>
+          <td class="paramname"><em>model_paths</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>n_paths</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Like <a class="el" href="group__assets__oneshot.html#gaf67319812f412f47d68d36da6ed0fba0" title="Extract BlendBone correction matrices for a set of model paths.">wows_assets_bin_get_blendbone_corrections</a> but uses an already-open PDB handle. </p>
+
+</div>
+</div>
+<a id="gaefa31fe3a88fd52af8c59f00ad32b8dc" name="gaefa31fe3a88fd52af8c59f00ad32b8dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaefa31fe3a88fd52af8c59f00ad32b8dc">&#9670;&#160;</a></span>wows_assets_bin_get_hp_transforms_pdb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwows__assets__bin__hp__list__t.html">wows_assets_bin_hp_list_t</a> * wows_assets_bin_get_hp_transforms_pdb </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *&#160;</td>
+          <td class="paramname"><em>pdb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>visual_suffix</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Like <a class="el" href="group__assets__oneshot.html#gab4450f55ed66dbcb6117192b5269f8b7" title="Extract hardpoint transforms for a visual, opening the PDB internally.">wows_assets_bin_get_hp_transforms</a> but uses an already-open PDB handle. </p>
+
+</div>
+</div>
 <a id="ga0e4ace9abd6474cb7d05b5f46b8707ba" name="ga0e4ace9abd6474cb7d05b5f46b8707ba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga0e4ace9abd6474cb7d05b5f46b8707ba">&#9670;&#160;</a></span>wows_assets_bin_pdb_free()</h2>
 
@@ -137,7 +212,7 @@ Typedefs</h2></td></tr>
 <p>Close an <code>assets.bin</code> handle and release all associated memory. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">pdb</td><td>Handle previously returned by <a class="el" href="group__assets__pdb.html#gab02d24d947a68c162e049876c72d1299" title="Open and parse an assets.bin file.">wows_assets_bin_pdb_open</a>. </td></tr>
+    <tr><td class="paramname">pdb</td><td>Handle previously returned by <a class="el" href="group__assets__pdb.html#gab02d24d947a68c162e049876c72d1299" title="Open and parse an assets.bin file.">wows_assets_bin_pdb_open</a> or <a class="el" href="group__assets__pdb.html#ga849a4981ecec66c18c36c1ac63db6a36" title="Open and parse assets.bin from a memory buffer (contents are copied).">wows_assets_bin_pdb_open_memory</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -164,6 +239,44 @@ Typedefs</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Filesystem path to the <code>assets.bin</code> file. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A heap-allocated PDB handle, or <code>NULL</code> on failure. </dd></dl>
+
+</div>
+</div>
+<a id="ga849a4981ecec66c18c36c1ac63db6a36" name="ga849a4981ecec66c18c36c1ac63db6a36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga849a4981ecec66c18c36c1ac63db6a36">&#9670;&#160;</a></span>wows_assets_bin_pdb_open_memory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> * wows_assets_bin_pdb_open_memory </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Open and parse <code>assets.bin</code> from a memory buffer (contents are copied). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>Raw bytes of a valid <code>assets.bin</code> file. </td></tr>
+    <tr><td class="paramname">size</td><td>Length of <code>data</code> in bytes. </td></tr>
   </table>
   </dd>
 </dl>

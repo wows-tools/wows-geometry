@@ -100,6 +100,8 @@ $(document).ready(function(){initNavTree('wows-game-params_8h.html',''); initRes
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="wows-model-exporter_8h_source.html">wows-model-exporter.h</a>&quot;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div>
@@ -110,6 +112,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a27e2a862ce0415283e68182dd1eb76a2" id="r_a27e2a862ce0415283e68182dd1eb76a2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-game-params_8h.html#a27e2a862ce0415283e68182dd1eb76a2">wows_load_hull_info</a> (const char *gameparams_path, const char *ship_name, const char *hull_sel, <a class="el" href="structwows__hull__info.html">wows_hull_info</a> &amp;out)</td></tr>
 <tr class="memdesc:a27e2a862ce0415283e68182dd1eb76a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load hull and mount information for a ship from <code>GameParams.data</code>.  <br /></td></tr>
 <tr class="separator:a27e2a862ce0415283e68182dd1eb76a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0151ebed952b99533303308ca924f657" id="r_a0151ebed952b99533303308ca924f657"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-game-params_8h.html#a0151ebed952b99533303308ca924f657">wows_load_hull_info_from_memory</a> (const uint8_t *gameparams_data, size_t gameparams_size, const char *ship_name, const char *hull_sel, <a class="el" href="structwows__hull__info.html">wows_hull_info</a> &amp;out)</td></tr>
+<tr class="memdesc:a0151ebed952b99533303308ca924f657"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="wows-game-params_8h.html#a27e2a862ce0415283e68182dd1eb76a2" title="Load hull and mount information for a ship from GameParams.data.">wows_load_hull_info</a> but reads pickled <code>GameParams.data</code> from a memory buffer.  <br /></td></tr>
+<tr class="separator:a0151ebed952b99533303308ca924f657"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ba4f8949ea54aada769dd105ae4f507" id="r_a5ba4f8949ea54aada769dd105ae4f507"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-game-params_8h.html#a5ba4f8949ea54aada769dd105ae4f507">wows_list_ships</a> (const char *gameparams_path, std::vector&lt; <a class="el" href="structwows__ship__entry.html">wows_ship_entry</a> &gt; &amp;out)</td></tr>
 <tr class="memdesc:a5ba4f8949ea54aada769dd105ae4f507"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerate all ships in <code>GameParams.data</code>, grouped by nation and type.  <br /></td></tr>
 <tr class="separator:a5ba4f8949ea54aada769dd105ae4f507"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -211,6 +216,54 @@ Data Structures</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code> on success; errors are printed to stderr. </dd></dl>
+
+</div>
+</div>
+<a id="a0151ebed952b99533303308ca924f657" name="a0151ebed952b99533303308ca924f657"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0151ebed952b99533303308ca924f657">&#9670;&#160;</a></span>wows_load_hull_info_from_memory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool wows_load_hull_info_from_memory </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>gameparams_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>gameparams_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>ship_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>hull_sel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structwows__hull__info.html">wows_hull_info</a> &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="wows-game-params_8h.html#a27e2a862ce0415283e68182dd1eb76a2" title="Load hull and mount information for a ship from GameParams.data.">wows_load_hull_info</a> but reads pickled <code>GameParams.data</code> from a memory buffer. </p>
 
 </div>
 </div>

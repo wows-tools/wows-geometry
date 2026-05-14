@@ -104,6 +104,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga972443166821b774efdb34fa2e78a5c1" id="r_ga972443166821b774efdb34fa2e78a5c1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__geom.html#ga972443166821b774efdb34fa2e78a5c1">wows_stitch_geom_to_model</a> (const std::string &amp;geom_path, tinygltf::Model &amp;model_out)</td></tr>
 <tr class="memdesc:ga972443166821b774efdb34fa2e78a5c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <code>.geometry</code> file and convert it to a tinygltf model.  <br /></td></tr>
 <tr class="separator:ga972443166821b774efdb34fa2e78a5c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga974ffba3a8f563f554362e0d7e40deee" id="r_ga974ffba3a8f563f554362e0d7e40deee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__geom.html#ga974ffba3a8f563f554362e0d7e40deee">wows_stitch_geom_to_model_from_memory</a> (const uint8_t *data, size_t size, tinygltf::Model &amp;model_out)</td></tr>
+<tr class="memdesc:ga974ffba3a8f563f554362e0d7e40deee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <code>.geometry</code> file from a memory buffer and convert it to a tinygltf model.  <br /></td></tr>
+<tr class="separator:ga974ffba3a8f563f554362e0d7e40deee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3c2094928c7888de8b95b77584621843" id="r_ga3c2094928c7888de8b95b77584621843"><td class="memItemLeft" align="right" valign="top">tinygltf::Model&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__geom.html#ga3c2094928c7888de8b95b77584621843">wows_stitch_merge_parts</a> (std::vector&lt; <a class="el" href="structwows__glb__part.html">wows_glb_part</a> &gt; &amp;parts)</td></tr>
 <tr class="memdesc:ga3c2094928c7888de8b95b77584621843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merge a list of <a class="el" href="structwows__glb__part.html" title="One resolved geometry part ready to be merged into a GLB scene.">wows_glb_part</a> objects into a single tinygltf scene.  <br /></td></tr>
 <tr class="separator:ga3c2094928c7888de8b95b77584621843"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,6 +143,51 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">geom_path</td><td>Filesystem path to the <code>.geometry</code> file. </td></tr>
+    <tr><td class="paramname">model_out</td><td>Output parameter filled with the parsed glTF model. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> on success. </dd></dl>
+
+</div>
+</div>
+<a id="ga974ffba3a8f563f554362e0d7e40deee" name="ga974ffba3a8f563f554362e0d7e40deee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga974ffba3a8f563f554362e0d7e40deee">&#9670;&#160;</a></span>wows_stitch_geom_to_model_from_memory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool wows_stitch_geom_to_model_from_memory </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">tinygltf::Model &amp;&#160;</td>
+          <td class="paramname"><em>model_out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Load a <code>.geometry</code> file from a memory buffer and convert it to a tinygltf model. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>Pointer to the raw <code>.geometry</code> file data in memory. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of the data buffer in bytes. </td></tr>
     <tr><td class="paramname">model_out</td><td>Output parameter filled with the parsed glTF model. </td></tr>
   </table>
   </dd>

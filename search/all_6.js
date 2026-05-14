@@ -14,6 +14,7 @@ var searchData=
   ['assembler_11',['&lt;tt&gt;wows-gltf-exporter&lt;/tt&gt; — full ship GLB assembler',['../index.html#autotoc_md5',1,'']]],
   ['assets_20bin_12',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md32',1,'']]],
   ['assets_20bin_20tt_20bigworld_20prototypedatabase_13',['&lt;tt&gt;assets.bin&lt;/tt&gt; (BigWorld PrototypeDatabase)',['../md__f_o_r_m_a_t.html#autotoc_md40',1,'']]],
-  ['attribute_20encoding_14',['Attribute encoding',['../md__f_o_r_m_a_t.html#autotoc_md25',1,'']]],
-  ['available_20ships_15',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]]
+  ['assets_5fbin_5fdata_14',['assets_bin_data',['../structwows__ship__export__options.html#ae998d400bc8598f643e942032f7335a5',1,'wows_ship_export_options']]],
+  ['attribute_20encoding_15',['Attribute encoding',['../md__f_o_r_m_a_t.html#autotoc_md25',1,'']]],
+  ['available_20ships_16',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]]
 ];

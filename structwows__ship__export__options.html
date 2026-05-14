@@ -110,6 +110,10 @@ Data Fields</h2></td></tr>
 <tr class="separator:a5047eda7472142635da8766b27ff5a90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e0d6715718df78f07d1587ff0e178ff" id="r_a4e0d6715718df78f07d1587ff0e178ff"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a4e0d6715718df78f07d1587ff0e178ff">wows_assets_bin_path</a></td></tr>
 <tr class="separator:a4e0d6715718df78f07d1587ff0e178ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bfa822a82eb5e7fe4652f874ebd48a4" id="r_a4bfa822a82eb5e7fe4652f874ebd48a4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a4bfa822a82eb5e7fe4652f874ebd48a4">gameparams_data</a></td></tr>
+<tr class="separator:a4bfa822a82eb5e7fe4652f874ebd48a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae998d400bc8598f643e942032f7335a5" id="r_ae998d400bc8598f643e942032f7335a5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#ae998d400bc8598f643e942032f7335a5">assets_bin_data</a></td></tr>
+<tr class="separator:ae998d400bc8598f643e942032f7335a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a9dd8c3f6eda700abc4e1a4abc6dbef" id="r_a7a9dd8c3f6eda700abc4e1a4abc6dbef"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a7a9dd8c3f6eda700abc4e1a4abc6dbef">hull_upgrade</a></td></tr>
 <tr class="separator:a7a9dd8c3f6eda700abc4e1a4abc6dbef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2932f40bfec8b66f9e898c125a72479c" id="r_a2932f40bfec8b66f9e898c125a72479c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a2932f40bfec8b66f9e898c125a72479c">with_turrets</a> = true</td></tr>
@@ -122,11 +126,28 @@ Data Fields</h2></td></tr>
 <tr class="separator:a0a3cd05b3a41da19f59d65031b02b6ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d13386752b1811ff66a2df1297d82ba" id="r_a5d13386752b1811ff66a2df1297d82ba"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a5d13386752b1811ff66a2df1297d82ba">exclude_damage</a> = true</td></tr>
 <tr class="separator:a5d13386752b1811ff66a2df1297d82ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50391cf9ffbdf11b9f76d17a4855e101" id="r_a50391cf9ffbdf11b9f76d17a4855e101"><td class="memItemLeft" align="right" valign="top">std::function&lt; void(int)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__ship__export__options.html#a50391cf9ffbdf11b9f76d17a4855e101">progress_cb</a></td></tr>
+<tr class="separator:a50391cf9ffbdf11b9f76d17a4855e101"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Options controlling a full-ship GLB export. </p>
 <p>All fields have sensible defaults; only <code>game_dir</code>, <code>ship_name</code>, and <code>output_path</code> must be specified. </p>
 </div><h2 class="groupheader">Field Documentation</h2>
+<a id="ae998d400bc8598f643e942032f7335a5" name="ae998d400bc8598f643e942032f7335a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae998d400bc8598f643e942032f7335a5">&#9670;&#160;</a></span>assets_bin_data</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; assets_bin_data</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>If non-empty, <code>assets.bin</code> is parsed from this buffer instead of <code>wows_assets_bin_path</code>. </p>
+
+</div>
+</div>
 <a id="a5d13386752b1811ff66a2df1297d82ba" name="a5d13386752b1811ff66a2df1297d82ba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5d13386752b1811ff66a2df1297d82ba">&#9670;&#160;</a></span>exclude_damage</h2>
 
@@ -139,6 +160,21 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Exclude damage and cross-section geometry sections. </p>
+
+</div>
+</div>
+<a id="a4bfa822a82eb5e7fe4652f874ebd48a4" name="a4bfa822a82eb5e7fe4652f874ebd48a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bfa822a82eb5e7fe4652f874ebd48a4">&#9670;&#160;</a></span>gameparams_data</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; gameparams_data</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>If non-empty, GameParams is loaded from this buffer instead of <code>gameparams_path</code> (archive / in-memory workflows). </p>
 
 </div>
 </div>
@@ -199,6 +235,21 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Maximum texture dimension in pixels; larger textures are downscaled. </p>
+
+</div>
+</div>
+<a id="a50391cf9ffbdf11b9f76d17a4855e101" name="a50391cf9ffbdf11b9f76d17a4855e101"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50391cf9ffbdf11b9f76d17a4855e101">&#9670;&#160;</a></span>progress_cb</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt;void(int)&gt; progress_cb</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional progress callback. Called with values 0–100 during export: 0–20 geometry loading, 20–40 visual-info reading, 40–100 texture conversion. </p>
 
 </div>
 </div>

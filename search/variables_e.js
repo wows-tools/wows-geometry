@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['r_0',['r',['../structwows__vert__xyznuvrpc.html#a413edc541329f74cfb9c1eede873c9e8',1,'wows_vert_xyznuvrpc']]],
-  ['raw_5fdata_1',['raw_data',['../structwows__geometry__vertex__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_vertex_section::raw_data'],['../structwows__geometry__index__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_index_section::raw_data']]],
-  ['render_5fsets_2',['render_sets',['../structwows__assets__bin__visual__info__t.html#adb585c36c4479fd174661caa5e117e24',1,'wows_assets_bin_visual_info_t']]],
-  ['rs_5fcount_3',['rs_count',['../structwows__assets__bin__visual__info__t.html#adfef1ac07f54ca507b645dd5d6ff3d67',1,'wows_assets_bin_visual_info_t']]]
+  ['packed_5ftexel_5fdensity_0',['packed_texel_density',['../structwows__geometry__info.html#ac64a3cb605064fb5904efe7ff148c5ef',1,'wows_geometry_info']]],
+  ['progress_5fcb_1',['progress_cb',['../structwows__ship__export__options.html#a50391cf9ffbdf11b9f76d17a4855e101',1,'wows_ship_export_options']]]
 ];

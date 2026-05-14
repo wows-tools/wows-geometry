@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('group__wows__stitch__tex.html',''); in
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gae4875880acdf75ac05d0df8877a82ecb" id="r_gae4875880acdf75ac05d0df8877a82ecb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__tex.html#gae4875880acdf75ac05d0df8877a82ecb">wows_stitch_apply_textures</a> (tinygltf::Model &amp;model, const std::vector&lt; std::string &gt; &amp;geom_order, <a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *pdb, const std::string &amp;game_dir, int lod_level, bool excl_damage, int max_tex)</td></tr>
-<tr class="memdesc:gae4875880acdf75ac05d0df8877a82ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach textures from <code>assets.bin</code> to the materials in a glTF model.  <br /></td></tr>
-<tr class="separator:gae4875880acdf75ac05d0df8877a82ecb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadc500f7779a5bd59133d912d875793a5" id="r_gadc500f7779a5bd59133d912d875793a5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__tex.html#gadc500f7779a5bd59133d912d875793a5">wows_stitch_apply_textures</a> (tinygltf::Model &amp;model, const std::vector&lt; std::string &gt; &amp;geom_order, <a class="el" href="group__assets__pdb.html#gafe6d01e67d46429ea3dc5abf0d71634f">wows_assets_bin_pdb_t</a> *pdb, const std::string &amp;game_dir, int lod_level, bool excl_damage, int max_tex, std::function&lt; void(int)&gt; progress_cb=nullptr, <a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a> file_provider=nullptr)</td></tr>
+<tr class="memdesc:gadc500f7779a5bd59133d912d875793a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach textures from <code>assets.bin</code> to the materials in a glTF model.  <br /></td></tr>
+<tr class="separator:gadc500f7779a5bd59133d912d875793a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7fbcc1a05051cd7b49b595ea73685110" id="r_ga7fbcc1a05051cd7b49b595ea73685110"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__tex.html#ga7fbcc1a05051cd7b49b595ea73685110">wows_stitch_apply_default_material</a> (tinygltf::Model &amp;model)</td></tr>
 <tr class="memdesc:ga7fbcc1a05051cd7b49b595ea73685110"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply a uniform grey default material to all primitives in a model.  <br /></td></tr>
 <tr class="separator:ga7fbcc1a05051cd7b49b595ea73685110"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,8 +137,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gae4875880acdf75ac05d0df8877a82ecb" name="gae4875880acdf75ac05d0df8877a82ecb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae4875880acdf75ac05d0df8877a82ecb">&#9670;&#160;</a></span>wows_stitch_apply_textures()</h2>
+<a id="gadc500f7779a5bd59133d912d875793a5" name="gadc500f7779a5bd59133d912d875793a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadc500f7779a5bd59133d912d875793a5">&#9670;&#160;</a></span>wows_stitch_apply_textures()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -183,7 +183,19 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>max_tex</em>&#160;</td>
+          <td class="paramname"><em>max_tex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void(int)&gt;&#160;</td>
+          <td class="paramname"><em>progress_cb</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a>&#160;</td>
+          <td class="paramname"><em>file_provider</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

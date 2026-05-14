@@ -107,6 +107,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gae6a3e1f92e455cf24bb01f7a0cec7b2d" id="r_gae6a3e1f92e455cf24bb01f7a0cec7b2d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__dds.html#gae6a3e1f92e455cf24bb01f7a0cec7b2d">wows_stitch_dds_to_png</a> (const std::string &amp;path, int max_sz)</td></tr>
 <tr class="memdesc:gae6a3e1f92e455cf24bb01f7a0cec7b2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a <code>.dds</code> file from disk and encode it as a PNG byte buffer.  <br /></td></tr>
 <tr class="separator:gae6a3e1f92e455cf24bb01f7a0cec7b2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2f614cda284063f2a038652fc5b723ec" id="r_ga2f614cda284063f2a038652fc5b723ec"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__dds.html#ga2f614cda284063f2a038652fc5b723ec">wows_stitch_dds_to_png_from_memory</a> (const uint8_t *data, size_t size, int max_sz)</td></tr>
+<tr class="memdesc:ga2f614cda284063f2a038652fc5b723ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode a DDS buffer in memory and encode it as a PNG byte buffer.  <br /></td></tr>
+<tr class="separator:ga2f614cda284063f2a038652fc5b723ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function Documentation</h2>
@@ -141,6 +144,52 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>Filesystem path to the <code>.dds</code> file. </td></tr>
+    <tr><td class="paramname">max_sz</td><td>Maximum allowed width or height; 0 means no limit. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>PNG-encoded bytes, or empty on failure. </dd></dl>
+
+</div>
+</div>
+<a id="ga2f614cda284063f2a038652fc5b723ec" name="ga2f614cda284063f2a038652fc5b723ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2f614cda284063f2a038652fc5b723ec">&#9670;&#160;</a></span>wows_stitch_dds_to_png_from_memory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; uint8_t &gt; wows_stitch_dds_to_png_from_memory </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_sz</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decode a DDS buffer in memory and encode it as a PNG byte buffer. </p>
+<p>Like <a class="el" href="group__wows__stitch__dds.html#gae6a3e1f92e455cf24bb01f7a0cec7b2d" title="Load a .dds file from disk and encode it as a PNG byte buffer.">wows_stitch_dds_to_png</a> but operates on an already-loaded DDS buffer rather than a filesystem path. Used when textures are archive-backed.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>Pointer to DDS file data in memory. </td></tr>
+    <tr><td class="paramname">size</td><td>Size of the DDS data in bytes. </td></tr>
     <tr><td class="paramname">max_sz</td><td>Maximum allowed width or height; 0 means no limit. </td></tr>
   </table>
   </dd>

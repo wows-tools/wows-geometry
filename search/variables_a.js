@@ -1,14 +1,6 @@
 var searchData=
 [
-  ['mapping_5fid_0',['mapping_id',['../structwows__geometry__info.html#aa12603a40d5d546e92a430513bbf73ae',1,'wows_geometry_info']]],
-  ['mapping_5fids_1',['mapping_ids',['../structwows__assets__bin__lod__t.html#a08f427da360ef4b632282f4dad0363dd',1,'wows_assets_bin_lod_t']]],
-  ['mat_2',['mat',['../structwows__assets__bin__hp__t.html#a75bc4e91b435059a061afb2f056d591c',1,'wows_assets_bin_hp_t']]],
-  ['matrix_3',['matrix',['../structwows__glb__part.html#a0b50450eb4a85a0c04614812d59aef6c',1,'wows_glb_part']]],
-  ['max_5ftex_5fsize_4',['max_tex_size',['../structwows__ship__export__options.html#a2ceede151c588993b1ad4cd7528aadcb',1,'wows_ship_export_options']]],
-  ['merged_5fbuffer_5findex_5',['merged_buffer_index',['../structwows__geometry__info.html#ae34ded47da9dd0a57de2c97b39d63f90',1,'wows_geometry_info']]],
-  ['mesh_5fname_6',['mesh_name',['../structwows__glb__part.html#a9781d1b74956d5fe6ad475f041e483a8',1,'wows_glb_part']]],
-  ['mfm_5fpath_7',['mfm_path',['../structwows__assets__bin__rs__t.html#a4079ad413636e38665f025a157aeff03',1,'wows_assets_bin_rs_t']]],
-  ['model_8',['model',['../structwows__glb__part.html#a882939d3313cb512d4105ac79ef8eda2',1,'wows_glb_part']]],
-  ['model_5fpath_9',['model_path',['../structwows__assets__bin__bb__t.html#a3cb7b5b57c12901ab19a9590e28443a6',1,'wows_assets_bin_bb_t::model_path'],['../structwows__mount__entry.html#a4f479489d1860644526a4ecfc8889575',1,'wows_mount_entry::model_path']]],
-  ['mounts_10',['mounts',['../structwows__hull__info.html#a46ec50b6a0d8c99e6e08f9925f397012',1,'wows_hull_info']]]
+  ['lod_5fcount_0',['lod_count',['../structwows__assets__bin__visual__info__t.html#a2ce6132e4652e28d9d84c1c187abf41c',1,'wows_assets_bin_visual_info_t']]],
+  ['lod_5flevel_1',['lod_level',['../structwows__ship__export__options.html#a0a3cd05b3a41da19f59d65031b02b6ee',1,'wows_ship_export_options']]],
+  ['lods_2',['lods',['../structwows__assets__bin__visual__info__t.html#a67c67fcc6169042766b56d53a6d06616',1,'wows_assets_bin_visual_info_t']]]
 ];

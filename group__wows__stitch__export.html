@@ -94,7 +94,8 @@ $(document).ready(function(){initNavTree('group__wows__stitch__export.html','');
 
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">High-level export</div></div>
 </div><!--header-->
 <div class="contents">
@@ -104,6 +105,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ga7d0ad2a4e0f4e3e1a282d5188dab4d12" id="r_ga7d0ad2a4e0f4e3e1a282d5188dab4d12"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12">wows_stitch_export_ship</a> (const std::string &amp;game_dir, const std::string &amp;ship_name, const std::string &amp;output_path, const <a class="el" href="structwows__ship__export__options.html">wows_ship_export_options</a> &amp;opts={})</td></tr>
 <tr class="memdesc:ga7d0ad2a4e0f4e3e1a282d5188dab4d12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Export a complete ship model to a binary glTF (GLB) file.  <br /></td></tr>
 <tr class="separator:ga7d0ad2a4e0f4e3e1a282d5188dab4d12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacc99ca666038256c6bfa3995ac4a55e5" id="r_gacc99ca666038256c6bfa3995ac4a55e5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__export.html#gacc99ca666038256c6bfa3995ac4a55e5">wows_stitch_export_ship_to_glb_mem</a> (const std::string &amp;game_dir, const std::string &amp;ship_name, std::vector&lt; uint8_t &gt; &amp;glb_out, const <a class="el" href="structwows__ship__export__options.html">wows_ship_export_options</a> &amp;opts={}, <a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a> file_provider=nullptr)</td></tr>
+<tr class="memdesc:gacc99ca666038256c6bfa3995ac4a55e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Export a complete ship model to a binary glTF (GLB) buffer in memory.  <br /></td></tr>
+<tr class="separator:gacc99ca666038256c6bfa3995ac4a55e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga3b3a8c6180d999dbdffb4567667ebe7b" id="r_ga3b3a8c6180d999dbdffb4567667ebe7b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a> = std::function&lt; std::vector&lt; uint8_t &gt;(const std::string &amp;)&gt;</td></tr>
+<tr class="memdesc:ga3b3a8c6180d999dbdffb4567667ebe7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback type for reading a file from an arbitrary storage backend.  <br /></td></tr>
+<tr class="separator:ga3b3a8c6180d999dbdffb4567667ebe7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function Documentation</h2>
@@ -158,6 +168,84 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code> on success; errors are printed to stderr. </dd></dl>
+
+</div>
+</div>
+<a id="gacc99ca666038256c6bfa3995ac4a55e5" name="gacc99ca666038256c6bfa3995ac4a55e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacc99ca666038256c6bfa3995ac4a55e5">&#9670;&#160;</a></span>wows_stitch_export_ship_to_glb_mem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool wows_stitch_export_ship_to_glb_mem </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>game_dir</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>ship_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>glb_out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structwows__ship__export__options.html">wows_ship_export_options</a> &amp;&#160;</td>
+          <td class="paramname"><em>opts</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a>&#160;</td>
+          <td class="paramname"><em>file_provider</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Export a complete ship model to a binary glTF (GLB) buffer in memory. </p>
+<p>Like <a class="el" href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12" title="Export a complete ship model to a binary glTF (GLB) file.">wows_stitch_export_ship</a> but writes the result to an in-memory buffer instead of a file. If <code>file_provider</code> is non-null, it is used to read geometry files instead of the filesystem (allowing archive-backed storage). GameParams.data and assets.bin may be supplied either as filesystem paths (including auto-detection under <code>game_dir</code>) or via <code>opts.gameparams_data</code> / <code>opts.assets_bin_data</code> when reading from archives or other non-file sources.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">game_dir</td><td>Path to the game's root resource directory (used as base for paths when <code>file_provider</code> is null). </td></tr>
+    <tr><td class="paramname">ship_name</td><td>Ship identifier in <code>GameParams.data</code>. </td></tr>
+    <tr><td class="paramname">glb_out</td><td>Output: filled with the GLB bytes on success. </td></tr>
+    <tr><td class="paramname">opts</td><td>Export options. </td></tr>
+    <tr><td class="paramname">file_provider</td><td>Optional: callback to read geometry files from memory. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> on success. </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a id="ga3b3a8c6180d999dbdffb4567667ebe7b" name="ga3b3a8c6180d999dbdffb4567667ebe7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3b3a8c6180d999dbdffb4567667ebe7b">&#9670;&#160;</a></span>wows_file_provider_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b">wows_file_provider_t</a> =  std::function&lt;std::vector&lt;uint8_t&gt;(const std::string &amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback type for reading a file from an arbitrary storage backend. </p>
+<p>Takes a virtual file path (relative to the game root) and returns the file bytes. Returns an empty vector on failure. </p>
 
 </div>
 </div>
