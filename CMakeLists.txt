@@ -12,6 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 find_library(CUNIT_LIBRARY cunit)
 find_library(MESHOPTIMIZER_LIBRARY meshoptimizer)
 find_library(TINYGLTF_LIBRARY tinygltf)
+find_package(ZLIB REQUIRED)
 find_package(
   Python3
   COMPONENTS Interpreter Development
@@ -67,6 +68,19 @@ else(STATIC)
   set(SHARED "SHARED")
 endif(STATIC)
 
+# gcov/lcov and libgcov do not mix with Clang's LLVM profiling in the same link.
+if(COVERAGE AND BUILD_TESTS)
+  if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU"
+     OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(
+      FATAL_ERROR
+        "COVERAGE with BUILD_TESTS requires GCC for both C and CXX (found "
+        "C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}). "
+        "Reconfigure with e.g. -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ "
+        "or -DUSE_GCC=ON.")
+  endif()
+endif()
+
 if(UNIX)
   link_libraries(m)
 endif(UNIX)
@@ -108,20 +122,19 @@ if(WOWS_DEPACK_SOURCES)
 endif()
 
 target_link_libraries(
-  wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
+  wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
   ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
 
-target_link_libraries(wows-geometry-cli wows-geometry ${ZLIB_LIBRARIES}
-                      ${PCRE_LIBRARY})
+target_link_libraries(wows-geometry-cli PRIVATE wows-geometry)
 
 # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
-target_link_libraries(wows-gltf-exporter wows-geometry ${TINYGLTF_LIBRARY})
+target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry ${TINYGLTF_LIBRARY})
 
 # Ship lister: enumerate ships from GameParams.data
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
-target_link_libraries(wows-list-ships wows-geometry)
+target_link_libraries(wows-list-ships PRIVATE wows-geometry)
 
 if(BUILD_TESTS)
   if(CUNIT_LIBRARY)
@@ -129,8 +142,7 @@ if(BUILD_TESTS)
     include(CTest)
     add_test(NAME wows-geometry-test COMMAND wows-geometry-test)
     add_executable(wows-geometry-test tests/tests.c)
-    target_link_libraries(wows-geometry-test wows-geometry ${ZLIB_LIBRARIES}
-                          ${PCRE_LIBRARY} ${CUNIT_LIBRARY})
+    target_link_libraries(wows-geometry-test PRIVATE wows-geometry ${CUNIT_LIBRARY})
 
     # Add the test target
     add_custom_target(
@@ -144,8 +156,8 @@ if(BUILD_TESTS)
       set(CMAKE_BUILD_TYPE Debug)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-      target_link_libraries(wows-geometry-cli gcov)
-      target_link_libraries(wows-gltf-exporter gcov)
+      include(ProcessorCount)
+      ProcessorCount(n_cores)
       include(CodeCoverage)
       setup_target_for_coverage(
         NAME

@@ -29,7 +29,7 @@ jobs:
             -o /usr/include/stb/$f
         done
     - name: Configure CMake
-      run: cmake -DCOVERAGE=ON -DBUILD_TESTS=ON .
+      run: cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON .
     - name: Build
       run: make
     - name: Coverage

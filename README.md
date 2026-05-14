@@ -16,34 +16,7 @@ transforms, and material paths are stored separately in `assets.bin`.
 
 ## Tools
 
-### `wows-geometry-cli` — single-file inspector / exporter
-
-Parses one `.geometry` file, prints its structure, or exports it as GLB.
-
-```
-wows-geometry-cli -i <file.geometry> [-p] [-v] [-g output.glb] [-s 0,1,...]
-
-  -i FILE    Input .geometry file
-  -p         Print parsed structure
-  -v         Print all vertex data (use with -p)
-  -g FILE    Export submeshes to GLB
-  -s 0,1,…   Comma-separated vertex section indices to export (default: all)
-```
-
-### `wows-list-ships` — enumerate available ships
-
-Lists all ships found in `GameParams.data`, with optional filtering by nation or type.
-
-```
-wows-list-ships [-d <game-dir>] [-g GameParams.data] [-n nation] [-t type]
-
-  -d DIR     Root game directory (auto-detects GameParams.data)
-  -g FILE    GameParams.data (alternative to -d)
-  -n STR     Filter by nation (case-insensitive substring)
-  -t STR     Filter by ship type (case-insensitive substring)
-```
-
-### `wows-gltf-exporter` — full ship GLB assembler
+### **wows-gltf-exporter** — full ship GLB assembler
 
 Reads `GameParams.data` to find hull and mount-point models, loads HP_ transforms
 and BlendBone corrections from `assets.bin`, decodes DDS textures, and writes a
@@ -74,12 +47,39 @@ Optional:
 
 **Example — export Kongo with all defaults:**
 ```sh
-wows-gltf-exporter -d /opt/wows -s Kongo -o kongo.glb
+wows-gltf-exporter -d ~/Games/World\ of\ Warships/ -s Kongo_1942 -o kongo.glb
 ```
 
-**Example — specific hull, no turrets, LOD 0:**
+**Example — specific hull, no turrets, Level of Detail 2:**
 ```sh
-wows-gltf-exporter -d /opt/wows -s Kongo -H HullB -t -L 0 -o kongo_hullb.glb
+wows-gltf-exporter -d ~/Games/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_ldo2.glb
+```
+
+### **wows-list-ships** — enumerate available ships
+
+Lists all ships found in `GameParams.data`, with optional filtering by nation or type.
+
+```
+wows-list-ships [-d <game-dir>] [-g GameParams.data] [-n nation] [-t type]
+
+  -d DIR     Root game directory (auto-detects GameParams.data)
+  -g FILE    GameParams.data (alternative to -d)
+  -n STR     Filter by nation (case-insensitive substring)
+  -t STR     Filter by ship type (case-insensitive substring)
+```
+
+### **wows-geometry-cli** — single-file inspector / exporter
+
+Parses one `.geometry` file, prints its structure, or exports it as GLB.
+
+```
+wows-geometry-cli -i <file.geometry> [-p] [-v] [-g output.glb] [-s 0,1,...]
+
+  -i FILE    Input .geometry file
+  -p         Print parsed structure
+  -v         Print all vertex data (use with -p)
+  -g FILE    Export submeshes to GLB
+  -s 0,1,…   Comma-separated vertex section indices to export (default: all)
 ```
 
 ## Library API
@@ -105,7 +105,7 @@ wows_ship_export_options opts;
 // opts.gameparams_path      = "/explicit/path/GameParams.data";  // auto-detected if empty
 // opts.wows_assets_bin_path = "/explicit/path/assets.bin";       // auto-detected if empty
 
-bool ok = wows_stitch_export_ship("/opt/wows", "Kongo", "kongo.glb", opts);
+bool ok = wows_stitch_export_ship("~/Games/World\ of\ Warships/", "Kongo_1942", "kongo.glb", opts);
 ```
 
 `wows_stitch_export_ship` handles everything: auto-detecting `GameParams.data` and
@@ -114,7 +114,7 @@ transforms and BlendBone corrections, decoding geometry, merging, texturing, and
 writing the GLB. Errors are printed to stderr; Python is initialised and finalised
 internally.
 
-### `wows_ship_export_options` fields
+### **wows_ship_export_options** fields
 
 | Field | Default | Description |
 |-------|---------|-------------|
