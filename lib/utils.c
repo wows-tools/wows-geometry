@@ -89,12 +89,12 @@ const char *id2vertex(int id) {
     }
 }
 
-uint8_t datatoh8(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+uint8_t geom_datatoh8(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     // Endianness doesn't matter for 8-bit values, simply return the byte at the given offset
     return (uint8_t)data[offset];
 }
 
-uint16_t datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+uint16_t geom_datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     uint16_t *ret = (uint16_t *)(data + offset);
     if (context->is_le) {
         return le16toh(*ret);
@@ -103,7 +103,7 @@ uint16_t datatoh16(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     }
 }
 
-uint32_t datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+uint32_t geom_datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     uint32_t *ret = (uint32_t *)(data + offset);
     if (context->is_le) {
         return le32toh(*ret);
@@ -112,7 +112,7 @@ uint32_t datatoh32(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     }
 }
 
-uint64_t datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
+uint64_t geom_datatoh64(char *data, size_t offset, WOWS_GEOMETRY_CONTEXT *context) {
     uint64_t *ret = (uint64_t *)(data + offset);
     if (context->is_le) {
         return le64toh(*ret);

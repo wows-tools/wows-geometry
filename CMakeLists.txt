@@ -80,7 +80,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # linking directories
-link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/)
+link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
+                 ${CMAKE_CURRENT_SOURCE_DIR}/../lib/)
 
 # headers directories
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
@@ -95,6 +96,17 @@ set_target_properties(
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
 target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
+find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
+
+# Build depack sources directly so they are compiled with -fPIC for the shared lib
+set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../wows-depack)
+file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
+if(WOWS_DEPACK_SOURCES)
+    target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
+    target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
+    target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
+endif()
+
 target_link_libraries(
   wows-geometry ${ZLIB_LIBRARIES} ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
   ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})

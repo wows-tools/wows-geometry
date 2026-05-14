@@ -65,6 +65,7 @@ dkms.conf
 
 # binary
 wows-geometry-cli
+wows-list-ships
 wows-stitch
 wows-geometry-test
 wows-gltf-exporter

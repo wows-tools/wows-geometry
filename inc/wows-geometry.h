@@ -334,4 +334,14 @@ int wows_geometry_to_glb(wows_geometry *geometry, const char *output_path);
  */
 int wows_geometry_to_glb_sections(wows_geometry *geometry, const char *output_path, const uint32_t *sections,
                                   uint32_t n_sections);
+
+/**
+ * @brief Parse a `.geometry` file from a raw memory buffer.
+ *
+ * @param contents          Pointer to the raw geometry file data.
+ * @param length            Length of the buffer in bytes.
+ * @param geometry_content  Output pointer; set to the parsed geometry on success.
+ * @return 0 on success, a non-zero error code on failure.
+ */
+int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **geometry_content);
 /** @} */
