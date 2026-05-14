@@ -206,12 +206,37 @@ Lower-level API</h2>
 <hr  />
 <h1><a class="anchor" id="autotoc_md13"></a>
 Build</h1>
-<div class="fragment"><div class="line"># Dependencies (Debian/Ubuntu)</div>
-<div class="line">sudo apt install cmake zlib1g-dev libmeshoptimizer-dev libtinygltf-dev \</div>
-<div class="line">                 python3-dev libcunit1-dev</div>
-<div class="line"> </div>
-<div class="line">cmake .</div>
+<h2><a class="anchor" id="autotoc_md14"></a>
+Clone with submodules</h2>
+<p>The following libraries are bundled as git submodules under <code>deps/</code>:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Submodule   </th><th class="markdownTableHeadNone">Purpose    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><a href="https://github.com/wows-tools/wows-depack"><code>wows-depack</code></a>   </td><td class="markdownTableBodyNone">WoWs resource file unpacker    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><a href="https://github.com/nothings/stb"><code>stb</code></a>   </td><td class="markdownTableBodyNone">Image resize and write headers   </td></tr>
+</table>
+<p>Clone with <code>--recurse-submodules</code>:</p>
+<div class="fragment"><div class="line">git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git</div>
+</div><!-- fragment --><p>On an existing clone:</p>
+<div class="fragment"><div class="line">git submodule update --init --recursive</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md15"></a>
+Dependencies (Debian/Ubuntu)</h2>
+<div class="fragment"><div class="line">sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev \</div>
+<div class="line">                 libtinygltf-dev python3-dev</div>
+</div><!-- fragment --><p><code>libpcre2-dev</code> and <code>zlib1g-dev</code> are required by the <code>wows-depack</code> submodule.</p>
+<p>For the test suite, also install:</p>
+<div class="fragment"><div class="line">sudo apt install libcunit1-dev</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
+Compile</h2>
+<div class="fragment"><div class="line">cmake .</div>
 <div class="line">make</div>
+</div><!-- fragment --><p>To build and run tests with coverage (requires GCC):</p>
+<div class="fragment"><div class="line">cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON .</div>
+<div class="line">make</div>
+<div class="line">make test</div>
+<div class="line">make coverage</div>
 </div><!-- fragment --> </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->

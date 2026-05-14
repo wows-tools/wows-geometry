@@ -27,47 +27,47 @@ var NAVTREE =
   [ "WoWs Model Exported", "index.html", [
     [ "wows-model-exporter", "index.html", "index" ],
     [ "WoWs .geometry Format", "md__f_o_r_m_a_t.html", [
-      [ "Introduction", "md__f_o_r_m_a_t.html#autotoc_md15", null ],
-      [ "File Layout", "md__f_o_r_m_a_t.html#autotoc_md16", null ],
-      [ "Format", "md__f_o_r_m_a_t.html#autotoc_md17", [
-        [ "Header (72 bytes)", "md__f_o_r_m_a_t.html#autotoc_md18", null ],
-        [ "Vertex/Index Bloc Mapping Entry (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md19", null ],
-        [ "Draw Call Matching", "md__f_o_r_m_a_t.html#autotoc_md20", null ],
-        [ "Vertex Type Metadata (32 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md21", null ],
-        [ "Index Type Metadata (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md22", null ],
-        [ "ENCD Block", "md__f_o_r_m_a_t.html#autotoc_md23", null ],
-        [ "Vertex Data Layout (after ENCD decode)", "md__f_o_r_m_a_t.html#autotoc_md24", [
-          [ "Attribute encoding", "md__f_o_r_m_a_t.html#autotoc_md25", null ],
-          [ "Vertex type layouts", "md__f_o_r_m_a_t.html#autotoc_md26", null ]
+      [ "Introduction", "md__f_o_r_m_a_t.html#autotoc_md18", null ],
+      [ "File Layout", "md__f_o_r_m_a_t.html#autotoc_md19", null ],
+      [ "Format", "md__f_o_r_m_a_t.html#autotoc_md20", [
+        [ "Header (72 bytes)", "md__f_o_r_m_a_t.html#autotoc_md21", null ],
+        [ "Vertex/Index Bloc Mapping Entry (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md22", null ],
+        [ "Draw Call Matching", "md__f_o_r_m_a_t.html#autotoc_md23", null ],
+        [ "Vertex Type Metadata (32 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md24", null ],
+        [ "Index Type Metadata (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md25", null ],
+        [ "ENCD Block", "md__f_o_r_m_a_t.html#autotoc_md26", null ],
+        [ "Vertex Data Layout (after ENCD decode)", "md__f_o_r_m_a_t.html#autotoc_md27", [
+          [ "Attribute encoding", "md__f_o_r_m_a_t.html#autotoc_md28", null ],
+          [ "Vertex type layouts", "md__f_o_r_m_a_t.html#autotoc_md29", null ]
         ] ],
-        [ "Collision Model Data", "md__f_o_r_m_a_t.html#autotoc_md27", null ],
-        [ "Armor Model Data", "md__f_o_r_m_a_t.html#autotoc_md28", null ]
+        [ "Collision Model Data", "md__f_o_r_m_a_t.html#autotoc_md30", null ],
+        [ "Armor Model Data", "md__f_o_r_m_a_t.html#autotoc_md31", null ]
       ] ],
-      [ "Ship Part Files and LOD", "md__f_o_r_m_a_t.html#autotoc_md30", [
-        [ "File Naming Convention", "md__f_o_r_m_a_t.html#autotoc_md31", null ],
-        [ "Render-Set LOD (in assets.bin)", "md__f_o_r_m_a_t.html#autotoc_md32", null ],
-        [ "Damage and Cross-Section Geometry", "md__f_o_r_m_a_t.html#autotoc_md33", null ],
-        [ "Coordinate System", "md__f_o_r_m_a_t.html#autotoc_md34", null ]
+      [ "Ship Part Files and LOD", "md__f_o_r_m_a_t.html#autotoc_md33", [
+        [ "File Naming Convention", "md__f_o_r_m_a_t.html#autotoc_md34", null ],
+        [ "Render-Set LOD (in assets.bin)", "md__f_o_r_m_a_t.html#autotoc_md35", null ],
+        [ "Damage and Cross-Section Geometry", "md__f_o_r_m_a_t.html#autotoc_md36", null ],
+        [ "Coordinate System", "md__f_o_r_m_a_t.html#autotoc_md37", null ]
       ] ],
-      [ "Related Files", "md__f_o_r_m_a_t.html#autotoc_md36", [
-        [ "<tt>GameParams.data</tt>", "md__f_o_r_m_a_t.html#autotoc_md37", [
-          [ "Armor Key Encoding", "md__f_o_r_m_a_t.html#autotoc_md38", null ]
+      [ "Related Files", "md__f_o_r_m_a_t.html#autotoc_md39", [
+        [ "<tt>GameParams.data</tt>", "md__f_o_r_m_a_t.html#autotoc_md40", [
+          [ "Armor Key Encoding", "md__f_o_r_m_a_t.html#autotoc_md41", null ]
         ] ],
-        [ "<tt>assets.bin</tt> (BigWorld PrototypeDatabase)", "md__f_o_r_m_a_t.html#autotoc_md40", [
-          [ "File Header (16 bytes)", "md__f_o_r_m_a_t.html#autotoc_md41", null ],
-          [ "Body Layout", "md__f_o_r_m_a_t.html#autotoc_md42", null ],
-          [ "Strings Section (base = 0x10)", "md__f_o_r_m_a_t.html#autotoc_md43", null ],
-          [ "R2P Map (base = 0x38)", "md__f_o_r_m_a_t.html#autotoc_md44", null ],
-          [ "Path Storage (base = 0x50)", "md__f_o_r_m_a_t.html#autotoc_md45", null ],
-          [ "Databases Array (base = 0x60 in body, relptr base = body_base)", "md__f_o_r_m_a_t.html#autotoc_md46", null ],
-          [ "VisualPrototype", "md__f_o_r_m_a_t.html#autotoc_md47", null ],
-          [ "RenderSet (0x28 = 40 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md48", null ],
-          [ "LOD Entry (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md49", null ]
+        [ "<tt>assets.bin</tt> (BigWorld PrototypeDatabase)", "md__f_o_r_m_a_t.html#autotoc_md43", [
+          [ "File Header (16 bytes)", "md__f_o_r_m_a_t.html#autotoc_md44", null ],
+          [ "Body Layout", "md__f_o_r_m_a_t.html#autotoc_md45", null ],
+          [ "Strings Section (base = 0x10)", "md__f_o_r_m_a_t.html#autotoc_md46", null ],
+          [ "R2P Map (base = 0x38)", "md__f_o_r_m_a_t.html#autotoc_md47", null ],
+          [ "Path Storage (base = 0x50)", "md__f_o_r_m_a_t.html#autotoc_md48", null ],
+          [ "Databases Array (base = 0x60 in body, relptr base = body_base)", "md__f_o_r_m_a_t.html#autotoc_md49", null ],
+          [ "VisualPrototype", "md__f_o_r_m_a_t.html#autotoc_md50", null ],
+          [ "RenderSet (0x28 = 40 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md51", null ],
+          [ "LOD Entry (16 bytes each)", "md__f_o_r_m_a_t.html#autotoc_md52", null ]
         ] ],
-        [ "Texture Files", "md__f_o_r_m_a_t.html#autotoc_md51", null ]
+        [ "Texture Files", "md__f_o_r_m_a_t.html#autotoc_md54", null ]
       ] ],
-      [ "Full Data Flow", "md__f_o_r_m_a_t.html#autotoc_md53", [
-        [ "Primitive Identity Chain", "md__f_o_r_m_a_t.html#autotoc_md54", null ]
+      [ "Full Data Flow", "md__f_o_r_m_a_t.html#autotoc_md56", [
+        [ "Primitive Identity Chain", "md__f_o_r_m_a_t.html#autotoc_md57", null ]
       ] ]
     ] ],
     [ "Data Structures", "annotated.html", [

@@ -13,5 +13,9 @@ var index =
       [ "Linking", "index.html#autotoc_md10", null ],
       [ "Lower-level API", "index.html#autotoc_md11", null ]
     ] ],
-    [ "Build", "index.html#autotoc_md13", null ]
+    [ "Build", "index.html#autotoc_md13", [
+      [ "Clone with submodules", "index.html#autotoc_md14", null ],
+      [ "Dependencies (Debian/Ubuntu)", "index.html#autotoc_md15", null ],
+      [ "Compile", "index.html#autotoc_md16", null ]
+    ] ]
 ];
