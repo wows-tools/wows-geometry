@@ -8,13 +8,9 @@ var searchData=
   ['transforms_5',['Hardpoint transforms',['../group__assets__hp.html',1,'']]],
   ['tt_20assets_20bin_20tt_20bigworld_20prototypedatabase_6',['&lt;tt&gt;assets.bin&lt;/tt&gt; (BigWorld PrototypeDatabase)',['../md__f_o_r_m_a_t.html#autotoc_md40',1,'']]],
   ['tt_20gameparams_20data_20tt_7',['&lt;tt&gt;GameParams.data&lt;/tt&gt;',['../md__f_o_r_m_a_t.html#autotoc_md37',1,'']]],
-  ['tt_20wows_20geometry_20cli_20tt_20—_20single_20file_20inspector_20exporter_8',['&lt;tt&gt;wows-geometry-cli&lt;/tt&gt; — single-file inspector / exporter',['../index.html#autotoc_md3',1,'']]],
-  ['tt_20wows_20gltf_20exporter_20tt_20—_20full_20ship_20glb_20assembler_9',['&lt;tt&gt;wows-gltf-exporter&lt;/tt&gt; — full ship GLB assembler',['../index.html#autotoc_md5',1,'']]],
-  ['tt_20wows_20list_20ships_20tt_20—_20enumerate_20available_20ships_10',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
-  ['tt_20wows_5fship_5fexport_5foptions_20tt_20fields_11',['&lt;tt&gt;wows_ship_export_options&lt;/tt&gt; fields',['../index.html#autotoc_md8',1,'']]],
-  ['type_12',['type',['../structwows__ship__entry.html#a75b160f574a0be26114bae2c7686a5e1',1,'wows_ship_entry']]],
-  ['type_20layouts_13',['Vertex type layouts',['../md__f_o_r_m_a_t.html#autotoc_md26',1,'']]],
-  ['type_20metadata_2016_20bytes_20each_14',['Index Type Metadata (16 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md22',1,'']]],
-  ['type_20metadata_2032_20bytes_20each_15',['Vertex Type Metadata (32 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md21',1,'']]],
-  ['types_16',['Data types',['../group__wows__stitch__types.html',1,'']]]
+  ['type_8',['type',['../structwows__ship__entry.html#a75b160f574a0be26114bae2c7686a5e1',1,'wows_ship_entry']]],
+  ['type_20layouts_9',['Vertex type layouts',['../md__f_o_r_m_a_t.html#autotoc_md26',1,'']]],
+  ['type_20metadata_2016_20bytes_20each_10',['Index Type Metadata (16 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md22',1,'']]],
+  ['type_20metadata_2032_20bytes_20each_11',['Vertex Type Metadata (32 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md21',1,'']]],
+  ['types_12',['Data types',['../group__wows__stitch__types.html',1,'']]]
 ];

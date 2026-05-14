@@ -7,7 +7,7 @@ var searchData=
   ['level_20export_4',['High-level export',['../group__wows__stitch__export.html',1,'']]],
   ['library_20api_5',['Library API',['../index.html#autotoc_md6',1,'']]],
   ['linking_6',['Linking',['../index.html#autotoc_md10',1,'']]],
-  ['list_20ships_20tt_20—_20enumerate_20available_20ships_7',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['list_20ships_20strong_20—_20enumerate_20available_20ships_7',['&lt;strong&gt;wows-list-ships&lt;/strong&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
   ['lod_8',['Ship Part Files and LOD',['../md__f_o_r_m_a_t.html#autotoc_md30',1,'']]],
   ['lod_20entry_2016_20bytes_20each_9',['LOD Entry (16 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md49',1,'']]],
   ['lod_20in_20assets_20bin_10',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md32',1,'']]],

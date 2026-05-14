@@ -11,10 +11,10 @@ var searchData=
   ['armor_20key_20encoding_8',['Armor Key Encoding',['../md__f_o_r_m_a_t.html#autotoc_md38',1,'']]],
   ['armor_20model_20data_9',['Armor Model Data',['../md__f_o_r_m_a_t.html#autotoc_md28',1,'']]],
   ['array_20base_200x60_20in_20body_20relptr_20base_20body_5fbase_10',['Databases Array (base = 0x60 in body, relptr base = body_base)',['../md__f_o_r_m_a_t.html#autotoc_md46',1,'']]],
-  ['assembler_11',['&lt;tt&gt;wows-gltf-exporter&lt;/tt&gt; — full ship GLB assembler',['../index.html#autotoc_md5',1,'']]],
+  ['assembler_11',['&lt;strong&gt;wows-gltf-exporter&lt;/strong&gt; — full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
   ['assets_20bin_12',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md32',1,'']]],
   ['assets_20bin_20tt_20bigworld_20prototypedatabase_13',['&lt;tt&gt;assets.bin&lt;/tt&gt; (BigWorld PrototypeDatabase)',['../md__f_o_r_m_a_t.html#autotoc_md40',1,'']]],
   ['assets_5fbin_5fdata_14',['assets_bin_data',['../structwows__ship__export__options.html#ae998d400bc8598f643e942032f7335a5',1,'wows_ship_export_options']]],
   ['attribute_20encoding_15',['Attribute encoding',['../md__f_o_r_m_a_t.html#autotoc_md25',1,'']]],
-  ['available_20ships_16',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]]
+  ['available_20ships_16',['&lt;strong&gt;wows-list-ships&lt;/strong&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]]
 ];

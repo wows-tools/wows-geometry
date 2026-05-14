@@ -2,7 +2,7 @@ var searchData=
 [
   ['call_20matching_0',['Draw Call Matching',['../md__f_o_r_m_a_t.html#autotoc_md20',1,'']]],
   ['chain_1',['Primitive Identity Chain',['../md__f_o_r_m_a_t.html#autotoc_md54',1,'']]],
-  ['cli_20tt_20—_20single_20file_20inspector_20exporter_2',['&lt;tt&gt;wows-geometry-cli&lt;/tt&gt; — single-file inspector / exporter',['../index.html#autotoc_md3',1,'']]],
+  ['cli_20strong_20—_20single_20file_20inspector_20exporter_2',['&lt;strong&gt;wows-geometry-cli&lt;/strong&gt; — single-file inspector / exporter',['../index.html#autotoc_md5',1,'']]],
   ['codes_3',['Error codes',['../group__errors.html',1,'']]],
   ['collision_20model_20data_4',['Collision Model Data',['../md__f_o_r_m_a_t.html#autotoc_md27',1,'']]],
   ['convention_5',['File Naming Convention',['../md__f_o_r_m_a_t.html#autotoc_md31',1,'']]],

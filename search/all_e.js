@@ -14,7 +14,7 @@ var searchData=
   ['indexes_11',['indexes',['../structwows__geometry.html#ad04e0ebeba2d20881b5ff2d962919698',1,'wows_geometry']]],
   ['indices_5fmapping_5fid_12',['indices_mapping_id',['../structwows__assets__bin__rs__t.html#a96a1d4fef132e09b48b2c84d972ed74e',1,'wows_assets_bin_rs_t']]],
   ['info_13',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
-  ['inspector_20exporter_14',['&lt;tt&gt;wows-geometry-cli&lt;/tt&gt; — single-file inspector / exporter',['../index.html#autotoc_md3',1,'']]],
+  ['inspector_20exporter_14',['&lt;strong&gt;wows-geometry-cli&lt;/strong&gt; — single-file inspector / exporter',['../index.html#autotoc_md5',1,'']]],
   ['introduction_15',['Introduction',['../md__f_o_r_m_a_t.html#autotoc_md15',1,'']]],
   ['is_5fdamage_16',['is_damage',['../structwows__assets__bin__rs__t.html#aae619b4df456a80a840db44641e6aeb2',1,'wows_assets_bin_rs_t']]],
   ['is_5fle_17',['is_le',['../struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html#a0265261ef2918f8212db79ef536d4663',1,'WOWS_GEOMETRY_CONTEXT']]],

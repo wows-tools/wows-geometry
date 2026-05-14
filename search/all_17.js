@@ -11,13 +11,17 @@ var searchData=
   ['section_5fname_8',['section_name',['../structwows__assets__bin__rs__t.html#aa107a62377d5ea316504b8956630c0c9',1,'wows_assets_bin_rs_t']]],
   ['set_20and_20lod_20info_9',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
   ['set_20lod_20in_20assets_20bin_10',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md32',1,'']]],
-  ['ship_20glb_20assembler_11',['&lt;tt&gt;wows-gltf-exporter&lt;/tt&gt; — full ship GLB assembler',['../index.html#autotoc_md5',1,'']]],
+  ['ship_20glb_20assembler_11',['&lt;strong&gt;wows-gltf-exporter&lt;/strong&gt; — full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
   ['ship_20part_20files_20and_20lod_12',['Ship Part Files and LOD',['../md__f_o_r_m_a_t.html#autotoc_md30',1,'']]],
-  ['ships_20tt_20—_20enumerate_20available_20ships_13',['&lt;tt&gt;wows-list-ships&lt;/tt&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['ships_20strong_20—_20enumerate_20available_20ships_13',['&lt;strong&gt;wows-list-ships&lt;/strong&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
   ['shot_20helpers_14',['One-shot helpers',['../group__assets__oneshot.html',1,'']]],
-  ['single_20file_20inspector_20exporter_15',['&lt;tt&gt;wows-geometry-cli&lt;/tt&gt; — single-file inspector / exporter',['../index.html#autotoc_md3',1,'']]],
+  ['single_20file_20inspector_20exporter_15',['&lt;strong&gt;wows-geometry-cli&lt;/strong&gt; — single-file inspector / exporter',['../index.html#autotoc_md5',1,'']]],
   ['start_16',['Quick start',['../index.html#autotoc_md7',1,'']]],
   ['storage_20base_200x50_17',['Path Storage (base = 0x50)',['../md__f_o_r_m_a_t.html#autotoc_md45',1,'']]],
   ['strings_20section_20base_200x10_18',['Strings Section (base = 0x10)',['../md__f_o_r_m_a_t.html#autotoc_md43',1,'']]],
-  ['system_19',['Coordinate System',['../md__f_o_r_m_a_t.html#autotoc_md34',1,'']]]
+  ['strong_20wows_20geometry_20cli_20strong_20—_20single_20file_20inspector_20exporter_19',['&lt;strong&gt;wows-geometry-cli&lt;/strong&gt; — single-file inspector / exporter',['../index.html#autotoc_md5',1,'']]],
+  ['strong_20wows_20gltf_20exporter_20strong_20—_20full_20ship_20glb_20assembler_20',['&lt;strong&gt;wows-gltf-exporter&lt;/strong&gt; — full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
+  ['strong_20wows_20list_20ships_20strong_20—_20enumerate_20available_20ships_21',['&lt;strong&gt;wows-list-ships&lt;/strong&gt; — enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['strong_20wows_5fship_5fexport_5foptions_20strong_20fields_22',['&lt;strong&gt;wows_ship_export_options&lt;/strong&gt; fields',['../index.html#autotoc_md8',1,'']]],
+  ['system_23',['Coordinate System',['../md__f_o_r_m_a_t.html#autotoc_md34',1,'']]]
 ];
