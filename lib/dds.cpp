@@ -202,26 +202,7 @@ std::vector<uint8_t> wows_stitch_decode_dds(const uint8_t *d, size_t sz, int *W,
     return rgba;
 }
 
-std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz) {
-    FILE *f = fopen(path.c_str(), "rb");
-    if (!f)
-        return {};
-    fseek(f, 0, SEEK_END);
-    long sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    if (sz <= 0) {
-        fclose(f);
-        return {};
-    }
-    std::vector<uint8_t> raw((size_t)sz);
-    bool ok = fread(raw.data(), 1, (size_t)sz, f) == (size_t)sz;
-    fclose(f);
-    if (!ok)
-        return {};
-    int w, h;
-    std::vector<uint8_t> rgba = wows_stitch_decode_dds(raw.data(), raw.size(), &w, &h);
-    if (rgba.empty())
-        return {};
+static std::vector<uint8_t> rgba_to_png(std::vector<uint8_t> &rgba, int w, int h, int max_sz) {
     if (max_sz > 0 && (w > max_sz || h > max_sz)) {
         float s = (float)max_sz / std::max(w, h);
         int nw = std::max(1, (int)(w * s)), nh = std::max(1, (int)(h * s));
@@ -260,4 +241,35 @@ std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz)
         },
         &png, w, h, channels, pix, stride);
     return png;
+}
+
+std::vector<uint8_t> wows_stitch_dds_to_png_from_memory(const uint8_t *data, size_t size, int max_sz) {
+    int w, h;
+    std::vector<uint8_t> rgba = wows_stitch_decode_dds(data, size, &w, &h);
+    if (rgba.empty())
+        return {};
+    return rgba_to_png(rgba, w, h, max_sz);
+}
+
+std::vector<uint8_t> wows_stitch_dds_to_png(const std::string &path, int max_sz) {
+    FILE *f = fopen(path.c_str(), "rb");
+    if (!f)
+        return {};
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0) {
+        fclose(f);
+        return {};
+    }
+    std::vector<uint8_t> raw((size_t)sz);
+    bool ok = fread(raw.data(), 1, (size_t)sz, f) == (size_t)sz;
+    fclose(f);
+    if (!ok)
+        return {};
+    int w, h;
+    std::vector<uint8_t> rgba = wows_stitch_decode_dds(raw.data(), raw.size(), &w, &h);
+    if (rgba.empty())
+        return {};
+    return rgba_to_png(rgba, w, h, max_sz);
 }
