@@ -59,7 +59,6 @@ flowchart TB
     geomFiles --> ibloc
     geomFiles --> encd
     vbloc <-->|"packed_texel_density"| ibloc
-    armorGP -->|"model_index in key"| armorGeo
 
     geomFiles <-->|"same path, .visual suffix"| visual
     visual --> rs
