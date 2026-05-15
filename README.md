@@ -70,6 +70,13 @@ export Kongo specific hull, no turrets, Level of Detail 2 (LOD is 0 to 4, with 0
 wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_lod2.glb
 ```
 
+To visualize and inspect the model, you can load it in [babylonjs sandbox](https://sandbox.babylonjs.com/), or locally, you can use `blender` or `f3d`:
+
+```
+# sudo apt install f3d # if not available
+f3d kongo_hullb_lod2.glb
+```
+
 ### wows-list-ships: enumerate available ships
 
 Lists all ships found in `GameParams.data`, with optional filtering by nation or type:
