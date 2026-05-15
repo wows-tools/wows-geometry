@@ -5,6 +5,8 @@ var annotated_dup =
     [ "wows_assets_bin_hp_list_t", "structwows__assets__bin__hp__list__t.html", "structwows__assets__bin__hp__list__t" ],
     [ "wows_assets_bin_hp_t", "structwows__assets__bin__hp__t.html", "structwows__assets__bin__hp__t" ],
     [ "wows_assets_bin_lod_t", "structwows__assets__bin__lod__t.html", "structwows__assets__bin__lod__t" ],
+    [ "wows_assets_bin_propeller_list_t", "structwows__assets__bin__propeller__list__t.html", "structwows__assets__bin__propeller__list__t" ],
+    [ "wows_assets_bin_propeller_t", "structwows__assets__bin__propeller__t.html", "structwows__assets__bin__propeller__t" ],
     [ "wows_assets_bin_rs_t", "structwows__assets__bin__rs__t.html", "structwows__assets__bin__rs__t" ],
     [ "wows_assets_bin_visual_info_t", "structwows__assets__bin__visual__info__t.html", "structwows__assets__bin__visual__info__t" ],
     [ "wows_geometry", "structwows__geometry.html", "structwows__geometry" ],

@@ -10,6 +10,7 @@ var wows_model_exporter_8h =
     [ "wows_stitch_file_exists", "group__wows__stitch__path.html#ga5221f4948e16883e66e1e3b327cf6b04", null ],
     [ "wows_stitch_find_game_file", "group__wows__stitch__path.html#gaf68261b770ae7a5d1760428cde3c50e0", null ],
     [ "wows_stitch_find_hull_geoms", "group__wows__stitch__path.html#gaccd60a221c4709f743e6a39989414b44", null ],
+    [ "wows_stitch_find_propeller_geoms", "group__wows__stitch__path.html#ga0fa9959061ae22e7f2f2fab6d75ae347", null ],
     [ "wows_stitch_float_to_double_mat", "group__wows__stitch__math.html#ga2e99230ceef3c0c3bbc881bc98cd168a", null ],
     [ "wows_stitch_geom_to_model", "group__wows__stitch__geom.html#ga972443166821b774efdb34fa2e78a5c1", null ],
     [ "wows_stitch_geom_to_model_from_memory", "group__wows__stitch__geom.html#ga974ffba3a8f563f554362e0d7e40deee", null ],

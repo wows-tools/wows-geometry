@@ -2,7 +2,7 @@ var searchData=
 [
   ['mapping_5fid_0',['mapping_id',['../structwows__geometry__info.html#aa12603a40d5d546e92a430513bbf73ae',1,'wows_geometry_info']]],
   ['mapping_5fids_1',['mapping_ids',['../structwows__assets__bin__lod__t.html#a08f427da360ef4b632282f4dad0363dd',1,'wows_assets_bin_lod_t']]],
-  ['mat_2',['mat',['../structwows__assets__bin__hp__t.html#a75bc4e91b435059a061afb2f056d591c',1,'wows_assets_bin_hp_t']]],
+  ['mat_2',['mat',['../structwows__assets__bin__hp__t.html#a75bc4e91b435059a061afb2f056d591c',1,'wows_assets_bin_hp_t::mat'],['../structwows__assets__bin__propeller__t.html#a75bc4e91b435059a061afb2f056d591c',1,'wows_assets_bin_propeller_t::mat']]],
   ['matrix_3',['matrix',['../structwows__glb__part.html#a0b50450eb4a85a0c04614812d59aef6c',1,'wows_glb_part']]],
   ['max_5ftex_5fsize_4',['max_tex_size',['../structwows__ship__export__options.html#a2ceede151c588993b1ad4cd7528aadcb',1,'wows_ship_export_options']]],
   ['merged_5fbuffer_5findex_5',['merged_buffer_index',['../structwows__geometry__info.html#ae34ded47da9dd0a57de2c97b39d63f90',1,'wows_geometry_info']]],

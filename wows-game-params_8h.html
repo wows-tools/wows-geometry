@@ -118,6 +118,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a5ba4f8949ea54aada769dd105ae4f507" id="r_a5ba4f8949ea54aada769dd105ae4f507"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-game-params_8h.html#a5ba4f8949ea54aada769dd105ae4f507">wows_list_ships</a> (const char *gameparams_path, std::vector&lt; <a class="el" href="structwows__ship__entry.html">wows_ship_entry</a> &gt; &amp;out)</td></tr>
 <tr class="memdesc:a5ba4f8949ea54aada769dd105ae4f507"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerate all ships in <code>GameParams.data</code>, grouped by nation and type.  <br /></td></tr>
 <tr class="separator:a5ba4f8949ea54aada769dd105ae4f507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5201cc1e4f6bfb39c1cb415d0a6ea6e6" id="r_a5201cc1e4f6bfb39c1cb415d0a6ea6e6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-game-params_8h.html#a5201cc1e4f6bfb39c1cb415d0a6ea6e6">wows_list_ships_from_memory</a> (const uint8_t *gameparams_data, size_t gameparams_size, std::vector&lt; <a class="el" href="structwows__ship__entry.html">wows_ship_entry</a> &gt; &amp;out)</td></tr>
+<tr class="memdesc:a5201cc1e4f6bfb39c1cb415d0a6ea6e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as <a class="el" href="wows-game-params_8h.html#a5ba4f8949ea54aada769dd105ae4f507" title="Enumerate all ships in GameParams.data, grouped by nation and type.">wows_list_ships</a> but reads pickled <code>GameParams.data</code> from a memory buffer.  <br /></td></tr>
+<tr class="separator:a5201cc1e4f6bfb39c1cb415d0a6ea6e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
@@ -162,6 +165,42 @@ Data Structures</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code> on success; errors are printed to stderr. </dd></dl>
+
+</div>
+</div>
+<a id="a5201cc1e4f6bfb39c1cb415d0a6ea6e6" name="a5201cc1e4f6bfb39c1cb415d0a6ea6e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5201cc1e4f6bfb39c1cb415d0a6ea6e6">&#9670;&#160;</a></span>wows_list_ships_from_memory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool wows_list_ships_from_memory </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>gameparams_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>gameparams_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structwows__ship__entry.html">wows_ship_entry</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Same as <a class="el" href="wows-game-params_8h.html#a5ba4f8949ea54aada769dd105ae4f507" title="Enumerate all ships in GameParams.data, grouped by nation and type.">wows_list_ships</a> but reads pickled <code>GameParams.data</code> from a memory buffer. </p>
 
 </div>
 </div>

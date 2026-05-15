@@ -125,6 +125,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gaccd60a221c4709f743e6a39989414b44" id="r_gaccd60a221c4709f743e6a39989414b44"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__path.html#gaccd60a221c4709f743e6a39989414b44">wows_stitch_find_hull_geoms</a> (const std::string &amp;hull_model, const std::string &amp;game_dir)</td></tr>
 <tr class="memdesc:gaccd60a221c4709f743e6a39989414b44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find all <code>.geometry</code> files belonging to a hull model.  <br /></td></tr>
 <tr class="separator:gaccd60a221c4709f743e6a39989414b44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0fa9959061ae22e7f2f2fab6d75ae347" id="r_ga0fa9959061ae22e7f2f2fab6d75ae347"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__path.html#ga0fa9959061ae22e7f2f2fab6d75ae347">wows_stitch_find_propeller_geoms</a> (const std::string &amp;hull_model, const std::string &amp;game_dir)</td></tr>
+<tr class="memdesc:ga0fa9959061ae22e7f2f2fab6d75ae347"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find propeller/screw <code>.geometry</code> files for a ship.  <br /></td></tr>
+<tr class="separator:ga0fa9959061ae22e7f2f2fab6d75ae347"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf68261b770ae7a5d1760428cde3c50e0" id="r_gaf68261b770ae7a5d1760428cde3c50e0"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__wows__stitch__path.html#gaf68261b770ae7a5d1760428cde3c50e0">wows_stitch_find_game_file</a> (const std::string &amp;game_dir, const std::string &amp;filename)</td></tr>
 <tr class="memdesc:gaf68261b770ae7a5d1760428cde3c50e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Search for a game asset file by name under <code>game_dir</code>.  <br /></td></tr>
 <tr class="separator:gaf68261b770ae7a5d1760428cde3c50e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -225,6 +228,45 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Sorted list of filesystem paths to the part <code>.geometry</code> files. </dd></dl>
+
+</div>
+</div>
+<a id="ga0fa9959061ae22e7f2f2fab6d75ae347" name="ga0fa9959061ae22e7f2f2fab6d75ae347"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0fa9959061ae22e7f2f2fab6d75ae347">&#9670;&#160;</a></span>wows_stitch_find_propeller_geoms()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; wows_stitch_find_propeller_geoms </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>hull_model</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>game_dir</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find propeller/screw <code>.geometry</code> files for a ship. </p>
+<p>Scans the same directory as the hull geometry for files whose names contain "prop" or "screw" (case-insensitive) and end in <code>.geometry</code>. These are the propeller meshes that the game animates at runtime.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hull_model</td><td>Path to the hull <code>.visual</code> or <code>.model</code> file. </td></tr>
+    <tr><td class="paramname">game_dir</td><td>Root resource directory. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Sorted list of filesystem paths to propeller <code>.geometry</code> files. </dd></dl>
 
 </div>
 </div>
