@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['0x10_0',['Strings Section (base = 0x10)',['../md__f_o_r_m_a_t.html#autotoc_md34',1,'']]],
-  ['0x28_2040_20bytes_20each_1',['RenderSet (0x28 = 40 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md39',1,'']]],
-  ['0x38_2',['R2P Map (base = 0x38)',['../md__f_o_r_m_a_t.html#autotoc_md35',1,'']]],
-  ['0x50_3',['Path Storage (base = 0x50)',['../md__f_o_r_m_a_t.html#autotoc_md36',1,'']]],
-  ['0x60_20in_20body_20relptr_20base_20body_5fbase_4',['Databases Array (base = 0x60 in body, relptr base = body_base)',['../md__f_o_r_m_a_t.html#autotoc_md37',1,'']]]
+  ['0x10_20tt_0',['Strings section (base = &lt;tt&gt;0x10&lt;/tt&gt;)',['../md__f_o_r_m_a_t.html#autotoc_md36',1,'']]],
+  ['0x28_2040_20bytes_20each_1',['RenderSet (0x28 = 40 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md41',1,'']]],
+  ['0x38_20tt_2',['R2P map (base = &lt;tt&gt;0x38&lt;/tt&gt;)',['../md__f_o_r_m_a_t.html#autotoc_md37',1,'']]],
+  ['0x50_20tt_3',['Path storage (base = &lt;tt&gt;0x50&lt;/tt&gt;)',['../md__f_o_r_m_a_t.html#autotoc_md38',1,'']]],
+  ['0x60_20tt_20in_20body_20relptr_20base_20body_20base_4',['Databases array (base = &lt;tt&gt;0x60&lt;/tt&gt; in body; relptr base = body base)',['../md__f_o_r_m_a_t.html#autotoc_md39',1,'']]]
 ];

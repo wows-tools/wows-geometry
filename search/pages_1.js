@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['format_0',['WoWs .geometry Format',['../md__f_o_r_m_a_t.html',1,'']]]
+  ['format_0',['WoWs &lt;tt&gt;.geometry&lt;/tt&gt; format',['../md__f_o_r_m_a_t.html',1,'']]]
 ];
