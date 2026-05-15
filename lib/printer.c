@@ -169,8 +169,8 @@ int wows_geometry_print(wows_geometry *geometry, bool verbose) {
         return WOWS_ERROR_UNKNOWN;
     }
     wows_geometry_header_print(geometry->header);
-    wows_geometry_info_print(geometry->section_1, geometry->header->n_vertex_bloc, "Vertex Bloc Mapping");
-    wows_geometry_info_print(geometry->section_2, geometry->header->n_index_bloc, "Index Bloc Mapping");
+    wows_geometry_info_print(geometry->vertex_bloc_map, geometry->header->n_vertex_bloc, "Vertex Bloc Mapping");
+    wows_geometry_info_print(geometry->index_bloc_map, geometry->header->n_index_bloc, "Index Bloc Mapping");
     wows_geometry_vertex_section_metadata_print(geometry->vertex_meta_sections, geometry->header->n_vertex_type,
                                                 "Vertex Section Metadata");
     wows_geometry_index_section_metadata_print(geometry->index_meta_sections, geometry->header->n_index_type,

@@ -239,20 +239,20 @@ static void unpack_uv(uint32_t packed, float *u, float *v) {
 }
 
 static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vtype_out) {
-    const wows_geometry_info *s2t = &g->section_2[ibloc];
-    uint16_t ptd = s2t->packed_texel_density;
-    uint32_t icnt = s2t->items_count;
-    uint32_t ioff = s2t->items_offset;
+    const wows_geometry_info *idx_tgt = &g->index_bloc_map[ibloc];
+    uint16_t ptd = idx_tgt->packed_texel_density;
+    uint32_t icnt = idx_tgt->items_count;
+    uint32_t ioff = idx_tgt->items_offset;
     uint32_t nv = g->header->n_vertex_bloc;
     uint32_t ni = g->header->n_index_bloc;
     *vtype_out = 0;
 
     uint32_t rank = 0;
     for (uint32_t i = 0; i < ni; i++) {
-        const wows_geometry_info *s2 = &g->section_2[i];
-        if (s2->packed_texel_density != ptd)
+        const wows_geometry_info *idx_cand = &g->index_bloc_map[i];
+        if (idx_cand->packed_texel_density != ptd)
             continue;
-        uint32_t oc = s2->items_count, oo = s2->items_offset;
+        uint32_t oc = idx_cand->items_count, oo = idx_cand->items_offset;
         if (oc > icnt || (oc == icnt && oo < ioff))
             rank++;
     }
@@ -263,10 +263,10 @@ static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vty
         uint32_t cur_cnt = 0, cur_off = UINT32_MAX;
         uint16_t cur_vt = 0;
         for (uint32_t j = 0; j < nv; j++) {
-            const wows_geometry_info *s1 = &g->section_1[j];
-            if (s1->packed_texel_density != ptd)
+            const wows_geometry_info *vtx_cand = &g->vertex_bloc_map[j];
+            if (vtx_cand->packed_texel_density != ptd)
                 continue;
-            uint32_t c = s1->items_count, o = s1->items_offset;
+            uint32_t c = vtx_cand->items_count, o = vtx_cand->items_offset;
             if (have_prev) {
                 if (c > prev_cnt)
                     continue;
@@ -276,7 +276,7 @@ static uint32_t find_vbase(const wows_geometry *g, uint32_t ibloc, uint16_t *vty
             if (c > cur_cnt || (c == cur_cnt && o < cur_off)) {
                 cur_cnt = c;
                 cur_off = o;
-                cur_vt = s1->merged_buffer_index;
+                cur_vt = vtx_cand->merged_buffer_index;
             }
         }
         if (cur_off == UINT32_MAX)
@@ -368,9 +368,9 @@ static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tiny
     std::vector<IInfo> iinfo(n_ibloc);
     for (uint32_t i = 0; i < n_ibloc; ++i) {
         iinfo[i].count = 0;
-        uint16_t ibuf = geom->section_2[i].merged_buffer_index;
-        uint32_t ioff = geom->section_2[i].items_offset;
-        uint32_t icnt = geom->section_2[i].items_count;
+        uint16_t ibuf = geom->index_bloc_map[i].merged_buffer_index;
+        uint32_t ioff = geom->index_bloc_map[i].items_offset;
+        uint32_t icnt = geom->index_bloc_map[i].items_count;
         if (ibuf >= n_it || !geom->indexes || !geom->indexes[ibuf] || !geom->indexes[ibuf]->raw_data ||
             ioff + icnt > geom->indexes[ibuf]->index_count)
             continue;

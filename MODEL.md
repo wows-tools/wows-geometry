@@ -30,8 +30,8 @@ flowchart TB
 
     subgraph GEOM[".geometry per ship part"]
         geomFiles["ShipName.geometry, _Bow, _MidFront, …"]
-        s1["section_1 vertex bloc map"]
-        s2["section_2 index bloc map"]
+        vbloc["vertex_bloc_map (vertex draw-call table)"]
+        ibloc["index_bloc_map (index draw-call table)"]
         encd["ENCD merged vertex / index buffers"]
     end
 
@@ -55,27 +55,27 @@ flowchart TB
     ship --> upgrade
     upgrade --> hullModel
     hullModel -->|"swap .model → .geometry"| geomFiles
-    geomFiles --> s1
-    geomFiles --> s2
+    geomFiles --> vbloc
+    geomFiles --> ibloc
     geomFiles --> encd
-    s1 <-->|"packed_texel_density"| s2
-    armorGP -->|"model_index in key"| armorGeom
+    vbloc <-->|"packed_texel_density"| ibloc
+    armorGP -->|"model_index in key"| armorGeo
 
     geomFiles <-->|"same path, .visual suffix"| visual
     visual --> rs
     visual --> lods
     visual --> hpNodes
 
-    rs -->|"indices_mapping_id"| s2
-    rs -->|"vertices_mapping_id"| s1
+    rs -->|"indices_mapping_id"| ibloc
+    rs -->|"vertices_mapping_id"| vbloc
     rs --> mfm
     mfm --> dds
-    lods -->|"active mapping_id set"| s2
+    lods -->|"active mapping_id set"| ibloc
 
     mountsGP -->|"mount .geometry"| mountOut
     hpNodes --> mountOut
     encd --> hullOut
-    s2 --> hullOut
+    ibloc --> hullOut
     rs --> hullOut
     lods --> hullOut
     dds --> hullOut
@@ -86,8 +86,8 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph geom[".geometry"]
-        s2["section_2[i]<br/>mapping_id"]
-        s1["section_1[j]<br/>mapping_id"]
+        ibloc["index_bloc_map[i]<br/>mapping_id"]
+        vbloc["vertex_bloc_map[j]<br/>mapping_id"]
     end
 
     subgraph abin["assets.bin RenderSet"]
@@ -97,9 +97,9 @@ flowchart LR
         names["name_id / node names"]
     end
 
-    s2 <-->|"same uint32"| idx
-    s1 <-->|"on-disk id"| vtx
-    s1 <-.->|"decode: packed_texel_density"| s2
+    ibloc <-->|"same uint32"| idx
+    vbloc <-->|"on-disk id"| vtx
+    vbloc <-.->|"decode: packed_texel_density"| ibloc
     idx --> lod["LOD filter"]
     idx --> tex["albedo / materials"]
     idx --> dmg["damage exclusion"]
@@ -240,12 +240,12 @@ Body starts at offset `0x10`.
 
 ### Body layout
 
-| Base offset | Size   | Section            |
-|-------------|--------|--------------------|
-| `0x10`      | `0x28` | Strings section    |
+| Base offset | Size   | Section                  |
+|-------------|--------|--------------------------|
+| `0x10`      | `0x28` | Strings section          |
 | `0x38`      | `0x18` | R2P (record-to-path) map |
-| `0x50`      | `0x10` | Path storage       |
-| `0x60`      | —      | Databases array    |
+| `0x50`      | `0x10` | Path storage             |
+| `0x60`      | —      | Databases array          |
 
 All sections use relative pointers (`int64_t`, signed, from the field's own address).
 
@@ -253,15 +253,15 @@ All sections use relative pointers (`int64_t`, signed, from the field's own addr
 
 Open-addressing hashmap mapping `uint32_t` name IDs to null-terminated UTF-8 strings.
 
-| Offset in section | Field              | Description                               |
-|-------------------|--------------------|-------------------------------------------|
-| 0                 | `capacity (u32)`   | Number of buckets                         |
-| 4                 | pad                |                                           |
-| 8                 | `buckets_relptr`   | → array of `[u32 key, u32 sentinel]` pairs |
+| Offset in section | Field              | Description                                    |
+|-------------------|--------------------|------------------------------------------------|
+| 0                 | `capacity (u32)`   | Number of buckets                              |
+| 4                 | pad                |                                                |
+| 8                 | `buckets_relptr`   | → array of `[u32 key, u32 sentinel]` pairs     |
 | 16                | `values_relptr`    | → array of `u32` byte offsets into string data |
-| 24                | `string_data_size` | Size of string data blob in bytes         |
-| 28                | pad                |                                           |
-| 32                | `string_data_relptr` | → null-terminated strings                |
+| 24                | `string_data_size` | Size of string data blob in bytes              |
+| 28                | pad                |                                                |
+| 32                | `string_data_relptr` | → null-terminated strings                    |
 
 Lookup: probe `(key % capacity + i) % capacity` until `key` matches or bucket is empty
 (both fields zero).
@@ -275,7 +275,7 @@ record where the prototype data lives.
 |-------------------|-------------------|----------------------------------------------------|
 | 0                 | `capacity (u32)`  | Number of buckets                                  |
 | 4                 | pad               |                                                    |
-| 8                 | `buckets_relptr`  | → array of `[u64 key, u64 sentinel]` pairs (16 B each) |
+| 8                 | `buckets_relptr`  | → array of `[u64 key, u64 ]` pairs (16 B each)     |
 | 16                | `values_relptr`   | → array of `u32` packed values                     |
 
 Packed value decoding:
@@ -332,7 +332,7 @@ Record format (item size `0x70 = 112` bytes):
 | 58     | 2    | `render_sets_count`      | `u16`                                                    |
 | 60     | 1    | `lods_count`             | `u8`                                                     |
 | 61     | 3    | pad                      |                                                          |
-| 64     | 32   | BoundingBox              | min + max as 2 × `vec3f32` + 2 × 4 B pad                |
+| 64     | 32   | BoundingBox              | min + max as 2 × `vec3f32` + 2 × 4 B pad                 |
 | 96     | 8    | `render_sets_rp`         | `i64` relptr → RenderSet array                           |
 | 104    | 8    | `lods_rp`                | `i64` relptr → LOD entry array                           |
 
@@ -371,8 +371,8 @@ Textures live in the same directory as the `.mfm` file they are referenced from.
 The stem is derived from the MFM filename (minus the `.mfm` extension and optional
 MFM-only suffixes: `_skinned`, `_alpha`, `_ep`).
 
-| Suffix | Channel                  | glTF slot                      |
-|--------|--------------------------|--------------------------------|
+| Suffix | Channel                   | glTF slot                      |
+|--------|---------------------------|--------------------------------|
 | `_a`   | Albedo / base color       | `baseColorTexture`             |
 | `_n`   | Normal map                | `normalTexture`                |
 | `_mg`  | Metallic/gloss            | `metallicRoughnessTexture`     |

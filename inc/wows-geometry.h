@@ -240,8 +240,8 @@ typedef struct {
  */
 typedef struct {
     wows_geometry_header                   *header;               /**< File header. */
-    wows_geometry_info                     *section_1;            /**< Vertex draw-call mapping table. */
-    wows_geometry_info                     *section_2;            /**< Index draw-call mapping table. */
+    wows_geometry_info                     *vertex_bloc_map; /**< Vertex draw-call mapping table (per submesh). */
+    wows_geometry_info                     *index_bloc_map;  /**< Index draw-call mapping table (per submesh). */
     wows_geometry_vertex_section_metadata  *vertex_meta_sections; /**< Array of `header->n_vertex_type` vertex metadata entries. */
     wows_geometry_index_section_metadata   *index_meta_sections;  /**< Array of `header->n_index_type` index metadata entries. */
     wows_geometry_vertex_section          **vertexes;             /**< Array of decoded vertex buffers. */

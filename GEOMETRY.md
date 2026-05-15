@@ -1,4 +1,4 @@
-# WoWs `.geometry` file format
+# WoWs .geometry file format
 
 Binary layout of the BigWorld `.geometry` container: merged vertex/index buffers,
 draw-call mapping tables, and **ENCD** payloads compressed with
@@ -96,7 +96,7 @@ key that pairs them into a draw call. Within a `packed_texel_density` group:
 3. The k-th index entry maps to the k-th vertex entry.
 
 Index values stored in each index bloc are zero-based relative to that draw call's
-vertex base (`section_1[j].items_offset`). When exporting, absolute vertex indices
+vertex base (`vertex_bloc_map[j].items_offset`). When exporting, absolute vertex indices
 are computed as `raw_index + vertex_base`.
 
 ### Vertex type metadata (32 bytes each)

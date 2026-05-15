@@ -39,46 +39,46 @@ struct AABB {
 /* ── find the vertex mapping entry for a given index bloc ───────────
  *
  * Raw index values are 0-based relative to the draw call's vertex base
- * (section_1[j].items_offset).  Within a packed_texel_density group there
- * may be multiple section_1 / section_2 entries matched by rank: the k-th
- * section_2 entry ordered by items_count DESC (items_offset ASC as
- * tiebreaker) maps to the k-th section_1 entry with the same ordering.
+ * (vertex_bloc_map[j].items_offset). Within a packed_texel_density group there
+ * may be multiple vertex_bloc_map / index_bloc_map entries matched by rank: the k-th
+ * index_bloc_map entry ordered by items_count DESC (items_offset ASC as
+ * tiebreaker) maps to the k-th vertex_bloc_map entry with the same ordering.
  * Ranking by count ensures the largest index bloc maps to the largest vertex
  * bloc even when a smaller vertex bloc sits at a lower buffer offset.
  */
 static uint32_t find_vertex_base(const wows_geometry *geometry, uint32_t ibloc_idx, uint16_t *out_vtype) {
-    const wows_geometry_info *s2t = &geometry->section_2[ibloc_idx];
-    uint16_t ptd = s2t->packed_texel_density;
-    uint32_t icnt = s2t->items_count;
-    uint32_t ioff = s2t->items_offset;
+    const wows_geometry_info *idx_tgt = &geometry->index_bloc_map[ibloc_idx];
+    uint16_t ptd = idx_tgt->packed_texel_density;
+    uint32_t icnt = idx_tgt->items_count;
+    uint32_t ioff = idx_tgt->items_offset;
     uint32_t nv = geometry->header->n_vertex_bloc;
     uint32_t ni = geometry->header->n_index_bloc;
 
     *out_vtype = 0;
 
-    /* rank: how many same-PTD s2 entries have higher count (or same count
+    /* rank: how many same-PTD index blocs have higher count (or same count
      * and lower offset) than this one */
     uint32_t rank = 0;
     for (uint32_t i = 0; i < ni; i++) {
-        const wows_geometry_info *s2 = &geometry->section_2[i];
-        if (s2->packed_texel_density != ptd)
+        const wows_geometry_info *idx_cand = &geometry->index_bloc_map[i];
+        if (idx_cand->packed_texel_density != ptd)
             continue;
-        uint32_t oc = s2->items_count, oo = s2->items_offset;
+        uint32_t oc = idx_cand->items_count, oo = idx_cand->items_offset;
         if (oc > icnt || (oc == icnt && oo < ioff))
             rank++;
     }
 
-    /* walk through the rank-th s1 entry sorted by count DESC, offset ASC */
+    /* walk through the rank-th vertex_bloc_map entry sorted by count DESC, offset ASC */
     uint32_t prev_cnt = UINT32_MAX, prev_off = UINT32_MAX;
     bool have_prev = false;
     for (uint32_t pass = 0; pass <= rank; pass++) {
         uint32_t cur_cnt = 0, cur_off = UINT32_MAX;
         uint16_t cur_vt = 0;
         for (uint32_t j = 0; j < nv; j++) {
-            const wows_geometry_info *s1 = &geometry->section_1[j];
-            if (s1->packed_texel_density != ptd)
+            const wows_geometry_info *vtx_cand = &geometry->vertex_bloc_map[j];
+            if (vtx_cand->packed_texel_density != ptd)
                 continue;
-            uint32_t c = s1->items_count, o = s1->items_offset;
+            uint32_t c = vtx_cand->items_count, o = vtx_cand->items_offset;
             if (have_prev) {
                 if (c > prev_cnt)
                     continue;
@@ -88,7 +88,7 @@ static uint32_t find_vertex_base(const wows_geometry *geometry, uint32_t ibloc_i
             if (c > cur_cnt || (c == cur_cnt && o < cur_off)) {
                 cur_cnt = c;
                 cur_off = o;
-                cur_vt = s1->merged_buffer_index;
+                cur_vt = vtx_cand->merged_buffer_index;
             }
         }
         if (cur_off == UINT32_MAX)
@@ -206,9 +206,9 @@ extern "C" int wows_geometry_to_glb_sections(wows_geometry *geometry, const char
 
     for (uint32_t i = 0; i < n_ibloc; i++) {
         iinfo[i].count = 0;
-        uint16_t ibuf = geometry->section_2[i].merged_buffer_index;
-        uint32_t ioff = geometry->section_2[i].items_offset;
-        uint32_t icnt = geometry->section_2[i].items_count;
+        uint16_t ibuf = geometry->index_bloc_map[i].merged_buffer_index;
+        uint32_t ioff = geometry->index_bloc_map[i].items_offset;
+        uint32_t icnt = geometry->index_bloc_map[i].items_count;
 
         if (ibuf >= n_itypes || !geometry->indexes || !geometry->indexes[ibuf] || !geometry->indexes[ibuf]->raw_data ||
             ioff + icnt > geometry->indexes[ibuf]->index_count)
