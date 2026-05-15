@@ -1,13 +1,12 @@
-# WoWs `.geometry` format
+# WoWs ship 3D model representation
 
-Reference for the BigWorld `.geometry` container used by World of Warships, plus
-related game files (`GameParams.data`, `assets.bin`, textures). Vertex and index
-payloads are stored in **ENCD** blocks compressed with [meshoptimizer](https://github.com/zeux/meshoptimizer).
+How World of Warships assembles a ship mesh for export: param lookup, part files,
+scene graph (`assets.bin`), materials, and textures. Raw `.geometry` byte layout is
+documented in [GEOMETRY.md](GEOMETRY.md).
 
 ## Overview — linking game files to a ship GLB
 
-How `GameParams.data`, `.geometry` / `.visual`, `assets.bin`, and textures fit
-together. Cross-references below match `wows-gltf-exporter` (`lib/stitch.cpp`,
+Cross-references below match `wows-gltf-exporter` (`lib/stitch.cpp`,
 `lib/ship_export.cpp`). Armor blocs are documented in the format but not yet read
 by the exporter.
 
@@ -101,223 +100,20 @@ flowchart LR
     names --> dmg
 ```
 
+See [draw-call matching](GEOMETRY.md#draw-call-matching) for how vertex and index
+blocs are paired inside a `.geometry` file.
+
 ## Contents
 
 - [Overview — linking game files to a ship GLB](#overview--linking-game-files-to-a-ship-glb)
   - [Draw-call mapping IDs](#draw-call-mapping-ids)
-- [File layout](#file-layout)
-- [Binary structures](#binary-structures)
-- [Ship parts, LOD, and coordinates](#ship-part-files-and-lod)
-- [Related files](#related-files)
+- [Ship parts and LOD](#ship-parts-and-lod)
+- [Coordinate system](#coordinate-system)
+- [GameParams.data](#gameparamsdata)
+- [assets.bin](#assetsbin-bigworld-prototypedatabase)
+- [Texture files](#texture-files)
 
-## File layout
-
-```
-[Header 72 bytes]
-[Vertex Bloc Mapping table: n_vertex_bloc × 16 bytes]    ← at off_vertices_mapping (always 72)
-[Index Bloc Mapping table:  n_index_bloc  × 16 bytes]    ← at off_indices_mapping
-[Vertex Type Metadata:      n_vertex_type × 32 bytes]    ← at off_merged_vertices
-[Index Type Metadata:       n_index_type  × 16 bytes]    ← at off_merged_indices
-[ENCD vertex data blocs]    ← pointed to by Vertex Type Metadata
-[ENCD index data blocs]     ← pointed to by Index Type Metadata
-[Collision model data]      ← at off_collision_models (if n_collision_bloc > 0)
-[Armor model data]          ← at off_armor_models (if n_armor_bloc > 0)
-```
-
-## Binary structures
-
-### Header (72 bytes)
-
-```mermaid
-%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
-packet-beta
-0-31: "n_vertex_type"
-32-63: "n_index_type"
-64-95: "n_vertex_bloc"
-96-127: "n_index_bloc"
-128-159: "n_collision_bloc"
-160-191: "n_armor_bloc"
-192-255: "off_vertices_mapping"
-256-319: "off_indices_mapping"
-320-383: "off_merged_vertices"
-384-447: "off_merged_indices"
-448-511: "off_collision_models"
-512-575: "off_armor_models"
-```
-
-| Field                  | Size    | Description                                              |
-|------------------------|---------|----------------------------------------------------------|
-| `n_vertex_type`        | 32 bits | Number of merged vertex buffers                          |
-| `n_index_type`         | 32 bits | Number of merged index buffers                           |
-| `n_vertex_bloc`        | 32 bits | Number of vertex bloc mapping entries (submesh count)    |
-| `n_index_bloc`         | 32 bits | Number of index bloc mapping entries (submesh count)     |
-| `n_collision_bloc`     | 32 bits | Number of collision blocs                                |
-| `n_armor_bloc`         | 32 bits | Number of armor blocs                                    |
-| `off_vertices_mapping` | 64 bits | Absolute offset to vertex bloc mapping table (always 72) |
-| `off_indices_mapping`  | 64 bits | Absolute offset to index bloc mapping table              |
-| `off_merged_vertices`  | 64 bits | Absolute offset to vertex type metadata array            |
-| `off_merged_indices`   | 64 bits | Absolute offset to index type metadata array             |
-| `off_collision_models` | 64 bits | Absolute offset to collision model data (0 if none)      |
-| `off_armor_models`     | 64 bits | Absolute offset to armor model data (0 if none)          |
-
-### Vertex / index bloc mapping (16 bytes each)
-
-Array of `n_vertex_bloc` (or `n_index_bloc`) entries describing individual submesh
-ranges within the merged vertex/index buffers.
-
-```mermaid
-%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
-packet-beta
-0-31: "mapping_id (uint32_t)"
-32-47: "merged_buffer_index (uint16_t)"
-48-63: "packed_texel_density (uint16_t)"
-64-95: "items_offset (uint32_t)"
-96-127: "items_count (uint32_t)"
-```
-
-| Field                  | Size      | Description                                              |
-|------------------------|-----------|----------------------------------------------------------|
-| `mapping_id`           | 32 bits   | Submesh identifier hash (matches `RenderSet.vertices_mapping_id` / `indices_mapping_id` in assets.bin) |
-| `merged_buffer_index`  | 16 bits   | Index into vertex/index type metadata array              |
-| `packed_texel_density` | 16 bits   | Draw-call pairing key: groups vertex and index bloc entries that belong to the same draw call |
-| `items_offset`         | 32 bits   | Starting element index within the merged buffer          |
-| `items_count`          | 32 bits   | Number of elements (vertices or indices) for this submesh |
-
-### Draw-call matching
-
-The `packed_texel_density` field in both vertex and index bloc mapping entries is the
-key that pairs them into a draw call. Within a `packed_texel_density` group:
-
-1. Sort all **vertex** bloc entries by `items_count DESC`, `items_offset ASC`.
-2. Sort all **index** bloc entries by `items_count DESC`, `items_offset ASC`.
-3. The k-th index entry maps to the k-th vertex entry.
-
-Index values stored in each index bloc are zero-based relative to that draw call's
-vertex base (`section_1[j].items_offset`).  When exporting, absolute vertex indices
-are computed as `raw_index + vertex_base`.
-
-### Vertex type metadata (32 bytes each)
-
-Array of `n_vertex_type` entries. Each describes a merged vertex buffer.
-All pointer fields are relative to the struct base address.
-
-```mermaid
-%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
-packet-beta
-0-63: "off_ver_bloc_start (int64_t)"
-64-127: "n_size_type_str (uint64_t)"
-128-191: "off_ver_bloc_end (int64_t)"
-192-223: "s_ver_bloc_size (uint32_t)"
-224-239: "s_vertex_size (uint16_t)"
-240-247: "b_flag_1 (uint8_t)"
-248-255: "b_flag_2 (uint8_t)"
-```
-
-| Field                | Size     | Description                                                     |
-|----------------------|----------|-----------------------------------------------------------------|
-| `off_ver_bloc_start` | 64 bits  | Relative pointer from struct base to ENCD vertex bloc start     |
-| `n_size_type_str`    | 64 bits  | Byte length of the vertex type name (e.g. `set3/xyznuvtbpc`)    |
-| `off_ver_bloc_end`   | 64 bits  | Relative pointer from struct base to ENCD vertex bloc end       |
-| `s_ver_bloc_size`    | 32 bits  | Total ENCD bloc size in bytes (includes 8-byte ENCD header)     |
-| `s_vertex_size`      | 16 bits  | Vertex stride in bytes (decoded size per vertex)                |
-| `b_flag_1`           | 8 bits   | Reserved flag byte                                              |
-| `b_flag_2`           | 8 bits   | Reserved flag byte                                              |
-
-The vertex type name is a null-terminated string at `struct_base + off_ver_bloc_end + 8`
-(all relative pointers are resolved from each metadata entry’s base address).
-
-### Index type metadata (16 bytes each)
-
-Array of `n_index_type` entries. Each describes a merged index buffer.
-
-```mermaid
-%%{init: { 'theme': 'forest', 'config': {'bitsPerRow': 64, 'bitWidth': 15}}}%%
-packet-beta
-0-63: "data_relptr (int64_t)"
-64-95: "s_idx_bloc_size (uint32_t)"
-96-111: "_reserved (uint16_t)"
-112-127: "s_index_size (uint16_t)"
-```
-
-| Field              | Size    | Description                                                       |
-|--------------------|---------|-------------------------------------------------------------------|
-| `data_relptr`      | 64 bits | Relative pointer from struct base to ENCD index bloc              |
-| `s_idx_bloc_size`  | 32 bits | Total ENCD bloc size in bytes (includes 8-byte ENCD header)       |
-| `_reserved`        | 16 bits | Reserved / padding                                                |
-| `s_index_size`     | 16 bits | Bytes per index: 2 (uint16) or 4 (uint32)                         |
-
-### ENCD block
-
-Vertex and index payloads share the same ENCD container, compressed with meshoptimizer.
-
-```
-[4 bytes] magic = 0x44434E45 ("ENCD" as little-endian uint32)
-[4 bytes] element_count (uint32 LE) — number of vertices or indices
-[N bytes] meshoptimizer-encoded payload
-```
-
-Decoding:
-- Vertices: `meshopt_decodeVertexBuffer(dst, element_count, stride, payload, payload_size)`
-- Indices: `meshopt_decodeIndexBuffer(dst_u32, element_count, 4, payload, payload_size)`
-  then downcast each u32 to u16 if `s_index_size == 2`.
-
-If the magic does not match `ENCD`, the bloc is treated as raw (uncompressed) data.
-
-### Vertex layout (after ENCD decode)
-
-Vertices are tightly packed at `s_vertex_size` bytes each. Fields present depend on
-the vertex type name. All multi-byte values are little-endian.
-
-#### Attribute encoding
-
-| Attribute   | Size   | Encoding                                                              |
-|-------------|--------|-----------------------------------------------------------------------|
-| xyz         | 12 B   | 3 × IEEE 754 float32                                                  |
-| n / t / b   | 4 B    | 4 signed bytes, each component = `(int8_t)byte / 127.0f`             |
-| uv          | 4 B    | 2 × IEEE 754 float16; stored as `actual_uv - 0.5`, load with `+0.5`  |
-| iiiww       | 8 B    | 3 bone indices (raw uint8 ×3) + 2 bone weights (raw), 4 B each field |
-| r           | 4 B    | Raw uint32 (extra data, use varies)                                   |
-| pc          | 0 B    | Per-vertex color flag only — no bytes in buffer                       |
-
-#### Vertex type layouts
-
-| Vertex type             | Stride | Layout (bytes)                                        |
-|-------------------------|--------|-------------------------------------------------------|
-| `set3/xyznuvpc`         | 20     | xyz(12) + n(4) + uv(4)                                |
-| `set3/xyznuvrpc`        | 24     | xyz(12) + n(4) + uv(4) + r(4)                         |
-| `set3/xyznuvtbpc`       | 28     | xyz(12) + n(4) + uv(4) + t(4) + b(4)                  |
-| `set3/xyznuviiiwwpc`    | 28     | xyz(12) + n(4) + uv(4) + iiiww(8)                     |
-| `set3/xyznuv2tbpc`      | 32     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4)        |
-| `set3/xyznuvtbipc`      | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + i(4)           |
-| `set3/xyznuvtboi`       | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + oi(4)          |
-| `set3/xyznuviiiwwr`     | 32     | xyz(12) + n(4) + uv(4) + iiiww(8) + r(4)              |
-| `set3/xyznuv2tbipc`     | 36     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4) + i(4) |
-| `set3/xyznuviiiwwtbpc`  | 36     | xyz(12) + n(4) + uv(4) + iiiww(8) + t(4) + b(4)       |
-| `set3/xyznuv2iiiwwtbpc` | 40     | xyz(12) + n(4) + uv0(4) + uv1(4) + iiiww(8) + t(4) + b(4) |
-
-### Collision model data
-
-Present when `n_collision_bloc > 0` at `off_collision_models`.
-
-The binary format is **not yet fully reversed**. What is known:
-
-- The number of blocs is `n_collision_bloc`.
-- The section holds simplified hull geometry used for physics collision detection.
-
-### Armor model data
-
-Present when `n_armor_bloc > 0` at `off_armor_models`.
-
-The binary format is **not yet fully reversed**. What is known:
-
-- The number of blocs is `n_armor_bloc`.
-- Each bloc represents a named armor zone (plate) with an associated geometry.
-- Thickness values and material IDs come from `GameParams.data` (see below),
-  not from the `.geometry` file itself.
-
----
-
-## Ship part files and LOD
+## Ship parts and LOD
 
 ### File naming
 
@@ -335,7 +131,7 @@ content/gameplay/japan/ship/battleship/JSB007_Kongo_1942/
 
 The bare base file (same name as the directory) is a low-detail stand-in used at
 extreme camera distances. The suffixed part files (`_Bow`, `_MidFront`, etc.) hold
-the actual high-detail mesh.  All parts share the same ship coordinate space and can
+the actual high-detail mesh. All parts share the same ship coordinate space and can
 be merged directly without any transform.
 
 A corresponding `.visual` file exists for each `.geometry` file at the same path.
@@ -357,12 +153,12 @@ to that detail level:
 | 3         | Lowest detail / impostor                        |
 
 A render set's `indices_mapping_id` matches the `mapping_id` field in the index
-bloc mapping table of the `.geometry` file.  This is how LOD filtering maps directly
+bloc mapping table of the `.geometry` file. This is how LOD filtering maps directly
 onto primitive selection during export.
 
 ### Damage and cross-section geometry
 
-Ships split into sections on sinking.  Each break point has associated geometry:
+Ships split into sections on sinking. Each break point has associated geometry:
 
 | Node name pattern          | Role                                                        |
 |----------------------------|-------------------------------------------------------------|
@@ -373,14 +169,14 @@ Ships split into sections on sinking.  Each break point has associated geometry:
 | `Xxx_hide`                 | Hidden torn-metal mesh revealed on break (damage)           |
 
 Node names are stored in the `VisualPrototype` and resolved via the strings section
-of `assets.bin`.  Render sets associated with `_hide` or `_crack_*` nodes (except
+of `assets.bin`. Render sets associated with `_hide` or `_crack_*` nodes (except
 `_DeckHouse` variants) are considered damage geometry.
 
 Damage materials also identify damage primitives:
 - `*Razlom*` — torn-metal texture used at break surfaces
 - `*C011_Grid*` — grid/alpha overlay used at break points
 
-### Coordinate system
+## Coordinate system
 
 - **Y-up**, right-hand coordinate system (BigWorld convention).
 - Ship faces **bow toward −Z**.
@@ -389,19 +185,15 @@ Damage materials also identify damage primitives:
 - HP_ hardpoint transforms in `assets.bin` are world-space, column-major 4×4
   `float32` matrices.
 
----
-
-## Related files
-
-### `GameParams.data`
+## GameParams.data
 
 **Format:** `reverse(zlib(pickle(root_dict)))`
 
 The bytes of the file are stored in reverse order; reversing and zlib-decompressing
-yields a Python pickle.  The root object is either a `dict` with an `""` key (older
+yields a Python pickle. The root object is either a `dict` with an `""` key (older
 builds) or a `list` whose first element is the param dict (newer builds).
 
-Each ship entry is keyed by its param name (e.g. `PJSB007`, `PASC013`).  Ship
+Each ship entry is keyed by its param name (e.g. `PJSB007`, `PASC013`). Ship
 entries have `typeinfo.type == "Ship"` and contain:
 
 | Field              | Description                                                          |
@@ -420,7 +212,7 @@ content/gameplay/japan/ship/battleship/JSB007_Kongo_1942/JSB007_Kongo_1942.model
 Replace the `.model` suffix with `.geometry` to obtain the geometry file path
 relative to the game root directory.
 
-#### Armor key encoding
+### Armor key encoding
 
 The `armor` dict inside a hull component uses integer keys:
 
@@ -432,14 +224,12 @@ value = thickness in mm (float)
 - `model_index` — zero-based index into the armor model blocs in the `.geometry` file.
 - `material_id` — armor surface material (determines penetration/bounce behaviour).
 
----
+## assets.bin (BigWorld PrototypeDatabase)
 
-### `assets.bin` (BigWorld PrototypeDatabase)
-
-`assets.bin` is the BigWorld `PrototypeDatabase` binary format.  It stores
+`assets.bin` is the BigWorld `PrototypeDatabase` binary format. It stores
 pre-compiled scene-graph data (visual prototypes) for all game objects.
 
-#### File header (16 bytes)
+### File header (16 bytes)
 
 | Offset | Size | Field          | Value / Notes                             |
 |--------|------|----------------|-------------------------------------------|
@@ -451,7 +241,7 @@ pre-compiled scene-graph data (visual prototypes) for all game objects.
 
 Body starts at offset `0x10`.
 
-#### Body layout
+### Body layout
 
 | Base offset | Size   | Section            |
 |-------------|--------|--------------------|
@@ -462,7 +252,7 @@ Body starts at offset `0x10`.
 
 All sections use relative pointers (`int64_t`, signed, from the field's own address).
 
-#### Strings section (base = `0x10`)
+### Strings section (base = `0x10`)
 
 Open-addressing hashmap mapping `uint32_t` name IDs to null-terminated UTF-8 strings.
 
@@ -479,7 +269,7 @@ Open-addressing hashmap mapping `uint32_t` name IDs to null-terminated UTF-8 str
 Lookup: probe `(key % capacity + i) % capacity` until `key` matches or bucket is empty
 (both fields zero).
 
-#### R2P map (base = `0x38`)
+### R2P map (base = `0x38`)
 
 Maps path `self_id (uint64_t)` to a packed `uint32_t` value encoding the blob and
 record where the prototype data lives.
@@ -498,7 +288,7 @@ blob_index   = (value & 0xFF) // 4
 record_index = value >> 8
 ```
 
-#### Path storage (base = `0x50`)
+### Path storage (base = `0x50`)
 
 Flat array of path entries (32 bytes each):
 
@@ -508,10 +298,10 @@ Flat array of path entries (32 bytes each):
 | 8               | `parent_id`    | `uint64_t` ID of the parent node (`0` = root)            |
 | 16              | packed string  | Node name (BigWorld packed string: `u32 char_count`, 4 B pad, `i64 text_relptr`) |
 
-Full paths are reconstructed by walking parent links.  A `.visual` path suffix
+Full paths are reconstructed by walking parent links. A `.visual` path suffix
 (e.g. `JSB007_Kongo_1942/JSB007_Kongo_1942.visual`) is the lookup key.
 
-#### Databases array (base = `0x60` in body; relptr base = body base)
+### Databases array (base = `0x60` in body; relptr base = body base)
 
 Array of database entries (0x18 bytes each):
 
@@ -526,7 +316,7 @@ Array of database entries (0x18 bytes each):
 Each blob starts with a `uint64_t` record count, followed by fixed-size records.
 **Blob index 1** holds `VisualPrototype` records (item size = `0x70`).
 
-#### VisualPrototype
+### VisualPrototype
 
 Record format (item size `0x70 = 112` bytes):
 
@@ -552,13 +342,13 @@ Record format (item size `0x70 = 112` bytes):
 World-space transform for a node = product of local matrices from root to node
 (column-major, right-to-left multiplication).
 
-#### RenderSet (0x28 = 40 bytes each)
+### RenderSet (0x28 = 40 bytes each)
 
 | Offset | Size | Field                   | Description                                                    |
 |--------|------|-------------------------|----------------------------------------------------------------|
 | 0      | 4    | `name_id`               | `u32` name string ID (render set name)                         |
 | 4      | 4    | `mat_name_id`           | `u32` material name string ID                                  |
-| 8      | 4    | `vertices_mapping_id`   | `u32` matches `mapping_id` in vertex bloc mapping table        |
+| 8      | 4    | `vertices_mapping_id`   | `u32` matches `mapping_id` in vertex bloc mapping table ([GEOMETRY.md](GEOMETRY.md)) |
 | 12     | 4    | `indices_mapping_id`    | `u32` matches `mapping_id` in index bloc mapping table         |
 | 16     | 8    | `mfm_path_id`           | `u64` path ID of the `.mfm` material file                      |
 | 24     | 1    | `skinned`               | `u8`                                                           |
@@ -566,7 +356,7 @@ World-space transform for a node = product of local matrices from root to node
 | 26     | 6    | pad                     |                                                                |
 | 32     | 8    | `node_name_ids_rp`      | `i64` relptr → `u32[]` node name IDs                           |
 
-#### LOD entry (16 bytes each)
+### LOD entry (16 bytes each)
 
 | Offset | Size | Field           | Description                                                  |
 |--------|------|-----------------|--------------------------------------------------------------|
@@ -578,9 +368,7 @@ World-space transform for a node = product of local matrices from root to node
 Name IDs reference render sets by their `name_id` field. Resolved to
 `indices_mapping_id` for LOD-based primitive filtering.
 
----
-
-### Texture files
+## Texture files
 
 Textures live in the same directory as the `.mfm` file they are referenced from.
 The stem is derived from the MFM filename (minus the `.mfm` extension and optional
@@ -593,8 +381,8 @@ MFM-only suffixes: `_skinned`, `_alpha`, `_ep`).
 | `_mg`  | Metallic/gloss            | `metallicRoughnessTexture`     |
 
 File extensions in priority order: `.dd0` (highest resolution MIP set), `.dd1`,
-`.dds`.  All are standard DDS containers.
+`.dds`. All are standard DDS containers.
 
 UV orientation: BigWorld stores V with origin at the bottom; DDS textures are stored
-top-to-bottom.  Correct display requires flipping V: `v_display = 1.0 - v_stored`.
+top-to-bottom. Correct display requires flipping V: `v_display = 1.0 - v_stored`.
 In glTF this is expressed with `KHR_texture_transform`: `scale=[1,-1], offset=[0,1]`.

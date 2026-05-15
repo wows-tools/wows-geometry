@@ -3,9 +3,9 @@
 [![Ubuntu-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml)
 [![Documentation](https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-model-exporter/)
 
-Parser and GLB exporter for World of Warships 3D model files.
+Vibe coded parser and glTF/GLB exporter for World of Warships ship 3D models.
 
-File formats and organization are documented in [FORMAT.md](FORMAT.md).
+File formats and organization: [MODEL.md](MODEL.md) (ship mesh pipeline — `GameParams`, `assets.bin`, LOD, textures) and [GEOMETRY.md](GEOMETRY.md) (`.geometry` binary layout).
 
 ## Build
 
