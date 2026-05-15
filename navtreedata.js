@@ -28,7 +28,7 @@ var NAVTREE =
     [ "wows-model-exporter", "index.html", "index" ],
     [ "WoWs ship 3D model representation", "md__m_o_d_e_l.html", [
       [ "Contents", "md__m_o_d_e_l.html#autotoc_md6", null ],
-      [ "Overview", "md__m_o_d_e_l.html#autotoc_md7", [
+      [ "Overvall Layout", "md__m_o_d_e_l.html#autotoc_md7", [
         [ "Draw-call mapping IDs", "md__m_o_d_e_l.html#autotoc_md8", null ]
       ] ],
       [ "Ship parts and LOD", "md__m_o_d_e_l.html#autotoc_md9", [
