@@ -1,14 +1,22 @@
 var searchData=
 [
-  ['r_0',['r',['../structwows__vert__xyznuvrpc.html#a413edc541329f74cfb9c1eede873c9e8',1,'wows_vert_xyznuvrpc']]],
-  ['r2p_20map_20base_200x38_1',['R2P Map (base = 0x38)',['../md__f_o_r_m_a_t.html#autotoc_md47',1,'']]],
-  ['raw_5fdata_2',['raw_data',['../structwows__geometry__vertex__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_vertex_section::raw_data'],['../structwows__geometry__index__section.html#ad11c56b4339f6292ac553d617053d29f',1,'wows_geometry_index_section::raw_data']]],
-  ['readme_2emd_3',['README.md',['../_r_e_a_d_m_e_8md.html',1,'']]],
-  ['related_20files_4',['Related Files',['../md__f_o_r_m_a_t.html#autotoc_md39',1,'']]],
-  ['relptr_20base_20body_5fbase_5',['Databases Array (base = 0x60 in body, relptr base = body_base)',['../md__f_o_r_m_a_t.html#autotoc_md49',1,'']]],
-  ['render_20set_20and_20lod_20info_6',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
-  ['render_20set_20lod_20in_20assets_20bin_7',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md35',1,'']]],
-  ['render_5fsets_8',['render_sets',['../structwows__assets__bin__visual__info__t.html#adb585c36c4479fd174661caa5e117e24',1,'wows_assets_bin_visual_info_t']]],
-  ['renderset_200x28_2040_20bytes_20each_9',['RenderSet (0x28 = 40 bytes each)',['../md__f_o_r_m_a_t.html#autotoc_md51',1,'']]],
-  ['rs_5fcount_10',['rs_count',['../structwows__assets__bin__visual__info__t.html#adfef1ac07f54ca507b645dd5d6ff3d67',1,'wows_assets_bin_visual_info_t']]]
+  ['s_5fidx_5fbloc_5fsize_0',['s_idx_bloc_size',['../structwows__geometry__index__section__metadata.html#a66511918a25671309476cec196e848b3',1,'wows_geometry_index_section_metadata']]],
+  ['s_5findex_5fsize_1',['s_index_size',['../structwows__geometry__index__section__metadata.html#a497e14fda4b35f6659fe6321575f5a45',1,'wows_geometry_index_section_metadata']]],
+  ['s_5fver_5fbloc_5fsize_2',['s_ver_bloc_size',['../structwows__geometry__vertex__section__metadata.html#a28611938c54f0dd00414b8e0046c405a',1,'wows_geometry_vertex_section_metadata']]],
+  ['s_5fvertex_5fsize_3',['s_vertex_size',['../structwows__geometry__vertex__section__metadata.html#af0da9af504e39268dbe0de32d86dc7a0',1,'wows_geometry_vertex_section_metadata']]],
+  ['section_20base_200x10_4',['Strings Section (base = 0x10)',['../md__f_o_r_m_a_t.html#autotoc_md34',1,'']]],
+  ['section_20geometry_5',['Damage and Cross-Section Geometry',['../md__f_o_r_m_a_t.html#autotoc_md24',1,'']]],
+  ['section_5f1_6',['section_1',['../structwows__geometry.html#a1be058722710a0a10a2aea512af9c1f5',1,'wows_geometry']]],
+  ['section_5f2_7',['section_2',['../structwows__geometry.html#aa77b6247626a98663e3a3dd79835494c',1,'wows_geometry']]],
+  ['section_5fname_8',['section_name',['../structwows__assets__bin__rs__t.html#aa107a62377d5ea316504b8956630c0c9',1,'wows_assets_bin_rs_t']]],
+  ['set_20and_20lod_20info_9',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
+  ['set_20lod_20in_20assets_20bin_10',['Render-Set LOD (in assets.bin)',['../md__f_o_r_m_a_t.html#autotoc_md23',1,'']]],
+  ['ship_20glb_20assembler_11',['wows-gltf-exporter: full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
+  ['ship_20part_20files_20and_20lod_12',['Ship Part Files and LOD',['../md__f_o_r_m_a_t.html#autotoc_md21',1,'']]],
+  ['ships_13',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['ships_3a_20enumerate_20available_20ships_14',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['shot_20helpers_15',['One-shot helpers',['../group__assets__oneshot.html',1,'']]],
+  ['storage_20base_200x50_16',['Path Storage (base = 0x50)',['../md__f_o_r_m_a_t.html#autotoc_md36',1,'']]],
+  ['strings_20section_20base_200x10_17',['Strings Section (base = 0x10)',['../md__f_o_r_m_a_t.html#autotoc_md34',1,'']]],
+  ['system_18',['Coordinate System',['../md__f_o_r_m_a_t.html#autotoc_md25',1,'']]]
 ];
