@@ -6,7 +6,7 @@ documented in [GEOMETRY.md](GEOMETRY.md).
 
 ## Contents
 
-- [Overall layout](#overall-layout)
+- [Overall Layout](#overall-layout)
 - [Draw-call mapping IDs](#draw-call-mapping-ids)
 - [Ship parts and LOD](#ship-parts-and-lod)
 - [Coordinate system](#coordinate-system)
