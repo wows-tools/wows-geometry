@@ -97,6 +97,7 @@ do
     echo "------ $line ----";
     wows-gltf-exporter -W /path/to/World\ of\ Warships -s $line -o $line.glb --verbose;
 done
+```
 
 ### wows-geometry-cli - single-file inspector / exporter
 
