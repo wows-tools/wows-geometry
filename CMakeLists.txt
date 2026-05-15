@@ -132,9 +132,12 @@ target_link_libraries(wows-geometry-cli PRIVATE wows-geometry)
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
 target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry ${TINYGLTF_LIBRARY})
 
-# Ship lister: enumerate ships from GameParams.data
+# Ship lister: enumerate ships from GameParams.data (uses wows-depack API directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
+if(WOWS_DEPACK_SOURCES)
+  target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
+endif()
 target_link_libraries(wows-list-ships PRIVATE wows-geometry)
 
 if(BUILD_TESTS)
