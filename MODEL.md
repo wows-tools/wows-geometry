@@ -6,7 +6,7 @@ documented in [GEOMETRY.md](GEOMETRY.md).
 
 ## Contents
 
-- [Overview — linking game files to a ship GLB](#overview--linking-game-files-to-a-ship-glb)
+- [Overall layout](#overall-layout)
 - [Draw-call mapping IDs](#draw-call-mapping-ids)
 - [Ship parts and LOD](#ship-parts-and-lod)
 - [Coordinate system](#coordinate-system)
@@ -14,7 +14,7 @@ documented in [GEOMETRY.md](GEOMETRY.md).
 - [assets.bin](#assetsbin-bigworld-prototypedatabase)
 - [Texture files](#texture-files)
 
-## Overview
+## Overvall Layout
 
 Here is how the game files fit together to construct a ship model:
 
