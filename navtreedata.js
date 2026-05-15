@@ -53,7 +53,7 @@ var NAVTREE =
       ] ],
       [ "Texture files", "md__m_o_d_e_l.html#autotoc_md26", null ]
     ] ],
-    [ "WoWs <tt>.geometry</tt> file format", "md__g_e_o_m_e_t_r_y.html", [
+    [ "WoWs .geometry file format", "md__g_e_o_m_e_t_r_y.html", [
       [ "Contents", "md__g_e_o_m_e_t_r_y.html#autotoc_md28", null ],
       [ "File layout", "md__g_e_o_m_e_t_r_y.html#autotoc_md29", null ],
       [ "Binary structures", "md__g_e_o_m_e_t_r_y.html#autotoc_md30", [

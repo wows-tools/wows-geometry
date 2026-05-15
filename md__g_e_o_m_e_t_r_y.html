@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>WoWs Model Exported: WoWs &lt;tt&gt;.geometry&lt;/tt&gt; file format</title>
+<title>WoWs Model Exported: WoWs .geometry file format</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -93,7 +93,7 @@ $(document).ready(function(){initNavTree('md__g_e_o_m_e_t_r_y.html',''); initRes
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">WoWs &lt;tt&gt;.geometry&lt;/tt&gt; file format</div></div>
+  <div class="headertitle"><div class="title">WoWs .geometry file format</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md27"></a> Binary layout of the BigWorld <code>.geometry</code> container: merged vertex/index buffers, draw-call mapping tables, and <b>ENCD</b> payloads compressed with <a href="https://github.com/zeux/meshoptimizer">meshoptimizer</a>.</p>
@@ -194,7 +194,7 @@ Draw-call matching</h2>
 <li>Sort all <b>index</b> bloc entries by <code>items_count DESC</code>, <code>items_offset ASC</code>.</li>
 <li>The k-th index entry maps to the k-th vertex entry.</li>
 </ol>
-<p>Index values stored in each index bloc are zero-based relative to that draw call's vertex base (<code>section_1[j].items_offset</code>). When exporting, absolute vertex indices are computed as <code>raw_index + vertex_base</code>.</p>
+<p>Index values stored in each index bloc are zero-based relative to that draw call's vertex base (<code>vertex_bloc_map[j].items_offset</code>). When exporting, absolute vertex indices are computed as <code>raw_index + vertex_base</code>.</p>
 <h2><a class="anchor" id="autotoc_md34"></a>
 Vertex type metadata (32 bytes each)</h2>
 <p>Array of <code>n_vertex_type</code> entries. Each describes a merged vertex buffer. All pointer fields are relative to the struct base address.</p>

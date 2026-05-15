@@ -121,8 +121,8 @@ Overview</h1>
 <div class="line"> </div>
 <div class="line">    subgraph GEOM[&quot;.geometry per ship part&quot;]</div>
 <div class="line">        geomFiles[&quot;ShipName.geometry, _Bow, _MidFront, …&quot;]</div>
-<div class="line">        s1[&quot;section_1 vertex bloc map&quot;]</div>
-<div class="line">        s2[&quot;section_2 index bloc map&quot;]</div>
+<div class="line">        vbloc[&quot;vertex_bloc_map (vertex draw-call table)&quot;]</div>
+<div class="line">        ibloc[&quot;index_bloc_map (index draw-call table)&quot;]</div>
 <div class="line">        encd[&quot;ENCD merged vertex / index buffers&quot;]</div>
 <div class="line">    end</div>
 <div class="line"> </div>
@@ -146,27 +146,27 @@ Overview</h1>
 <div class="line">    ship --&gt; upgrade</div>
 <div class="line">    upgrade --&gt; hullModel</div>
 <div class="line">    hullModel --&gt;|&quot;swap .model → .geometry&quot;| geomFiles</div>
-<div class="line">    geomFiles --&gt; s1</div>
-<div class="line">    geomFiles --&gt; s2</div>
+<div class="line">    geomFiles --&gt; vbloc</div>
+<div class="line">    geomFiles --&gt; ibloc</div>
 <div class="line">    geomFiles --&gt; encd</div>
-<div class="line">    s1 &lt;--&gt;|&quot;packed_texel_density&quot;| s2</div>
-<div class="line">    armorGP --&gt;|&quot;model_index in key&quot;| armorGeom</div>
+<div class="line">    vbloc &lt;--&gt;|&quot;packed_texel_density&quot;| ibloc</div>
+<div class="line">    armorGP --&gt;|&quot;model_index in key&quot;| armorGeo</div>
 <div class="line"> </div>
 <div class="line">    geomFiles &lt;--&gt;|&quot;same path, .visual suffix&quot;| visual</div>
 <div class="line">    visual --&gt; rs</div>
 <div class="line">    visual --&gt; lods</div>
 <div class="line">    visual --&gt; hpNodes</div>
 <div class="line"> </div>
-<div class="line">    rs --&gt;|&quot;indices_mapping_id&quot;| s2</div>
-<div class="line">    rs --&gt;|&quot;vertices_mapping_id&quot;| s1</div>
+<div class="line">    rs --&gt;|&quot;indices_mapping_id&quot;| ibloc</div>
+<div class="line">    rs --&gt;|&quot;vertices_mapping_id&quot;| vbloc</div>
 <div class="line">    rs --&gt; mfm</div>
 <div class="line">    mfm --&gt; dds</div>
-<div class="line">    lods --&gt;|&quot;active mapping_id set&quot;| s2</div>
+<div class="line">    lods --&gt;|&quot;active mapping_id set&quot;| ibloc</div>
 <div class="line"> </div>
 <div class="line">    mountsGP --&gt;|&quot;mount .geometry&quot;| mountOut</div>
 <div class="line">    hpNodes --&gt; mountOut</div>
 <div class="line">    encd --&gt; hullOut</div>
-<div class="line">    s2 --&gt; hullOut</div>
+<div class="line">    ibloc --&gt; hullOut</div>
 <div class="line">    rs --&gt; hullOut</div>
 <div class="line">    lods --&gt; hullOut</div>
 <div class="line">    dds --&gt; hullOut</div>
@@ -174,8 +174,8 @@ Overview</h1>
 Draw-call mapping IDs</h2>
 <div class="fragment"><div class="line">flowchart LR</div>
 <div class="line">    subgraph geom[&quot;.geometry&quot;]</div>
-<div class="line">        s2[&quot;section_2[i]&lt;br/&gt;mapping_id&quot;]</div>
-<div class="line">        s1[&quot;section_1[j]&lt;br/&gt;mapping_id&quot;]</div>
+<div class="line">        ibloc[&quot;index_bloc_map[i]&lt;br/&gt;mapping_id&quot;]</div>
+<div class="line">        vbloc[&quot;vertex_bloc_map[j]&lt;br/&gt;mapping_id&quot;]</div>
 <div class="line">    end</div>
 <div class="line"> </div>
 <div class="line">    subgraph abin[&quot;assets.bin RenderSet&quot;]</div>
@@ -185,9 +185,9 @@ Draw-call mapping IDs</h2>
 <div class="line">        names[&quot;name_id / node names&quot;]</div>
 <div class="line">    end</div>
 <div class="line"> </div>
-<div class="line">    s2 &lt;--&gt;|&quot;same uint32&quot;| idx</div>
-<div class="line">    s1 &lt;--&gt;|&quot;on-disk id&quot;| vtx</div>
-<div class="line">    s1 &lt;-.-&gt;|&quot;decode: packed_texel_density&quot;| s2</div>
+<div class="line">    ibloc &lt;--&gt;|&quot;same uint32&quot;| idx</div>
+<div class="line">    vbloc &lt;--&gt;|&quot;on-disk id&quot;| vtx</div>
+<div class="line">    vbloc &lt;-.-&gt;|&quot;decode: packed_texel_density&quot;| ibloc</div>
 <div class="line">    idx --&gt; lod[&quot;LOD filter&quot;]</div>
 <div class="line">    idx --&gt; tex[&quot;albedo / materials&quot;]</div>
 <div class="line">    idx --&gt; dmg[&quot;damage exclusion&quot;]</div>
@@ -351,7 +351,7 @@ R2P map (base = &lt;tt&gt;0x38&lt;/tt&gt;)</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">4   </td><td class="markdownTableBodyNone">pad   </td><td class="markdownTableBodyNone"></td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">8   </td><td class="markdownTableBodyNone"><code>buckets_relptr</code>   </td><td class="markdownTableBodyNone">→ array of <code>[u64 key, u64 sentinel]</code> pairs (16 B each)    </td></tr>
+<td class="markdownTableBodyNone">8   </td><td class="markdownTableBodyNone"><code>buckets_relptr</code>   </td><td class="markdownTableBodyNone">→ array of <code>[u64 key, u64 ]</code> pairs (16 B each)    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">16   </td><td class="markdownTableBodyNone"><code>values_relptr</code>   </td><td class="markdownTableBodyNone">→ array of <code>u32</code> packed values   </td></tr>
 </table>

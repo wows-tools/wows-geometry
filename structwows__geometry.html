@@ -108,10 +108,10 @@ $(document).ready(function(){initNavTree('structwows__geometry.html',''); initRe
 Data Fields</h2></td></tr>
 <tr class="memitem:a25f4e92498de7a8e3d1512d26b945698" id="r_a25f4e92498de7a8e3d1512d26b945698"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__header.html">wows_geometry_header</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#a25f4e92498de7a8e3d1512d26b945698">header</a></td></tr>
 <tr class="separator:a25f4e92498de7a8e3d1512d26b945698"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1be058722710a0a10a2aea512af9c1f5" id="r_a1be058722710a0a10a2aea512af9c1f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#a1be058722710a0a10a2aea512af9c1f5">section_1</a></td></tr>
-<tr class="separator:a1be058722710a0a10a2aea512af9c1f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa77b6247626a98663e3a3dd79835494c" id="r_aa77b6247626a98663e3a3dd79835494c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#aa77b6247626a98663e3a3dd79835494c">section_2</a></td></tr>
-<tr class="separator:aa77b6247626a98663e3a3dd79835494c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a283ab53786b4d7e4422c9d2bc7a2e22e" id="r_a283ab53786b4d7e4422c9d2bc7a2e22e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#a283ab53786b4d7e4422c9d2bc7a2e22e">vertex_bloc_map</a></td></tr>
+<tr class="separator:a283ab53786b4d7e4422c9d2bc7a2e22e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9447991eb1e33d5a1b1f3b832e1f0888" id="r_a9447991eb1e33d5a1b1f3b832e1f0888"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#a9447991eb1e33d5a1b1f3b832e1f0888">index_bloc_map</a></td></tr>
+<tr class="separator:a9447991eb1e33d5a1b1f3b832e1f0888"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3c64c518f544fe14bd9d608d84f34e0" id="r_ac3c64c518f544fe14bd9d608d84f34e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__vertex__section__metadata.html">wows_geometry_vertex_section_metadata</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#ac3c64c518f544fe14bd9d608d84f34e0">vertex_meta_sections</a></td></tr>
 <tr class="separator:ac3c64c518f544fe14bd9d608d84f34e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05bdfd3001a8443c1b51087d12a6b0fc" id="r_a05bdfd3001a8443c1b51087d12a6b0fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structwows__geometry__index__section__metadata.html">wows_geometry_index_section_metadata</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structwows__geometry.html#a05bdfd3001a8443c1b51087d12a6b0fc">index_meta_sections</a></td></tr>
@@ -137,6 +137,21 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>File header. </p>
+
+</div>
+</div>
+<a id="a9447991eb1e33d5a1b1f3b832e1f0888" name="a9447991eb1e33d5a1b1f3b832e1f0888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9447991eb1e33d5a1b1f3b832e1f0888">&#9670;&#160;</a></span>index_bloc_map</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a>* index_bloc_map</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Index draw-call mapping table (per submesh). </p>
 
 </div>
 </div>
@@ -170,33 +185,18 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a1be058722710a0a10a2aea512af9c1f5" name="a1be058722710a0a10a2aea512af9c1f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1be058722710a0a10a2aea512af9c1f5">&#9670;&#160;</a></span>section_1</h2>
+<a id="a283ab53786b4d7e4422c9d2bc7a2e22e" name="a283ab53786b4d7e4422c9d2bc7a2e22e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a283ab53786b4d7e4422c9d2bc7a2e22e">&#9670;&#160;</a></span>vertex_bloc_map</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a>* section_1</td>
+          <td class="memname"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a>* vertex_bloc_map</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Vertex draw-call mapping table. </p>
-
-</div>
-</div>
-<a id="aa77b6247626a98663e3a3dd79835494c" name="aa77b6247626a98663e3a3dd79835494c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa77b6247626a98663e3a3dd79835494c">&#9670;&#160;</a></span>section_2</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structwows__geometry__info.html">wows_geometry_info</a>* section_2</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Index draw-call mapping table. </p>
+<p>Vertex draw-call mapping table (per submesh). </p>
 
 </div>
 </div>
