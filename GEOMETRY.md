@@ -78,13 +78,13 @@ packet-beta
 96-127: "items_count (uint32_t)"
 ```
 
-| Field                  | Size      | Description                                              |
-|------------------------|-----------|----------------------------------------------------------|
+| Field                  | Size      | Description                                                                                                                                             |
+|------------------------|-----------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `mapping_id`           | 32 bits   | Submesh identifier hash (matches `RenderSet.vertices_mapping_id` / `indices_mapping_id` in [assets.bin](MODEL.md#assetsbin-bigworld-prototypedatabase)) |
-| `merged_buffer_index`  | 16 bits   | Index into vertex/index type metadata array              |
-| `packed_texel_density` | 16 bits   | Draw-call pairing key: groups vertex and index bloc entries that belong to the same draw call |
-| `items_offset`         | 32 bits   | Starting element index within the merged buffer          |
-| `items_count`          | 32 bits   | Number of elements (vertices or indices) for this submesh |
+| `merged_buffer_index`  | 16 bits   | Index into vertex/index type metadata array                                                                                                             |
+| `packed_texel_density` | 16 bits   | Draw-call pairing key: groups vertex and index bloc entries that belong to the same draw call                                                           |
+| `items_offset`         | 32 bits   | Starting element index within the merged buffer                                                                                                         |
+| `items_count`          | 32 bits   | Number of elements (vertices or indices) for this submesh                                                                                               |
 
 ### Draw-call matching
 
@@ -116,15 +116,15 @@ packet-beta
 248-255: "b_flag_2 (uint8_t)"
 ```
 
-| Field                | Size     | Description                                                     |
-|----------------------|----------|-----------------------------------------------------------------|
-| `off_ver_bloc_start` | 64 bits  | Relative pointer from struct base to ENCD vertex bloc start     |
-| `n_size_type_str`    | 64 bits  | Byte length of the vertex type name (e.g. `set3/xyznuvtbpc`)    |
-| `off_ver_bloc_end`   | 64 bits  | Relative pointer from struct base to ENCD vertex bloc end       |
-| `s_ver_bloc_size`    | 32 bits  | Total ENCD bloc size in bytes (includes 8-byte ENCD header)     |
-| `s_vertex_size`      | 16 bits  | Vertex stride in bytes (decoded size per vertex)                |
-| `b_flag_1`           | 8 bits   | Reserved flag byte                                              |
-| `b_flag_2`           | 8 bits   | Reserved flag byte                                              |
+| Field                | Size    | Description                                                  |
+|----------------------|---------|--------------------------------------------------------------|
+| `off_ver_bloc_start` | 64 bits | Relative pointer from struct base to ENCD vertex bloc start  |
+| `n_size_type_str`    | 64 bits | Byte length of the vertex type name (e.g. `set3/xyznuvtbpc`) |
+| `off_ver_bloc_end`   | 64 bits | Relative pointer from struct base to ENCD vertex bloc end    |
+| `s_ver_bloc_size`    | 32 bits | Total ENCD bloc size in bytes (includes 8-byte ENCD header)  |
+| `s_vertex_size`      | 16 bits | Vertex stride in bytes (decoded size per vertex)             |
+| `b_flag_1`           | 8 bits  | Reserved flag byte                                           |
+| `b_flag_2`           | 8 bits  | Reserved flag byte                                           |
 
 The vertex type name is a null-terminated string at `struct_base + off_ver_bloc_end + 8`
 (all relative pointers are resolved from each metadata entry’s base address).
@@ -142,12 +142,12 @@ packet-beta
 112-127: "s_index_size (uint16_t)"
 ```
 
-| Field              | Size    | Description                                                       |
-|--------------------|---------|-------------------------------------------------------------------|
-| `data_relptr`      | 64 bits | Relative pointer from struct base to ENCD index bloc              |
-| `s_idx_bloc_size`  | 32 bits | Total ENCD bloc size in bytes (includes 8-byte ENCD header)       |
-| `_reserved`        | 16 bits | Reserved / padding                                                |
-| `s_index_size`     | 16 bits | Bytes per index: 2 (uint16) or 4 (uint32)                         |
+| Field             | Size    | Description                                                 |
+|-------------------|---------|-------------------------------------------------------------|
+| `data_relptr`     | 64 bits | Relative pointer from struct base to ENCD index bloc        |
+| `s_idx_bloc_size` | 32 bits | Total ENCD bloc size in bytes (includes 8-byte ENCD header) |
+| `_reserved`       | 16 bits | Reserved / padding                                          |
+| `s_index_size`    | 16 bits | Bytes per index: 2 (uint16) or 4 (uint32)                   |
 
 ### ENCD block
 
@@ -155,7 +155,7 @@ Vertex and index payloads share the same ENCD container, compressed with meshopt
 
 ```
 [4 bytes] magic = 0x44434E45 ("ENCD" as little-endian uint32)
-[4 bytes] element_count (uint32 LE) — number of vertices or indices
+[4 bytes] element_count (uint32 LE) - number of vertices or indices
 [N bytes] meshoptimizer-encoded payload
 ```
 
@@ -173,29 +173,29 @@ the vertex type name. All multi-byte values are little-endian.
 
 #### Attribute encoding
 
-| Attribute   | Size   | Encoding                                                              |
-|-------------|--------|-----------------------------------------------------------------------|
-| xyz         | 12 B   | 3 × IEEE 754 float32                                                  |
-| n / t / b   | 4 B    | 4 signed bytes, each component = `(int8_t)byte / 127.0f`             |
-| uv          | 4 B    | 2 × IEEE 754 float16; stored as `actual_uv - 0.5`, load with `+0.5`  |
-| iiiww       | 8 B    | 3 bone indices (raw uint8 ×3) + 2 bone weights (raw), 4 B each field |
-| r           | 4 B    | Raw uint32 (extra data, use varies)                                   |
-| pc          | 0 B    | Per-vertex color flag only — no bytes in buffer                       |
+| Attribute | Size | Encoding                                                             |
+|-----------|------|----------------------------------------------------------------------|
+| xyz       | 12 B | 3 × IEEE 754 float32                                                 |
+| n / t / b | 4 B  | 4 signed bytes, each component = `(int8_t)byte / 127.0f`             |
+| uv        | 4 B  | 2 × IEEE 754 float16; stored as `actual_uv - 0.5`, load with `+0.5`  |
+| iiiww     | 8 B  | 3 bone indices (raw uint8 ×3) + 2 bone weights (raw), 4 B each field |
+| r         | 4 B  | Raw uint32 (extra data, use varies)                                  |
+| pc        | 0 B  | Per-vertex color flag only — no bytes in buffer                      |
 
 #### Vertex type layouts
 
-| Vertex type             | Stride | Layout (bytes)                                        |
-|-------------------------|--------|-------------------------------------------------------|
-| `set3/xyznuvpc`         | 20     | xyz(12) + n(4) + uv(4)                                |
-| `set3/xyznuvrpc`        | 24     | xyz(12) + n(4) + uv(4) + r(4)                         |
-| `set3/xyznuvtbpc`       | 28     | xyz(12) + n(4) + uv(4) + t(4) + b(4)                  |
-| `set3/xyznuviiiwwpc`    | 28     | xyz(12) + n(4) + uv(4) + iiiww(8)                     |
-| `set3/xyznuv2tbpc`      | 32     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4)        |
-| `set3/xyznuvtbipc`      | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + i(4)           |
-| `set3/xyznuvtboi`       | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + oi(4)          |
-| `set3/xyznuviiiwwr`     | 32     | xyz(12) + n(4) + uv(4) + iiiww(8) + r(4)              |
-| `set3/xyznuv2tbipc`     | 36     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4) + i(4) |
-| `set3/xyznuviiiwwtbpc`  | 36     | xyz(12) + n(4) + uv(4) + iiiww(8) + t(4) + b(4)       |
+| Vertex type             | Stride | Layout (bytes)                                            |
+|-------------------------|--------|-----------------------------------------------------------|
+| `set3/xyznuvpc`         | 20     | xyz(12) + n(4) + uv(4)                                    |
+| `set3/xyznuvrpc`        | 24     | xyz(12) + n(4) + uv(4) + r(4)                             |
+| `set3/xyznuvtbpc`       | 28     | xyz(12) + n(4) + uv(4) + t(4) + b(4)                      |
+| `set3/xyznuviiiwwpc`    | 28     | xyz(12) + n(4) + uv(4) + iiiww(8)                         |
+| `set3/xyznuv2tbpc`      | 32     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4)            |
+| `set3/xyznuvtbipc`      | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + i(4)               |
+| `set3/xyznuvtboi`       | 32     | xyz(12) + n(4) + uv(4) + t(4) + b(4) + oi(4)              |
+| `set3/xyznuviiiwwr`     | 32     | xyz(12) + n(4) + uv(4) + iiiww(8) + r(4)                  |
+| `set3/xyznuv2tbipc`     | 36     | xyz(12) + n(4) + uv0(4) + uv1(4) + t(4) + b(4) + i(4)     |
+| `set3/xyznuviiiwwtbpc`  | 36     | xyz(12) + n(4) + uv(4) + iiiww(8) + t(4) + b(4)           |
 | `set3/xyznuv2iiiwwtbpc` | 40     | xyz(12) + n(4) + uv0(4) + uv1(4) + iiiww(8) + t(4) + b(4) |
 
 ### Collision model data

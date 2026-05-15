@@ -4,11 +4,20 @@ How World of Warships assembles a ship mesh for export: param lookup, part files
 scene graph (`assets.bin`), materials, and textures. Raw `.geometry` byte layout is
 documented in [GEOMETRY.md](GEOMETRY.md).
 
-## Overview — linking game files to a ship GLB
+## Contents
 
-Cross-references below match `wows-gltf-exporter` (`lib/stitch.cpp`,
-`lib/ship_export.cpp`). Armor blocs are documented in the format but not yet read
-by the exporter.
+- [Overview — linking game files to a ship GLB](#overview--linking-game-files-to-a-ship-glb)
+- [Draw-call mapping IDs](#draw-call-mapping-ids)
+- [Ship parts and LOD](#ship-parts-and-lod)
+- [Coordinate system](#coordinate-system)
+- [GameParams.data](#gameparamsdata)
+- [assets.bin](#assetsbin-bigworld-prototypedatabase)
+- [Texture files](#texture-files)
+
+## Overview
+
+Here is how the game files fit together to construct a ship model:
+
 
 ```mermaid
 flowchart TB
@@ -16,16 +25,14 @@ flowchart TB
         ship["ship param e.g. PJSB007"]
         upgrade["ShipUpgradeInfo → hull upgrade"]
         hullModel["HullComp.model path"]
-        armorGP["HullComp.armor keys"]
         mountsGP["ArtComp HP_* → mount .model"]
     end
 
-    subgraph GEO[".geometry per ship part"]
+    subgraph GEOM[".geometry per ship part"]
         geomFiles["ShipName.geometry, _Bow, _MidFront, …"]
         s1["section_1 vertex bloc map"]
         s2["section_2 index bloc map"]
         encd["ENCD merged vertex / index buffers"]
-        armorGeo["armor blocs @ off_armor_models"]
     end
 
     subgraph AB["assets.bin"]
@@ -52,7 +59,7 @@ flowchart TB
     geomFiles --> s2
     geomFiles --> encd
     s1 <-->|"packed_texel_density"| s2
-    armorGP -->|"model_index in key"| armorGeo
+    armorGP -->|"model_index in key"| armorGeom
 
     geomFiles <-->|"same path, .visual suffix"| visual
     visual --> rs
@@ -102,16 +109,6 @@ flowchart LR
 
 See [draw-call matching](GEOMETRY.md#draw-call-matching) for how vertex and index
 blocs are paired inside a `.geometry` file.
-
-## Contents
-
-- [Overview — linking game files to a ship GLB](#overview--linking-game-files-to-a-ship-glb)
-  - [Draw-call mapping IDs](#draw-call-mapping-ids)
-- [Ship parts and LOD](#ship-parts-and-lod)
-- [Coordinate system](#coordinate-system)
-- [GameParams.data](#gameparamsdata)
-- [assets.bin](#assetsbin-bigworld-prototypedatabase)
-- [Texture files](#texture-files)
 
 ## Ship parts and LOD
 
