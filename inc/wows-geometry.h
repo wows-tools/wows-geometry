@@ -36,41 +36,41 @@
  *  decode path.
  *  @{
  */
-#define WOWS_VER_UNKNOWN "unknown"             /**< Unknown / unrecognised format string. */
-#define WOWS_ID_UNKNOWN 0                      /**< Numeric ID for an unknown format. */
+#define WOWS_VER_UNKNOWN "unknown" /**< Unknown / unrecognised format string. */
+#define WOWS_ID_UNKNOWN 0          /**< Numeric ID for an unknown format. */
 
 #define WOWS_VER_SET3_XYNUV2IIIWWTBPC "set3/xyznuv2iiiwwtbpc" /**< Format name: pos + 2×UV + IIIww + TB + PC. */
 #define WOWS_ID_SET3_XYNUV2IIIWWTBPC 1
 
-#define WOWS_VER_SET3_XYNUV2TBIPC "set3/xyznuv2tbipc"         /**< Format name: pos + 2×UV + TB + IPC. */
+#define WOWS_VER_SET3_XYNUV2TBIPC "set3/xyznuv2tbipc" /**< Format name: pos + 2×UV + TB + IPC. */
 #define WOWS_ID_SET3_XYNUV2TBIPC 2
 
-#define WOWS_VER_SET3_XYNUV2TBPC "set3/xyznuv2tbpc"           /**< Format name: pos + 2×UV + TB + PC. */
+#define WOWS_VER_SET3_XYNUV2TBPC "set3/xyznuv2tbpc" /**< Format name: pos + 2×UV + TB + PC. */
 #define WOWS_ID_SET3_XYNUV2TBPC 3
 
-#define WOWS_VER_SET3_XYNUVIIIWWPC "set3/xyznuviiiwwpc"       /**< Format name: pos + UV + IIIww + PC. */
+#define WOWS_VER_SET3_XYNUVIIIWWPC "set3/xyznuviiiwwpc" /**< Format name: pos + UV + IIIww + PC. */
 #define WOWS_ID_SET3_XYNUVIIIWWPC 4
 
-#define WOWS_VER_SET3_XYNUVIIIWWR "set3/xyznuviiiwwr"         /**< Format name: pos + UV + IIIww + R. */
+#define WOWS_VER_SET3_XYNUVIIIWWR "set3/xyznuviiiwwr" /**< Format name: pos + UV + IIIww + R. */
 #define WOWS_ID_SET3_XYNUVIIIWWR 5
 
-#define WOWS_VER_SET3_XYNUVIIIWWTBPC "set3/xyznuviiiwwtbpc"   /**< Format name: pos + UV + IIIww + TB + PC. */
+#define WOWS_VER_SET3_XYNUVIIIWWTBPC "set3/xyznuviiiwwtbpc" /**< Format name: pos + UV + IIIww + TB + PC. */
 #define WOWS_ID_SET3_XYNUVIIIWWTBPC 6
 
-#define WOWS_VER_SET3_XYNUVPC "set3/xyznuvpc"                 /**< Format name: pos + UV + PC. */
+#define WOWS_VER_SET3_XYNUVPC "set3/xyznuvpc" /**< Format name: pos + UV + PC. */
 #define WOWS_ID_SET3_XYNUVPC 7
 
-#define WOWS_VER_SET3_XYNUVRPC "set3/xyznuvrpc"               /**< Format name: pos + UV + R + PC. */
+#define WOWS_VER_SET3_XYNUVRPC "set3/xyznuvrpc" /**< Format name: pos + UV + R + PC. */
 #define WOWS_ID_SET3_XYNUVRPC 8
-#define WOWS_SIZE_XYNUVRPC 28                                  /**< Stride in bytes for the XYNUVRPC layout. */
+#define WOWS_SIZE_XYNUVRPC 28 /**< Stride in bytes for the XYNUVRPC layout. */
 
-#define WOWS_VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc"           /**< Format name: pos + UV + TB + IPC. */
+#define WOWS_VER_SET3_XYNUVTBIPC "set3/xyznuvtbipc" /**< Format name: pos + UV + TB + IPC. */
 #define WOWS_ID_SET3_XYNUVTBIPC 9
 
-#define WOWS_VER_SET3_XYNUVTBOI "set3/xyznuvtboi"             /**< Format name: pos + UV + TB + OI. */
+#define WOWS_VER_SET3_XYNUVTBOI "set3/xyznuvtboi" /**< Format name: pos + UV + TB + OI. */
 #define WOWS_ID_SET3_XYNUVTBOI 10
 
-#define WOWS_VER_SET3_XYNUVTBPC "set3/xyznuvtbpc"             /**< Format name: pos + UV + TB + PC. */
+#define WOWS_VER_SET3_XYNUVTBPC "set3/xyznuvtbpc" /**< Format name: pos + UV + TB + PC. */
 #define WOWS_ID_SET3_XYNUVTBPC 11
 /** @} */
 
@@ -81,15 +81,15 @@
  * components, and texture coordinates that appear in every format variant.
  * It is used as the first member block of every vertex struct.
  */
-#define WOWS_VERTEX_FIELDS        \
-    float x;    /**< World-space position X. */  \
-    float y;    /**< World-space position Y. */  \
-    float z;    /**< World-space position Z. */  \
-    uint32_t n; /**< Packed vertex normal (decoded to `_nx/_ny/_nz`). */ \
-    float _nx;  /**< Unpacked normal X component. */  \
-    float _ny;  /**< Unpacked normal Y component. */  \
-    float _nz;  /**< Unpacked normal Z component. */  \
-    float u;    /**< Texture coordinate U. */  \
+#define WOWS_VERTEX_FIELDS                                                                                             \
+    float x;    /**< World-space position X. */                                                                        \
+    float y;    /**< World-space position Y. */                                                                        \
+    float z;    /**< World-space position Z. */                                                                        \
+    uint32_t n; /**< Packed vertex normal (decoded to `_nx/_ny/_nz`). */                                               \
+    float _nx;  /**< Unpacked normal X component. */                                                                   \
+    float _ny;  /**< Unpacked normal Y component. */                                                                   \
+    float _nz;  /**< Unpacked normal Z component. */                                                                   \
+    float u;    /**< Texture coordinate U. */                                                                          \
     float v;    /**< Texture coordinate V. */
 
 /**
@@ -188,8 +188,8 @@ typedef struct {
     uint8_t b_flag_2;            /**< Reserved flag byte 2. */
 
     /* Parser-internal fields — not part of the on-disk format. */
-    size_t _abs_start;   /**< Absolute file offset of the ENCD block start. */
-    size_t _abs_end;     /**< Absolute file offset of the ENCD block end. */
+    size_t _abs_start;    /**< Absolute file offset of the ENCD block start. */
+    size_t _abs_end;      /**< Absolute file offset of the ENCD block end. */
     uint8_t _vertex_type; /**< Resolved vertex-type ID (one of the `WOWS_ID_*` constants). */
 } wows_geometry_vertex_section_metadata;
 
@@ -239,13 +239,15 @@ typedef struct {
  * be released with ::wows_geometry_free.
  */
 typedef struct {
-    wows_geometry_header                   *header;               /**< File header. */
-    wows_geometry_info                     *vertex_bloc_map; /**< Vertex draw-call mapping table (per submesh). */
-    wows_geometry_info                     *index_bloc_map;  /**< Index draw-call mapping table (per submesh). */
-    wows_geometry_vertex_section_metadata  *vertex_meta_sections; /**< Array of `header->n_vertex_type` vertex metadata entries. */
-    wows_geometry_index_section_metadata   *index_meta_sections;  /**< Array of `header->n_index_type` index metadata entries. */
-    wows_geometry_vertex_section          **vertexes;             /**< Array of decoded vertex buffers. */
-    wows_geometry_index_section           **indexes;              /**< Array of decoded index buffers. */
+    wows_geometry_header *header;        /**< File header. */
+    wows_geometry_info *vertex_bloc_map; /**< Vertex draw-call mapping table (per submesh). */
+    wows_geometry_info *index_bloc_map;  /**< Index draw-call mapping table (per submesh). */
+    wows_geometry_vertex_section_metadata
+        *vertex_meta_sections; /**< Array of `header->n_vertex_type` vertex metadata entries. */
+    wows_geometry_index_section_metadata
+        *index_meta_sections;                /**< Array of `header->n_index_type` index metadata entries. */
+    wows_geometry_vertex_section **vertexes; /**< Array of decoded vertex buffers. */
+    wows_geometry_index_section **indexes;   /**< Array of decoded index buffers. */
 } wows_geometry;
 
 /**

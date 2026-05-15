@@ -70,8 +70,8 @@ endif(STATIC)
 
 # gcov/lcov and libgcov do not mix with Clang's LLVM profiling in the same link.
 if(COVERAGE AND BUILD_TESTS)
-  if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU"
-     OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" OR NOT CMAKE_CXX_COMPILER_ID
+                                               STREQUAL "GNU")
     message(
       FATAL_ERROR
         "COVERAGE with BUILD_TESTS requires GCC for both C and CXX (found "
@@ -99,8 +99,7 @@ link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
 
 # headers directories
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
-                    /usr/include/ /sw/include/
-                    ${CMAKE_CURRENT_SOURCE_DIR}/deps)
+                    /usr/include/ /sw/include/ ${CMAKE_CURRENT_SOURCE_DIR}/deps)
 
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
@@ -113,26 +112,29 @@ add_executable(wows-geometry-cli wows-geometry.c)
 target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
 find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
 
-# Build depack sources directly so they are compiled with -fPIC for the shared lib
+# Build depack sources directly so they are compiled with -fPIC for the shared
+# lib
 set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
 file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
 if(WOWS_DEPACK_SOURCES)
-    target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
-    target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
-    target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
+  target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
+  target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
+  target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 endif()
 
 target_link_libraries(
   wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
-  ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
+                       ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
 
 target_link_libraries(wows-geometry-cli PRIVATE wows-geometry)
 
 # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
-target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry ${TINYGLTF_LIBRARY})
+target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
+                                                 ${TINYGLTF_LIBRARY})
 
-# Ship lister: enumerate ships from GameParams.data (uses wows-depack API directly)
+# Ship lister: enumerate ships from GameParams.data (uses wows-depack API
+# directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
 if(WOWS_DEPACK_SOURCES)
@@ -146,7 +148,8 @@ if(BUILD_TESTS)
     include(CTest)
     add_test(NAME wows-geometry-test COMMAND wows-geometry-test)
     add_executable(wows-geometry-test tests/tests.c)
-    target_link_libraries(wows-geometry-test PRIVATE wows-geometry ${CUNIT_LIBRARY})
+    target_link_libraries(wows-geometry-test PRIVATE wows-geometry
+                                                     ${CUNIT_LIBRARY})
 
     # Add the test target
     add_custom_target(

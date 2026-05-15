@@ -34,9 +34,9 @@ void wows_stitch_set_verbose(bool v);
  *
  * Usage mirrors `fprintf(stderr, ...)`.
  */
-#define wows_stitch_vlog(...)                                                                                               \
+#define wows_stitch_vlog(...)                                                                                          \
     do {                                                                                                               \
-        if (wows_stitch_verbose)                                                                                          \
+        if (wows_stitch_verbose)                                                                                       \
             fprintf(stderr, __VA_ARGS__);                                                                              \
     } while (0)
 
@@ -55,9 +55,10 @@ using wows_mat16d = std::vector<double>;
  * @p output_path must be specified.
  */
 struct wows_ship_export_options {
-    std::string gameparams_path; /**< Path to `GameParams.data`; auto-detected from @p game_dir if empty. */
+    std::string gameparams_path;      /**< Path to `GameParams.data`; auto-detected from @p game_dir if empty. */
     std::string wows_assets_bin_path; /**< Path to `assets.bin`; auto-detected from @p game_dir if empty. */
-    /** If non-empty, GameParams is loaded from this buffer instead of @p gameparams_path (archive / in-memory workflows). */
+    /** If non-empty, GameParams is loaded from this buffer instead of @p gameparams_path (archive / in-memory
+     * workflows). */
     std::vector<uint8_t> gameparams_data;
     /** If non-empty, `assets.bin` is parsed from this buffer instead of @p wows_assets_bin_path. */
     std::vector<uint8_t> assets_bin_data;
@@ -85,18 +86,18 @@ struct wows_mount_entry {
  * @brief Aggregated hull information for one ship hull variant.
  */
 struct wows_hull_info {
-    std::string hull_model;          /**< Path to the primary hull `.visual` model. */
-    std::vector<wows_mount_entry> mounts;  /**< All mount points attached to this hull. */
+    std::string hull_model;               /**< Path to the primary hull `.visual` model. */
+    std::vector<wows_mount_entry> mounts; /**< All mount points attached to this hull. */
 };
 
 /**
  * @brief One resolved geometry part ready to be merged into a GLB scene.
  */
 struct wows_glb_part {
-    tinygltf::Model model;  /**< Parsed glTF model for this part. */
-    std::string mesh_name;  /**< Display name used for the mesh node in the merged scene. */
-    std::string geom_path;  /**< Filesystem path to the source `.geometry` file. */
-    wows_mat16d matrix;          /**< World-space transform; empty vector means identity. */
+    tinygltf::Model model; /**< Parsed glTF model for this part. */
+    std::string mesh_name; /**< Display name used for the mesh node in the merged scene. */
+    std::string geom_path; /**< Filesystem path to the source `.geometry` file. */
+    wows_mat16d matrix;    /**< World-space transform; empty vector means identity. */
 };
 
 /** @} */
@@ -121,7 +122,7 @@ struct wows_glb_part {
  * @return `true` on success; errors are printed to stderr.
  */
 bool wows_stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
-                        const wows_ship_export_options &opts = {});
+                             const wows_ship_export_options &opts = {});
 
 /**
  * @brief Callback type for reading a file from an arbitrary storage backend.
@@ -149,13 +150,9 @@ using wows_file_provider_t = std::function<std::vector<uint8_t>(const std::strin
  * @param file_provider Optional: callback to read geometry files from memory.
  * @return `true` on success.
  */
-bool wows_stitch_export_ship_to_glb_mem(
-    const std::string &game_dir,
-    const std::string &ship_name,
-    std::vector<uint8_t> &glb_out,
-    const wows_ship_export_options &opts = {},
-    wows_file_provider_t file_provider = nullptr
-);
+bool wows_stitch_export_ship_to_glb_mem(const std::string &game_dir, const std::string &ship_name,
+                                        std::vector<uint8_t> &glb_out, const wows_ship_export_options &opts = {},
+                                        wows_file_provider_t file_provider = nullptr);
 
 /** @} */
 
@@ -354,10 +351,10 @@ std::vector<uint8_t> wows_stitch_dds_to_png_from_memory(const uint8_t *data, siz
  * @param excl_damage If `true`, damage-geometry render sets are skipped.
  * @param max_tex     Maximum texture dimension; larger textures are downscaled.
  */
-void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
-                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex,
-                           std::function<void(int)> progress_cb = nullptr,
-                           wows_file_provider_t file_provider = nullptr);
+void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order,
+                                wows_assets_bin_pdb_t *pdb, const std::string &game_dir, int lod_level,
+                                bool excl_damage, int max_tex, std::function<void(int)> progress_cb = nullptr,
+                                wows_file_provider_t file_provider = nullptr);
 
 /**
  * @brief Apply a uniform grey default material to all primitives in a model.

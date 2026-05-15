@@ -65,4 +65,5 @@ bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &
 /**
  * @brief Same as ::wows_list_ships but reads pickled `GameParams.data` from a memory buffer.
  */
-bool wows_list_ships_from_memory(const uint8_t *gameparams_data, size_t gameparams_size, std::vector<wows_ship_entry> &out);
+bool wows_list_ships_from_memory(const uint8_t *gameparams_data, size_t gameparams_size,
+                                 std::vector<wows_ship_entry> &out);

@@ -32,8 +32,8 @@ extern "C" {
  * @brief A single hardpoint transform entry.
  */
 typedef struct {
-    char name[256];  /**< Hardpoint name as stored in the PDB (e.g. `"HP_MainGun_1"`). */
-    float mat[16];   /**< Column-major 4×4 world-space transform matrix. */
+    char name[256]; /**< Hardpoint name as stored in the PDB (e.g. `"HP_MainGun_1"`). */
+    float mat[16];  /**< Column-major 4×4 world-space transform matrix. */
 } wows_assets_bin_hp_t;
 
 /**
@@ -41,7 +41,7 @@ typedef struct {
  */
 typedef struct {
     wows_assets_bin_hp_t *entries; /**< Array of hardpoint entries. */
-    size_t count;             /**< Number of entries in @p entries. */
+    size_t count;                  /**< Number of entries in @p entries. */
 } wows_assets_bin_hp_list_t;
 
 /** @} */
@@ -65,7 +65,7 @@ typedef struct {
  */
 typedef struct {
     wows_assets_bin_bb_t *entries; /**< Array of BlendBone correction entries. */
-    size_t count;             /**< Number of entries in @p entries. */
+    size_t count;                  /**< Number of entries in @p entries. */
 } wows_assets_bin_bb_list_t;
 
 /** @} */
@@ -114,8 +114,8 @@ wows_assets_bin_hp_list_t *wows_assets_bin_get_hp_transforms_pdb(wows_assets_bin
 /**
  * @brief Like ::wows_assets_bin_get_blendbone_corrections but uses an already-open PDB handle.
  */
-wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections_pdb(wows_assets_bin_pdb_t *pdb, const char **model_paths,
-                                                                          size_t n_paths);
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections_pdb(wows_assets_bin_pdb_t *pdb,
+                                                                         const char **model_paths, size_t n_paths);
 
 /** @} */
 
@@ -155,9 +155,9 @@ typedef struct {
  */
 typedef struct {
     wows_assets_bin_rs_t *render_sets; /**< Array of render-set entries. */
-    size_t rs_count;              /**< Number of entries in @p render_sets. */
+    size_t rs_count;                   /**< Number of entries in @p render_sets. */
     wows_assets_bin_lod_t *lods;       /**< Array of LOD descriptors, index 0 = highest detail. */
-    size_t lod_count;             /**< Number of LOD levels in @p lods. */
+    size_t lod_count;                  /**< Number of LOD levels in @p lods. */
 } wows_assets_bin_visual_info_t;
 
 /**
@@ -218,11 +218,9 @@ typedef struct {
  * @return Heap-allocated list, or `NULL` when no propeller data is available.
  *         Free with ::wows_assets_bin_propeller_list_free.
  */
-wows_assets_bin_propeller_list_t *wows_assets_bin_get_propellers_pdb(
-    wows_assets_bin_pdb_t *pdb,
-    const char *hull_model_path,
-    const char **hull_geom_paths,
-    size_t n_geom_paths);
+wows_assets_bin_propeller_list_t *wows_assets_bin_get_propellers_pdb(wows_assets_bin_pdb_t *pdb,
+                                                                     const char *hull_model_path,
+                                                                     const char **hull_geom_paths, size_t n_geom_paths);
 
 /**
  * @brief Free memory allocated by ::wows_assets_bin_get_propellers_pdb.
@@ -263,7 +261,8 @@ void wows_assets_bin_hp_list_free(wows_assets_bin_hp_list_t *list);
  * @param n_paths     Length of @p model_paths.
  * @return Heap-allocated list, or `NULL` on failure.  Free with ::wows_assets_bin_bb_list_free.
  */
-wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths, size_t n_paths);
+wows_assets_bin_bb_list_t *wows_assets_bin_get_blendbone_corrections(const char *path, const char **model_paths,
+                                                                     size_t n_paths);
 
 /**
  * @brief Free memory allocated by ::wows_assets_bin_get_blendbone_corrections.

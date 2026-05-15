@@ -17,41 +17,50 @@ extern "C" {
 #include <string>
 #include <vector>
 
-const char *argp_program_version     = "wows-list-ships " BFD_VERSION;
+const char *argp_program_version = "wows-list-ships " BFD_VERSION;
 const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/issues";
 
-static char doc[] =
-    "\nList all ships available in GameParams.data.\n"
-    "\n"
-    "Examples:\n"
-    "  wows-list-ships -W /path/to/World\\ of\\ Warships\n"
-    "  wows-list-ships -W /path/to/World\\ of\\ Warships -n japan -t Battleship\n";
+static char doc[] = "\nList all ships available in GameParams.data.\n"
+                    "\n"
+                    "Examples:\n"
+                    "  wows-list-ships -W /path/to/World\\ of\\ Warships\n"
+                    "  wows-list-ships -W /path/to/World\\ of\\ Warships -n japan -t Battleship\n";
 
-static struct argp_option options[] = {
-    {"gameparams", 'g', "FILE", OPTION_HIDDEN, "GameParams.data"},
-    {"wows-dir",   'W', "DIR",  0, "Root game directory"},
-    {"nation",     'n', "STR",  0, "Filter by nation (substring, case-insensitive)"},
-    {"type",       't', "STR",  0, "Filter by ship type (substring, case-insensitive)"},
-    {"tier",       'r', "INT",  0, "Filter by tier (exact match)"},
-    {0}};
+static struct argp_option options[] = {{"gameparams", 'g', "FILE", OPTION_HIDDEN, "GameParams.data"},
+                                       {"wows-dir", 'W', "DIR", 0, "Root game directory"},
+                                       {"nation", 'n', "STR", 0, "Filter by nation (substring, case-insensitive)"},
+                                       {"type", 't', "STR", 0, "Filter by ship type (substring, case-insensitive)"},
+                                       {"tier", 'r', "INT", 0, "Filter by tier (exact match)"},
+                                       {0}};
 
 struct Args {
     char *gameparams = nullptr;
-    char *game_dir   = nullptr;
-    char *nation     = nullptr;
-    char *type       = nullptr;
-    int   tier       = -1;
+    char *game_dir = nullptr;
+    char *nation = nullptr;
+    char *type = nullptr;
+    int tier = -1;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     Args *a = static_cast<Args *>(state->input);
     switch (key) {
-    case 'g': a->gameparams = arg; break;
-    case 'W': a->game_dir   = arg; break;
-    case 'n': a->nation     = arg; break;
-    case 't': a->type       = arg; break;
-    case 'r': a->tier       = atoi(arg); break;
-    default:  return ARGP_ERR_UNKNOWN;
+    case 'g':
+        a->gameparams = arg;
+        break;
+    case 'W':
+        a->game_dir = arg;
+        break;
+    case 'n':
+        a->nation = arg;
+        break;
+    case 't':
+        a->type = arg;
+        break;
+    case 'r':
+        a->tier = atoi(arg);
+        break;
+    default:
+        return ARGP_ERR_UNKNOWN;
     }
     return 0;
 }
@@ -63,10 +72,16 @@ static WOWS_CONTEXT *open_depack(const char *game_dir) {
     if (wows_get_latest_idx_dir(const_cast<char *>(game_dir), &idx_dir) != 0 || !idx_dir)
         return nullptr;
     WOWS_CONTEXT *ctx = wows_init_context(WOWS_NO_DEBUG);
-    if (!ctx) { free(idx_dir); return nullptr; }
+    if (!ctx) {
+        free(idx_dir);
+        return nullptr;
+    }
     int ret = wows_parse_index_dir(idx_dir, ctx);
     free(idx_dir);
-    if (ret != 0) { wows_free_context(ctx); return nullptr; }
+    if (ret != 0) {
+        wows_free_context(ctx);
+        return nullptr;
+    }
     return ctx;
 }
 
@@ -75,22 +90,28 @@ static std::vector<uint8_t> depack_search_read(WOWS_CONTEXT *ctx, const char *pa
     char **results = nullptr;
     if (wows_search(ctx, const_cast<char *>(pattern), WOWS_SEARCH_FULL_PATH, &count, &results) != 0 || count == 0) {
         if (results) {
-            for (int i = 0; i < count; i++) free(results[i]);
+            for (int i = 0; i < count; i++)
+                free(results[i]);
             free(results);
         }
         return {};
     }
     std::string path(results[0]);
-    for (int i = 0; i < count; i++) free(results[i]);
+    for (int i = 0; i < count; i++)
+        free(results[i]);
     free(results);
 
     char *buf = nullptr;
     size_t sz = 0;
     FILE *fp = open_memstream(&buf, &sz);
-    if (!fp) return {};
+    if (!fp)
+        return {};
     int ret = wows_extract_file_fp(ctx, const_cast<char *>(path.c_str()), fp);
     fclose(fp);
-    if (ret != 0) { free(buf); return {}; }
+    if (ret != 0) {
+        free(buf);
+        return {};
+    }
     std::vector<uint8_t> data(buf, buf + sz);
     free(buf);
     return data;
@@ -145,28 +166,28 @@ int main(int argc, char **argv) {
         return 1;
 
     std::string nation_filter = args.nation ? str_lower(args.nation) : "";
-    std::string type_filter   = args.type   ? str_lower(args.type)   : "";
+    std::string type_filter = args.type ? str_lower(args.type) : "";
 
     std::sort(ships.begin(), ships.end(), [](const wows_ship_entry &a, const wows_ship_entry &b) {
-        if (a.nation != b.nation) return a.nation < b.nation;
-        if (a.type   != b.type)   return a.type   < b.type;
-        if (a.tier   != b.tier)   return a.tier   < b.tier;
+        if (a.nation != b.nation)
+            return a.nation < b.nation;
+        if (a.type != b.type)
+            return a.type < b.type;
+        if (a.tier != b.tier)
+            return a.tier < b.tier;
         return a.key < b.key;
     });
 
     int tier_filter = args.tier;
 
     printf("%-20s %-12s %-20s %-20s %-5s\n", "Key", "Index", "Nation", "Type", "Tier");
-    printf("%-20s %-12s %-20s %-20s %-5s\n",
-           "--------------------", "------------",
-           "--------------------", "--------------------", "-----");
+    printf("%-20s %-12s %-20s %-20s %-5s\n", "--------------------", "------------", "--------------------",
+           "--------------------", "-----");
 
     for (const auto &s : ships) {
-        if (!nation_filter.empty() &&
-            str_lower(s.nation).find(nation_filter) == std::string::npos)
+        if (!nation_filter.empty() && str_lower(s.nation).find(nation_filter) == std::string::npos)
             continue;
-        if (!type_filter.empty() &&
-            str_lower(s.type).find(type_filter) == std::string::npos)
+        if (!type_filter.empty() && str_lower(s.type).find(type_filter) == std::string::npos)
             continue;
         if (tier_filter >= 0 && s.tier != tier_filter)
             continue;
@@ -175,9 +196,8 @@ int main(int argc, char **argv) {
             snprintf(tier_str, sizeof(tier_str), "%d", s.tier);
         else
             snprintf(tier_str, sizeof(tier_str), "?");
-        printf("%-20s %-12s %-20s %-20s %-5s\n",
-               s.key.c_str(), s.index.c_str(),
-               s.nation.c_str(), s.type.c_str(), tier_str);
+        printf("%-20s %-12s %-20s %-20s %-5s\n", s.key.c_str(), s.index.c_str(), s.nation.c_str(), s.type.c_str(),
+               tier_str);
     }
 
     return 0;

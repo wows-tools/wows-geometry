@@ -169,8 +169,9 @@ function(SETUP_TARGET_FOR_COVERAGE)
   add_custom_command(
     TARGET ${Coverage_NAME}
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo
-            "Open ./${Coverage_NAME}/index.html in your browser to view the coverage report."
+    COMMAND
+      ${CMAKE_COMMAND} -E echo
+      "Open ./${Coverage_NAME}/index.html in your browser to view the coverage report."
     VERBATIM)
 
 endfunction() # SETUP_TARGET_FOR_COVERAGE

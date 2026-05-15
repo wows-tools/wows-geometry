@@ -22,10 +22,10 @@ void wows_stitch_set_verbose(bool v) {
     wows_stitch_verbose = v;
     wows_assets_bin_verbose = v;
 }
-#define vlog(tag, fmt, ...)                                                                                           \
+#define vlog(tag, fmt, ...)                                                                                            \
     do {                                                                                                               \
-        if (wows_stitch_verbose)                                                                                          \
-            fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__);                                                         \
+        if (wows_stitch_verbose)                                                                                       \
+            fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__);                                                          \
     } while (0)
 
 /* ── path / file utilities ───────────────────────────────────────── */
@@ -337,8 +337,10 @@ static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tiny
             pos[j * 3 + 2] = z;
             for (int i = 0; i < 3; i++) {
                 float c = (i == 0 ? x : i == 1 ? y : z);
-                if (c < mn[i]) mn[i] = c;
-                if (c > mx[i]) mx[i] = c;
+                if (c < mn[i])
+                    mn[i] = c;
+                if (c > mx[i])
+                    mx[i] = c;
             }
             uint32_t pn, puv;
             memcpy(&pn, v + 12, 4);
@@ -389,9 +391,11 @@ static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tiny
             for (uint32_t j = 0; j < icnt; ++j) {
                 uint16_t tv;
                 memcpy(&tv, raw + j * 2, 2);
-                if ((uint32_t)tv > raw_max) raw_max = tv;
+                if ((uint32_t)tv > raw_max)
+                    raw_max = tv;
             }
-            if (raw_max + vbase > 65535u) out_is = 4;
+            if (raw_max + vbase > 65535u)
+                out_is = 4;
         }
         iinfo[i].idx_size = out_is;
         pad4();
@@ -443,7 +447,8 @@ static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tiny
 
     std::vector<int> pos_acc(n_vt, -1), norm_acc(n_vt, -1), uv_acc(n_vt, -1);
     for (uint32_t k = 0; k < n_vt; ++k) {
-        if (!vinfo[k].count) continue;
+        if (!vinfo[k].count)
+            continue;
         uint32_t vc = vinfo[k].count;
         int bvp = add_bv(vinfo[k].pos_bv, vc * 12, TINYGLTF_TARGET_ARRAY_BUFFER);
         int bvn = add_bv(vinfo[k].norm_bv, vc * 12, TINYGLTF_TARGET_ARRAY_BUFFER);
@@ -458,13 +463,15 @@ static bool geom_to_model_impl(wows_geometry *geom, const std::string &tag, tiny
 
     tinygltf::Mesh mesh;
     for (uint32_t i = 0; i < n_ibloc; ++i) {
-        if (!iinfo[i].count) continue;
+        if (!iinfo[i].count)
+            continue;
         uint16_t k = iinfo[i].vtype;
-        if (k >= n_vt || pos_acc[k] < 0) continue;
-        int bvi = add_bv(iinfo[i].bv_off, (size_t)iinfo[i].count * iinfo[i].idx_size,
-                         TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER);
-        int comp = (iinfo[i].idx_size == 2) ? TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
-                                            : TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+        if (k >= n_vt || pos_acc[k] < 0)
+            continue;
+        int bvi =
+            add_bv(iinfo[i].bv_off, (size_t)iinfo[i].count * iinfo[i].idx_size, TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER);
+        int comp =
+            (iinfo[i].idx_size == 2) ? TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT : TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
         int ia = add_acc(bvi, comp, TINYGLTF_TYPE_SCALAR, iinfo[i].count);
         tinygltf::Primitive prim;
         prim.attributes["POSITION"] = pos_acc[k];
@@ -641,12 +648,14 @@ static std::map<uint32_t, uint32_t> read_geom_tri_counts(const std::string &path
 }
 
 static std::vector<uint32_t> read_geom_mapping_ids_from_mem(const uint8_t *data, size_t size) {
-    if (size < 72) return {};
+    if (size < 72)
+        return {};
     uint32_t n;
     memcpy(&n, data + 12, 4);
     uint64_t off;
     memcpy(&off, data + 32, 8);
-    if (off + (uint64_t)n * 16 > size) return {};
+    if (off + (uint64_t)n * 16 > size)
+        return {};
     std::vector<uint32_t> ids;
     for (uint32_t i = 0; i < n; ++i) {
         uint32_t mid;
@@ -657,12 +666,14 @@ static std::vector<uint32_t> read_geom_mapping_ids_from_mem(const uint8_t *data,
 }
 
 static std::map<uint32_t, uint32_t> read_geom_tri_counts_from_mem(const uint8_t *data, size_t size) {
-    if (size < 72) return {};
+    if (size < 72)
+        return {};
     uint32_t n;
     memcpy(&n, data + 12, 4);
     uint64_t off;
     memcpy(&off, data + 32, 8);
-    if (off + (uint64_t)n * 16 > size) return {};
+    if (off + (uint64_t)n * 16 > size)
+        return {};
     std::map<uint32_t, uint32_t> r;
     for (uint32_t i = 0; i < n; ++i) {
         uint32_t mid, cnt;
@@ -695,16 +706,15 @@ static std::string find_texture(const std::string &dir, const std::string &st, c
     return "";
 }
 
-static std::vector<uint8_t> load_texture_bytes(
-    const std::string &tdir, const std::string &tstem,
-    const char *channel, const std::string &game_dir,
-    wows_file_provider_t file_provider, int max_sz)
-{
+static std::vector<uint8_t> load_texture_bytes(const std::string &tdir, const std::string &tstem, const char *channel,
+                                               const std::string &game_dir, wows_file_provider_t file_provider,
+                                               int max_sz) {
     std::string dds = find_texture(tdir, tstem, channel);
     if (!dds.empty())
         return wows_stitch_dds_to_png(dds, max_sz);
 
-    if (!file_provider) return {};
+    if (!file_provider)
+        return {};
 
     std::string mdir = wows_stitch_normalize_slashes(tdir);
     if (mdir.size() > game_dir.size() && mdir.compare(0, game_dir.size(), game_dir) == 0)
@@ -726,7 +736,8 @@ static std::vector<uint8_t> load_texture_bytes(
             auto buf = file_provider(rel);
             if (!buf.empty()) {
                 auto png = wows_stitch_dds_to_png_from_memory(buf.data(), buf.size(), max_sz);
-                if (!png.empty()) return png;
+                if (!png.empty())
+                    return png;
             }
         }
     }
@@ -758,10 +769,10 @@ static int best_lod(const wows_assets_bin_visual_info_t *vi, const std::set<uint
 
 /* ── texture application ────────────────────────────────────────── */
 
-void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order, wows_assets_bin_pdb_t *pdb,
-                           const std::string &game_dir, int lod_level, bool excl_damage, int max_tex,
-                           std::function<void(int)> progress_cb,
-                           wows_file_provider_t file_provider) {
+void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::string> &geom_order,
+                                wows_assets_bin_pdb_t *pdb, const std::string &game_dir, int lod_level,
+                                bool excl_damage, int max_tex, std::function<void(int)> progress_cb,
+                                wows_file_provider_t file_provider) {
     if (!pdb || geom_order.empty())
         return;
 
@@ -827,15 +838,20 @@ void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::s
 
     /* denominator for per-geometry progress within each phase */
     size_t n_geoms = geom_order.size();
-    if (n_geoms == 0) return;
-    auto report = [&](int pct) { if (progress_cb) progress_cb(pct); };
+    if (n_geoms == 0)
+        return;
+    auto report = [&](int pct) {
+        if (progress_cb)
+            progress_cb(pct);
+    };
 
     /* strip game_dir prefix to produce archive-relative path */
     auto geom_rel = [&](const std::string &p) -> std::string {
         std::string r = wows_stitch_normalize_slashes(p);
         if (r.size() > game_dir.size() && r.compare(0, game_dir.size(), game_dir) == 0)
             r = r.substr(game_dir.size());
-        if (!r.empty() && r[0] == '/') r = r.substr(1);
+        if (!r.empty() && r[0] == '/')
+            r = r.substr(1);
         return r;
     };
 
@@ -929,8 +945,8 @@ void wows_stitch_apply_textures(tinygltf::Model &model, const std::vector<std::s
                     }
                     int mat = ensure_mat(tstem, png);
                     gt.geo_map_mat[geo_map_id] = mat;
-                    vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n",
-                         tstem.c_str(), mat, png.size() / 1024);
+                    vlog(geom_tag.c_str(), "albedo %s → material slot %d (%zuKB)\n", tstem.c_str(), mat,
+                         png.size() / 1024);
                 }
                 wows_assets_bin_visual_info_free(vi);
             }

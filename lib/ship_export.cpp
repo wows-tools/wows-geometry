@@ -16,7 +16,11 @@ extern "C" {
 #include <cstdio>
 #include <functional>
 #include <map>
-#define vlog(tag, fmt, ...) do { if (wows_stitch_verbose) fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__); } while (0)
+#define vlog(tag, fmt, ...)                                                                                            \
+    do {                                                                                                               \
+        if (wows_stitch_verbose)                                                                                       \
+            fprintf(stderr, "[%s] " fmt, tag, ##__VA_ARGS__);                                                          \
+    } while (0)
 #include <memory>
 #include <set>
 #include <sstream>
@@ -31,10 +35,16 @@ static WOWS_CONTEXT *ship_open_depack(const std::string &game_dir) {
     if (wows_get_latest_idx_dir(const_cast<char *>(game_dir.c_str()), &idx_dir) != 0 || !idx_dir)
         return nullptr;
     WOWS_CONTEXT *ctx = wows_init_context(WOWS_NO_DEBUG);
-    if (!ctx) { free(idx_dir); return nullptr; }
+    if (!ctx) {
+        free(idx_dir);
+        return nullptr;
+    }
     int ret = wows_parse_index_dir(idx_dir, ctx);
     free(idx_dir);
-    if (ret != 0) { wows_free_context(ctx); return nullptr; }
+    if (ret != 0) {
+        wows_free_context(ctx);
+        return nullptr;
+    }
     return ctx;
 }
 
@@ -43,10 +53,14 @@ static std::vector<uint8_t> ship_depack_read(WOWS_CONTEXT *ctx, const std::strin
     char *buf = nullptr;
     size_t sz = 0;
     FILE *fp = open_memstream(&buf, &sz);
-    if (!fp) return {};
+    if (!fp)
+        return {};
     int ret = wows_extract_file_fp(ctx, const_cast<char *>(archive_path.c_str()), fp);
     fclose(fp);
-    if (ret != 0) { free(buf); return {}; }
+    if (ret != 0) {
+        free(buf);
+        return {};
+    }
     std::vector<uint8_t> result(buf, buf + sz);
     free(buf);
     return result;
@@ -83,13 +97,9 @@ static std::string ship_to_rel(const std::string &abs_path, const std::string &n
 
 /* ── in-memory export (core implementation) ─────────────────────── */
 
-bool wows_stitch_export_ship_to_glb_mem(
-    const std::string &game_dir,
-    const std::string &ship_name,
-    std::vector<uint8_t> &glb_out,
-    const wows_ship_export_options &opts,
-    wows_file_provider_t file_provider)
-{
+bool wows_stitch_export_ship_to_glb_mem(const std::string &game_dir, const std::string &ship_name,
+                                        std::vector<uint8_t> &glb_out, const wows_ship_export_options &opts,
+                                        wows_file_provider_t file_provider) {
     std::string norm_dir = wows_stitch_normalize_slashes(game_dir);
 
     const bool gp_from_mem = !opts.gameparams_data.empty();
@@ -100,7 +110,8 @@ bool wows_stitch_export_ship_to_glb_mem(
             vlog("GameParams.data", "auto-detected: %s\n", gameparams_path.c_str());
     }
     if (!gp_from_mem && gameparams_path.empty()) {
-        vlog("GameParams.data", "not found under %s\n"
+        vlog("GameParams.data",
+             "not found under %s\n"
              "       Supply opts.gameparams_path to specify it explicitly.\n",
              norm_dir.c_str());
         return false;
@@ -119,18 +130,18 @@ bool wows_stitch_export_ship_to_glb_mem(
             wows_assets_bin_pdb_free(p);
     };
     std::unique_ptr<wows_assets_bin_pdb_t, decltype(pdb_deleter)> assets_pdb(nullptr, pdb_deleter);
-    const bool want_assets_bin =
-        opts.with_turrets || opts.with_textures || opts.exclude_damage || opts.with_propellers;
+    const bool want_assets_bin = opts.with_turrets || opts.with_textures || opts.exclude_damage || opts.with_propellers;
     if (want_assets_bin && (assets_from_mem || !assets_bin_path.empty())) {
-        wows_assets_bin_pdb_t *p = assets_from_mem
-            ? wows_assets_bin_pdb_open_memory(opts.assets_bin_data.data(), opts.assets_bin_data.size())
-            : wows_assets_bin_pdb_open(assets_bin_path.c_str());
+        wows_assets_bin_pdb_t *p =
+            assets_from_mem ? wows_assets_bin_pdb_open_memory(opts.assets_bin_data.data(), opts.assets_bin_data.size())
+                            : wows_assets_bin_pdb_open(assets_bin_path.c_str());
         assets_pdb.reset(p);
     }
     wows_assets_bin_pdb_t *assets_pdb_ptr = assets_pdb.get();
 
     vlog("GameParams.data", "loading …\n");
-    if (!Py_IsInitialized()) Py_Initialize();
+    if (!Py_IsInitialized())
+        Py_Initialize();
     wows_hull_info hull;
     const char *hull_sel = opts.hull_upgrade.empty() ? nullptr : opts.hull_upgrade.c_str();
     if (gp_from_mem) {
@@ -169,10 +180,8 @@ bool wows_stitch_export_ship_to_glb_mem(
         std::string base_gp = wows_stitch_model_to_geom_path(hull.hull_model, norm_dir);
         std::string ship_dir = wows_stitch_path_dirname(base_gp);
         std::string base_name = wows_stitch_stem(wows_stitch_path_basename(base_gp));
-        static const char *SUFFIXES[] = {
-            "_Bow","_BowFront","_Stern","_SternBack",
-            "_MidFront","_MidBack","_Mid","_Mid1","_Mid2","_Mid3",nullptr
-        };
+        static const char *SUFFIXES[] = {"_Bow", "_BowFront", "_Stern", "_SternBack", "_MidFront", "_MidBack",
+                                         "_Mid", "_Mid1",     "_Mid2",  "_Mid3",      nullptr};
         for (const char **s = SUFFIXES; *s; ++s) {
             std::string gp = ship_dir + "/" + base_name + *s + ".geometry";
             if (geom_exists(gp))
@@ -195,9 +204,9 @@ bool wows_stitch_export_ship_to_glb_mem(
         vlog("assets.bin", "loading HP transforms …\n");
         for (const auto &gp : hull_geoms) {
             std::string suffix = wows_stitch_geom_to_visual_suffix(gp);
-            wows_assets_bin_hp_list_t *hp =
-                wows_assets_bin_get_hp_transforms_pdb(assets_pdb_ptr, suffix.c_str());
-            if (!hp) continue;
+            wows_assets_bin_hp_list_t *hp = wows_assets_bin_get_hp_transforms_pdb(assets_pdb_ptr, suffix.c_str());
+            if (!hp)
+                continue;
             for (size_t i = 0; i < hp->count; ++i)
                 hp_transforms[hp->entries[i].name] = wows_stitch_float_to_double_mat(hp->entries[i].mat);
             wows_assets_bin_hp_list_free(hp);
@@ -212,7 +221,8 @@ bool wows_stitch_export_ship_to_glb_mem(
 
         if (!unique_models.empty()) {
             std::vector<const char *> ptrs;
-            for (const auto &s : unique_models) ptrs.push_back(s.c_str());
+            for (const auto &s : unique_models)
+                ptrs.push_back(s.c_str());
             wows_assets_bin_bb_list_t *bb =
                 wows_assets_bin_get_blendbone_corrections_pdb(assets_pdb_ptr, ptrs.data(), ptrs.size());
             if (bb) {
@@ -224,7 +234,10 @@ bool wows_stitch_export_ship_to_glb_mem(
         }
     }
 
-    auto report = [&](int pct) { if (opts.progress_cb) opts.progress_cb(pct); };
+    auto report = [&](int pct) {
+        if (opts.progress_cb)
+            opts.progress_cb(pct);
+    };
     size_t n_hull = hull_geoms.size() ? hull_geoms.size() : 1;
 
     std::vector<wows_glb_part> parts;
@@ -247,7 +260,8 @@ bool wows_stitch_export_ship_to_glb_mem(
     if (opts.with_turrets) {
         std::map<std::string, std::string> model_to_geom;
         for (const auto &m : hull.mounts) {
-            if (model_to_geom.count(m.model_path)) continue;
+            if (model_to_geom.count(m.model_path))
+                continue;
             std::string gp = wows_stitch_model_to_geom_path(m.model_path, norm_dir);
             model_to_geom[m.model_path] = geom_exists(gp) ? gp : "";
         }
@@ -271,8 +285,7 @@ bool wows_stitch_export_ship_to_glb_mem(
                 if (bb_it != bb_corrections.end())
                     transform = wows_stitch_mat4_mul_d(transform, bb_it->second);
             }
-            vlog(wows_stitch_path_basename(geom_path).c_str(),
-                 "loading turret geometry (%s) …\n", m.hp_name.c_str());
+            vlog(wows_stitch_path_basename(geom_path).c_str(), "loading turret geometry (%s) …\n", m.hp_name.c_str());
             wows_glb_part part;
             part.mesh_name = wows_stitch_stem(wows_stitch_path_basename(geom_path)) + " (" + m.hp_name + ")";
             part.geom_path = geom_path;
@@ -294,8 +307,7 @@ bool wows_stitch_export_ship_to_glb_mem(
                 geom_ptrs.push_back(gp.c_str());
 
             wows_assets_bin_propeller_list_t *prop_list = wows_assets_bin_get_propellers_pdb(
-                assets_pdb_ptr, hull.hull_model.c_str(),
-                geom_ptrs.data(), geom_ptrs.size());
+                assets_pdb_ptr, hull.hull_model.c_str(), geom_ptrs.data(), geom_ptrs.size());
 
             if (prop_list) {
                 /* Skel_ext bone Y is measured from the ship's keel (Y=0=keel),
@@ -329,8 +341,7 @@ bool wows_stitch_export_ship_to_glb_mem(
                 vlog(ship_name.c_str(), "propellers: %zu\n", prop_list->count);
                 for (size_t i = 0; i < prop_list->count; ++i) {
                     const wows_assets_bin_propeller_t &p = prop_list->entries[i];
-                    vlog(p.name, "position (%.3f, %.3f, %.3f)\n",
-                         p.mat[12], p.mat[13], p.mat[14]);
+                    vlog(p.name, "position (%.3f, %.3f, %.3f)\n", p.mat[12], p.mat[13], p.mat[14]);
                     std::string geom_full = norm_dir + "/" + p.geom_path;
                     wows_glb_part part;
                     part.mesh_name = p.name;
@@ -350,14 +361,14 @@ bool wows_stitch_export_ship_to_glb_mem(
     tinygltf::Model merged = wows_stitch_merge_parts(parts);
 
     if ((opts.with_textures || opts.exclude_damage) && assets_pdb_ptr) {
-        vlog(ship_name.c_str(), "applying visual info (textures=%s, damage=%s) …\n",
-             opts.with_textures ? "yes" : "no", opts.exclude_damage ? "excluded" : "included");
+        vlog(ship_name.c_str(), "applying visual info (textures=%s, damage=%s) …\n", opts.with_textures ? "yes" : "no",
+             opts.exclude_damage ? "excluded" : "included");
         std::vector<std::string> geom_order;
-        for (const auto &p : parts) geom_order.push_back(p.geom_path);
+        for (const auto &p : parts)
+            geom_order.push_back(p.geom_path);
         int tex_size = opts.with_textures ? opts.max_tex_size : 0;
-        wows_stitch_apply_textures(merged, geom_order, assets_pdb_ptr, norm_dir, opts.lod_level,
-                                   opts.exclude_damage, tex_size, opts.progress_cb,
-                                   file_provider);
+        wows_stitch_apply_textures(merged, geom_order, assets_pdb_ptr, norm_dir, opts.lod_level, opts.exclude_damage,
+                                   tex_size, opts.progress_cb, file_provider);
     } else if (opts.with_textures) {
         if (!assets_from_mem && assets_bin_path.empty())
             vlog("assets.bin", "not found — textures skipped\n");
@@ -379,7 +390,7 @@ bool wows_stitch_export_ship_to_glb_mem(
 /* ── file export (thin wrapper around the in-memory variant) ─────── */
 
 bool wows_stitch_export_ship(const std::string &game_dir, const std::string &ship_name, const std::string &output_path,
-                        const wows_ship_export_options &opts) {
+                             const wows_ship_export_options &opts) {
     std::string norm_dir = wows_stitch_normalize_slashes(game_dir);
 
     /* resolve GameParams.data and assets.bin from filesystem */
@@ -434,7 +445,8 @@ bool wows_stitch_export_ship(const std::string &game_dir, const std::string &shi
         resolved_opts.assets_bin_data = std::move(assets_bin_mem);
 
     if (resolved_opts.gameparams_path.empty() && resolved_opts.gameparams_data.empty()) {
-        vlog("GameParams.data", "not found under %s (filesystem or archive)\n"
+        vlog("GameParams.data",
+             "not found under %s (filesystem or archive)\n"
              "       Supply opts.gameparams_path to specify it explicitly.\n",
              norm_dir.c_str());
         cleanup();
@@ -445,15 +457,14 @@ bool wows_stitch_export_ship(const std::string &game_dir, const std::string &shi
     wows_file_provider_t file_provider = nullptr;
     if (dctx) {
         WOWS_CONTEXT *ctx = dctx;
-        file_provider = [ctx](const std::string &rel) -> std::vector<uint8_t> {
-            return ship_depack_read(ctx, rel);
-        };
+        file_provider = [ctx](const std::string &rel) -> std::vector<uint8_t> { return ship_depack_read(ctx, rel); };
     }
 
     std::vector<uint8_t> glb;
     bool ok = wows_stitch_export_ship_to_glb_mem(game_dir, ship_name, glb, resolved_opts, file_provider);
     cleanup();
-    if (!ok) return false;
+    if (!ok)
+        return false;
 
     /* write GLB to output file */
     FILE *f = fopen(output_path.c_str(), "wb");
