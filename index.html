@@ -132,6 +132,9 @@ wows-gltf-exporter: full ship GLB assembler</h2>
 </div><!-- fragment --><p>Hidden options (not shown in <code>--help</code>, but supported): <code>-g</code> / <code>--gameparams</code> and <code>-a</code> / <code>--assets-bin</code> to pass explicit paths to <code>GameParams.data</code> and <code>assets.bin</code>, this might be useful when working on unpacked resources (e.g. after extracting game all game files with <a href="https://github.com/wows-tools/wows-depack">wows-depack</a>) instead of relying on auto-detection under <code>-W</code>.</p>
 <p>export Kongo with all defaults: </p><div class="fragment"><div class="line">wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -o kongo.glb</div>
 </div><!-- fragment --><p>export Kongo specific hull, no turrets, Level of Detail 2 (LOD is 0 to 4, with 0 being the highest level): </p><div class="fragment"><div class="line">wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_lod2.glb</div>
+</div><!-- fragment --><p>To visualize and inspect the model, you can load it in <a href="https://sandbox.babylonjs.com/">babylonjs sandbox</a>, or locally, you can use <code>blender</code> or <code>f3d</code>:</p>
+<div class="fragment"><div class="line"># sudo apt install f3d # if not available</div>
+<div class="line">f3d kongo_hullb_lod2.glb</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md4"></a>
 wows-list-ships: enumerate available ships</h2>
 <p>Lists all ships found in <code>GameParams.data</code>, with optional filtering by nation or type:</p>
