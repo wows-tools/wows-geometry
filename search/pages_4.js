@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['tt_20geometry_20tt_20format_0',['WoWs &lt;tt&gt;.geometry&lt;/tt&gt; format',['../md__f_o_r_m_a_t.html',1,'']]]
+  ['model_20exporter_0',['wows-model-exporter',['../index.html',1,'']]],
+  ['model_20representation_1',['WoWs ship 3D model representation',['../md__m_o_d_e_l.html',1,'']]]
 ];
