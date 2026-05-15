@@ -27,10 +27,10 @@ var NAVTREE =
   [ "WoWs Model Exported", "index.html", [
     [ "wows-model-exporter", "index.html", "index" ],
     [ "WoWs ship 3D model representation", "md__m_o_d_e_l.html", [
-      [ "Overview — linking game files to a ship GLB", "md__m_o_d_e_l.html#autotoc_md6", [
-        [ "Draw-call mapping IDs", "md__m_o_d_e_l.html#autotoc_md7", null ]
+      [ "Contents", "md__m_o_d_e_l.html#autotoc_md6", null ],
+      [ "Overview", "md__m_o_d_e_l.html#autotoc_md7", [
+        [ "Draw-call mapping IDs", "md__m_o_d_e_l.html#autotoc_md8", null ]
       ] ],
-      [ "Contents", "md__m_o_d_e_l.html#autotoc_md8", null ],
       [ "Ship parts and LOD", "md__m_o_d_e_l.html#autotoc_md9", [
         [ "File naming", "md__m_o_d_e_l.html#autotoc_md10", null ],
         [ "Render-set LOD (in <tt>assets.bin</tt>)", "md__m_o_d_e_l.html#autotoc_md11", null ],

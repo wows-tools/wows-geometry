@@ -251,7 +251,7 @@ Index type metadata (16 bytes each)</h2>
 ENCD block</h2>
 <p>Vertex and index payloads share the same ENCD container, compressed with meshoptimizer.</p>
 <div class="fragment"><div class="line">[4 bytes] magic = 0x44434E45 (&quot;ENCD&quot; as little-endian uint32)</div>
-<div class="line">[4 bytes] element_count (uint32 LE) — number of vertices or indices</div>
+<div class="line">[4 bytes] element_count (uint32 LE) - number of vertices or indices</div>
 <div class="line">[N bytes] meshoptimizer-encoded payload</div>
 </div><!-- fragment --><p>Decoding:</p><ul>
 <li>Vertices: <code>meshopt_decodeVertexBuffer(dst, element_count, stride, payload, payload_size)</code></li>

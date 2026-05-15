@@ -98,23 +98,32 @@ $(document).ready(function(){initNavTree('md__m_o_d_e_l.html',''); initResizable
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md5"></a> How World of Warships assembles a ship mesh for export: param lookup, part files, scene graph (<code>assets.bin</code>), materials, and textures. Raw <code>.geometry</code> byte layout is documented in <a class="el" href="md__g_e_o_m_e_t_r_y.html">GEOMETRY.md</a>.</p>
 <h1><a class="anchor" id="autotoc_md6"></a>
-Overview — linking game files to a ship GLB</h1>
-<p>Cross-references below match <code>wows-gltf-exporter</code> (<code>lib/stitch.cpp</code>, <code>lib/ship_export.cpp</code>). Armor blocs are documented in the format but not yet read by the exporter.</p>
+Contents</h1>
+<ul>
+<li>Overview — linking game files to a ship GLB</li>
+<li>Draw-call mapping IDs</li>
+<li>Ship parts and LOD</li>
+<li>Coordinate system</li>
+<li>GameParams.data</li>
+<li>assets.bin</li>
+<li>Texture files</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md7"></a>
+Overview</h1>
+<p>Here is how the game files fit together to construct a ship model:</p>
 <div class="fragment"><div class="line">flowchart TB</div>
 <div class="line">    subgraph GP[&quot;GameParams.data&quot;]</div>
 <div class="line">        ship[&quot;ship param e.g. PJSB007&quot;]</div>
 <div class="line">        upgrade[&quot;ShipUpgradeInfo → hull upgrade&quot;]</div>
 <div class="line">        hullModel[&quot;HullComp.model path&quot;]</div>
-<div class="line">        armorGP[&quot;HullComp.armor keys&quot;]</div>
 <div class="line">        mountsGP[&quot;ArtComp HP_* → mount .model&quot;]</div>
 <div class="line">    end</div>
 <div class="line"> </div>
-<div class="line">    subgraph GEO[&quot;.geometry per ship part&quot;]</div>
+<div class="line">    subgraph GEOM[&quot;.geometry per ship part&quot;]</div>
 <div class="line">        geomFiles[&quot;ShipName.geometry, _Bow, _MidFront, …&quot;]</div>
 <div class="line">        s1[&quot;section_1 vertex bloc map&quot;]</div>
 <div class="line">        s2[&quot;section_2 index bloc map&quot;]</div>
 <div class="line">        encd[&quot;ENCD merged vertex / index buffers&quot;]</div>
-<div class="line">        armorGeo[&quot;armor blocs @ off_armor_models&quot;]</div>
 <div class="line">    end</div>
 <div class="line"> </div>
 <div class="line">    subgraph AB[&quot;assets.bin&quot;]</div>
@@ -141,7 +150,7 @@ Overview — linking game files to a ship GLB</h1>
 <div class="line">    geomFiles --&gt; s2</div>
 <div class="line">    geomFiles --&gt; encd</div>
 <div class="line">    s1 &lt;--&gt;|&quot;packed_texel_density&quot;| s2</div>
-<div class="line">    armorGP --&gt;|&quot;model_index in key&quot;| armorGeo</div>
+<div class="line">    armorGP --&gt;|&quot;model_index in key&quot;| armorGeom</div>
 <div class="line"> </div>
 <div class="line">    geomFiles &lt;--&gt;|&quot;same path, .visual suffix&quot;| visual</div>
 <div class="line">    visual --&gt; rs</div>
@@ -161,7 +170,7 @@ Overview — linking game files to a ship GLB</h1>
 <div class="line">    rs --&gt; hullOut</div>
 <div class="line">    lods --&gt; hullOut</div>
 <div class="line">    dds --&gt; hullOut</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
 Draw-call mapping IDs</h2>
 <div class="fragment"><div class="line">flowchart LR</div>
 <div class="line">    subgraph geom[&quot;.geometry&quot;]</div>
@@ -185,19 +194,6 @@ Draw-call mapping IDs</h2>
 <div class="line">    mfm --&gt; dds[&quot;stem_a / stem_n / stem_mg textures&quot;]</div>
 <div class="line">    names --&gt; dmg</div>
 </div><!-- fragment --><p>See <a href="GEOMETRY.md#draw-call-matching">draw-call matching</a> for how vertex and index blocs are paired inside a <code>.geometry</code> file.</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
-Contents</h1>
-<ul>
-<li>Overview — linking game files to a ship GLB<ul>
-<li>Draw-call mapping IDs</li>
-</ul>
-</li>
-<li>Ship parts and LOD</li>
-<li>Coordinate system</li>
-<li>GameParams.data</li>
-<li>assets.bin</li>
-<li>Texture files</li>
-</ul>
 <h1><a class="anchor" id="autotoc_md9"></a>
 Ship parts and LOD</h1>
 <h2><a class="anchor" id="autotoc_md10"></a>

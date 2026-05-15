@@ -9,6 +9,6 @@ var searchData=
   ['debug_5flevel_6',['debug_level',['../struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html#ae75c1ab19ff77896df24af10974f6b85',1,'WOWS_GEOMETRY_CONTEXT']]],
   ['decode_7',['Vertex layout (after ENCD decode)',['../md__g_e_o_m_e_t_r_y.html#autotoc_md37',1,'']]],
   ['decoding_8',['DDS texture decoding',['../group__wows__stitch__dds.html',1,'']]],
-  ['draw_20call_20mapping_20ids_9',['Draw-call mapping IDs',['../md__m_o_d_e_l.html#autotoc_md7',1,'']]],
+  ['draw_20call_20mapping_20ids_9',['Draw-call mapping IDs',['../md__m_o_d_e_l.html#autotoc_md8',1,'']]],
   ['draw_20call_20matching_10',['Draw-call matching',['../md__g_e_o_m_e_t_r_y.html#autotoc_md33',1,'']]]
 ];

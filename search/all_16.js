@@ -12,14 +12,13 @@ var searchData=
   ['set_20and_20lod_20info_9',['Visual render-set and LOD info',['../group__assets__visual.html',1,'']]],
   ['set_20lod_20in_20tt_20assets_20bin_20tt_10',['Render-set LOD (in &lt;tt&gt;assets.bin&lt;/tt&gt;)',['../md__m_o_d_e_l.html#autotoc_md11',1,'']]],
   ['ship_203d_20model_20representation_11',['WoWs ship 3D model representation',['../md__m_o_d_e_l.html',1,'']]],
-  ['ship_20glb_12',['Overview — linking game files to a ship GLB',['../md__m_o_d_e_l.html#autotoc_md6',1,'']]],
-  ['ship_20glb_20assembler_13',['wows-gltf-exporter: full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
-  ['ship_20parts_20and_20lod_14',['Ship parts and LOD',['../md__m_o_d_e_l.html#autotoc_md9',1,'']]],
-  ['ships_15',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
-  ['ships_3a_20enumerate_20available_20ships_16',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
-  ['shot_20helpers_17',['One-shot helpers',['../group__assets__oneshot.html',1,'']]],
-  ['storage_20base_20tt_200x50_20tt_18',['Path storage (base = &lt;tt&gt;0x50&lt;/tt&gt;)',['../md__m_o_d_e_l.html#autotoc_md21',1,'']]],
-  ['strings_20section_20base_20tt_200x10_20tt_19',['Strings section (base = &lt;tt&gt;0x10&lt;/tt&gt;)',['../md__m_o_d_e_l.html#autotoc_md19',1,'']]],
-  ['structures_20',['Binary structures',['../md__g_e_o_m_e_t_r_y.html#autotoc_md30',1,'']]],
-  ['system_21',['Coordinate system',['../md__m_o_d_e_l.html#autotoc_md13',1,'']]]
+  ['ship_20glb_20assembler_12',['wows-gltf-exporter: full ship GLB assembler',['../index.html#autotoc_md3',1,'']]],
+  ['ship_20parts_20and_20lod_13',['Ship parts and LOD',['../md__m_o_d_e_l.html#autotoc_md9',1,'']]],
+  ['ships_14',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['ships_3a_20enumerate_20available_20ships_15',['wows-list-ships: enumerate available ships',['../index.html#autotoc_md4',1,'']]],
+  ['shot_20helpers_16',['One-shot helpers',['../group__assets__oneshot.html',1,'']]],
+  ['storage_20base_20tt_200x50_20tt_17',['Path storage (base = &lt;tt&gt;0x50&lt;/tt&gt;)',['../md__m_o_d_e_l.html#autotoc_md21',1,'']]],
+  ['strings_20section_20base_20tt_200x10_20tt_18',['Strings section (base = &lt;tt&gt;0x10&lt;/tt&gt;)',['../md__m_o_d_e_l.html#autotoc_md19',1,'']]],
+  ['structures_19',['Binary structures',['../md__g_e_o_m_e_t_r_y.html#autotoc_md30',1,'']]],
+  ['system_20',['Coordinate system',['../md__m_o_d_e_l.html#autotoc_md13',1,'']]]
 ];
