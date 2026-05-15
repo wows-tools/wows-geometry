@@ -27,48 +27,48 @@ var NAVTREE =
   [ "WoWs Model Exported", "index.html", [
     [ "wows-model-exporter", "index.html", "index" ],
     [ "WoWs ship 3D model representation", "md__m_o_d_e_l.html", [
-      [ "Contents", "md__m_o_d_e_l.html#autotoc_md6", null ],
-      [ "Overvall Layout", "md__m_o_d_e_l.html#autotoc_md7", [
-        [ "Draw-call mapping IDs", "md__m_o_d_e_l.html#autotoc_md8", null ]
+      [ "Contents", "md__m_o_d_e_l.html#autotoc_md14", null ],
+      [ "Overvall Layout", "md__m_o_d_e_l.html#autotoc_md15", [
+        [ "Draw-call mapping IDs", "md__m_o_d_e_l.html#autotoc_md16", null ]
       ] ],
-      [ "Ship parts and LOD", "md__m_o_d_e_l.html#autotoc_md9", [
-        [ "File naming", "md__m_o_d_e_l.html#autotoc_md10", null ],
-        [ "Render-set LOD (in <tt>assets.bin</tt>)", "md__m_o_d_e_l.html#autotoc_md11", null ],
-        [ "Damage and cross-section geometry", "md__m_o_d_e_l.html#autotoc_md12", null ]
+      [ "Ship parts and LOD", "md__m_o_d_e_l.html#autotoc_md17", [
+        [ "File naming", "md__m_o_d_e_l.html#autotoc_md18", null ],
+        [ "Render-set LOD (in <tt>assets.bin</tt>)", "md__m_o_d_e_l.html#autotoc_md19", null ],
+        [ "Damage and cross-section geometry", "md__m_o_d_e_l.html#autotoc_md20", null ]
       ] ],
-      [ "Coordinate system", "md__m_o_d_e_l.html#autotoc_md13", null ],
-      [ "GameParams.data", "md__m_o_d_e_l.html#autotoc_md14", [
-        [ "Armor key encoding", "md__m_o_d_e_l.html#autotoc_md15", null ]
+      [ "Coordinate system", "md__m_o_d_e_l.html#autotoc_md21", null ],
+      [ "GameParams.data", "md__m_o_d_e_l.html#autotoc_md22", [
+        [ "Armor key encoding", "md__m_o_d_e_l.html#autotoc_md23", null ]
       ] ],
-      [ "assets.bin (BigWorld PrototypeDatabase)", "md__m_o_d_e_l.html#autotoc_md16", [
-        [ "File header (16 bytes)", "md__m_o_d_e_l.html#autotoc_md17", null ],
-        [ "Body layout", "md__m_o_d_e_l.html#autotoc_md18", null ],
-        [ "Strings section (base = <tt>0x10</tt>)", "md__m_o_d_e_l.html#autotoc_md19", null ],
-        [ "R2P map (base = <tt>0x38</tt>)", "md__m_o_d_e_l.html#autotoc_md20", null ],
-        [ "Path storage (base = <tt>0x50</tt>)", "md__m_o_d_e_l.html#autotoc_md21", null ],
-        [ "Databases array (base = <tt>0x60</tt> in body; relptr base = body base)", "md__m_o_d_e_l.html#autotoc_md22", null ],
-        [ "VisualPrototype", "md__m_o_d_e_l.html#autotoc_md23", null ],
-        [ "RenderSet (0x28 = 40 bytes each)", "md__m_o_d_e_l.html#autotoc_md24", null ],
-        [ "LOD entry (16 bytes each)", "md__m_o_d_e_l.html#autotoc_md25", null ]
+      [ "assets.bin (BigWorld PrototypeDatabase)", "md__m_o_d_e_l.html#autotoc_md24", [
+        [ "File header (16 bytes)", "md__m_o_d_e_l.html#autotoc_md25", null ],
+        [ "Body layout", "md__m_o_d_e_l.html#autotoc_md26", null ],
+        [ "Strings section (base = <tt>0x10</tt>)", "md__m_o_d_e_l.html#autotoc_md27", null ],
+        [ "R2P map (base = <tt>0x38</tt>)", "md__m_o_d_e_l.html#autotoc_md28", null ],
+        [ "Path storage (base = <tt>0x50</tt>)", "md__m_o_d_e_l.html#autotoc_md29", null ],
+        [ "Databases array (base = <tt>0x60</tt> in body; relptr base = body base)", "md__m_o_d_e_l.html#autotoc_md30", null ],
+        [ "VisualPrototype", "md__m_o_d_e_l.html#autotoc_md31", null ],
+        [ "RenderSet (0x28 = 40 bytes each)", "md__m_o_d_e_l.html#autotoc_md32", null ],
+        [ "LOD entry (16 bytes each)", "md__m_o_d_e_l.html#autotoc_md33", null ]
       ] ],
-      [ "Texture files", "md__m_o_d_e_l.html#autotoc_md26", null ]
+      [ "Texture files", "md__m_o_d_e_l.html#autotoc_md34", null ]
     ] ],
     [ "WoWs .geometry file format", "md__g_e_o_m_e_t_r_y.html", [
-      [ "Contents", "md__g_e_o_m_e_t_r_y.html#autotoc_md28", null ],
-      [ "File layout", "md__g_e_o_m_e_t_r_y.html#autotoc_md29", null ],
-      [ "Binary structures", "md__g_e_o_m_e_t_r_y.html#autotoc_md30", [
-        [ "Header (72 bytes)", "md__g_e_o_m_e_t_r_y.html#autotoc_md31", null ],
-        [ "Vertex / index bloc mapping (16 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md32", null ],
-        [ "Draw-call matching", "md__g_e_o_m_e_t_r_y.html#autotoc_md33", null ],
-        [ "Vertex type metadata (32 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md34", null ],
-        [ "Index type metadata (16 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md35", null ],
-        [ "ENCD block", "md__g_e_o_m_e_t_r_y.html#autotoc_md36", null ],
-        [ "Vertex layout (after ENCD decode)", "md__g_e_o_m_e_t_r_y.html#autotoc_md37", [
-          [ "Attribute encoding", "md__g_e_o_m_e_t_r_y.html#autotoc_md38", null ],
-          [ "Vertex type layouts", "md__g_e_o_m_e_t_r_y.html#autotoc_md39", null ]
+      [ "Contents", "md__g_e_o_m_e_t_r_y.html#autotoc_md36", null ],
+      [ "File layout", "md__g_e_o_m_e_t_r_y.html#autotoc_md37", null ],
+      [ "Binary structures", "md__g_e_o_m_e_t_r_y.html#autotoc_md38", [
+        [ "Header (72 bytes)", "md__g_e_o_m_e_t_r_y.html#autotoc_md39", null ],
+        [ "Vertex / index bloc mapping (16 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md40", null ],
+        [ "Draw-call matching", "md__g_e_o_m_e_t_r_y.html#autotoc_md41", null ],
+        [ "Vertex type metadata (32 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md42", null ],
+        [ "Index type metadata (16 bytes each)", "md__g_e_o_m_e_t_r_y.html#autotoc_md43", null ],
+        [ "ENCD block", "md__g_e_o_m_e_t_r_y.html#autotoc_md44", null ],
+        [ "Vertex layout (after ENCD decode)", "md__g_e_o_m_e_t_r_y.html#autotoc_md45", [
+          [ "Attribute encoding", "md__g_e_o_m_e_t_r_y.html#autotoc_md46", null ],
+          [ "Vertex type layouts", "md__g_e_o_m_e_t_r_y.html#autotoc_md47", null ]
         ] ],
-        [ "Collision model data", "md__g_e_o_m_e_t_r_y.html#autotoc_md40", null ],
-        [ "Armor model data", "md__g_e_o_m_e_t_r_y.html#autotoc_md41", null ]
+        [ "Collision model data", "md__g_e_o_m_e_t_r_y.html#autotoc_md48", null ],
+        [ "Armor model data", "md__g_e_o_m_e_t_r_y.html#autotoc_md49", null ]
       ] ]
     ] ],
     [ "Data Structures", "annotated.html", [

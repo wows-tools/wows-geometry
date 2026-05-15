@@ -96,16 +96,16 @@ $(document).ready(function(){initNavTree('md__g_e_o_m_e_t_r_y.html',''); initRes
   <div class="headertitle"><div class="title">WoWs .geometry file format</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md27"></a> Binary layout of the BigWorld <code>.geometry</code> container: merged vertex/index buffers, draw-call mapping tables, and <b>ENCD</b> payloads compressed with <a href="https://github.com/zeux/meshoptimizer">meshoptimizer</a>.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md35"></a> Binary layout of the BigWorld <code>.geometry</code> container: merged vertex/index buffers, draw-call mapping tables, and <b>ENCD</b> payloads compressed with <a href="https://github.com/zeux/meshoptimizer">meshoptimizer</a>.</p>
 <p>How this file connects to <code>GameParams.data</code>, <code>assets.bin</code>, and export is described in <a class="el" href="md__m_o_d_e_l.html">MODEL.md</a>.</p>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<h1><a class="anchor" id="autotoc_md36"></a>
 Contents</h1>
 <ul>
 <li>File layout</li>
 <li>Binary structures</li>
 <li>Collision and armor sections</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md37"></a>
 File layout</h1>
 <div class="fragment"><div class="line">[Header 72 bytes]</div>
 <div class="line">[Vertex Bloc Mapping table: n_vertex_bloc × 16 bytes]    ← at off_vertices_mapping (always 72)</div>
@@ -116,9 +116,9 @@ File layout</h1>
 <div class="line">[ENCD index data blocs]     ← pointed to by Index Type Metadata</div>
 <div class="line">[Collision model data]      ← at off_collision_models (if n_collision_bloc &gt; 0)</div>
 <div class="line">[Armor model data]          ← at off_armor_models (if n_armor_bloc &gt; 0)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md30"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md38"></a>
 Binary structures</h1>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md39"></a>
 Header (72 bytes)</h2>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
 <div class="line">packet-beta</div>
@@ -162,7 +162,7 @@ Header (72 bytes)</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>off_armor_models</code>   </td><td class="markdownTableBodyNone">64 bits   </td><td class="markdownTableBodyNone">Absolute offset to armor model data (0 if none)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md40"></a>
 Vertex / index bloc mapping (16 bytes each)</h2>
 <p>Array of <code>n_vertex_bloc</code> (or <code>n_index_bloc</code>) entries describing individual submesh ranges within the merged vertex/index buffers.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -186,7 +186,7 @@ Vertex / index bloc mapping (16 bytes each)</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>items_count</code>   </td><td class="markdownTableBodyNone">32 bits   </td><td class="markdownTableBodyNone">Number of elements (vertices or indices) for this submesh   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md33"></a>
+<h2><a class="anchor" id="autotoc_md41"></a>
 Draw-call matching</h2>
 <p>The <code>packed_texel_density</code> field in both vertex and index bloc mapping entries is the key that pairs them into a draw call. Within a <code>packed_texel_density</code> group:</p>
 <ol type="1">
@@ -195,7 +195,7 @@ Draw-call matching</h2>
 <li>The k-th index entry maps to the k-th vertex entry.</li>
 </ol>
 <p>Index values stored in each index bloc are zero-based relative to that draw call's vertex base (<code>vertex_bloc_map[j].items_offset</code>). When exporting, absolute vertex indices are computed as <code>raw_index + vertex_base</code>.</p>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md42"></a>
 Vertex type metadata (32 bytes each)</h2>
 <p>Array of <code>n_vertex_type</code> entries. Each describes a merged vertex buffer. All pointer fields are relative to the struct base address.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -226,7 +226,7 @@ Vertex type metadata (32 bytes each)</h2>
 <td class="markdownTableBodyNone"><code>b_flag_2</code>   </td><td class="markdownTableBodyNone">8 bits   </td><td class="markdownTableBodyNone">Reserved flag byte   </td></tr>
 </table>
 <p>The vertex type name is a null-terminated string at <code>struct_base + off_ver_bloc_end + 8</code> (all relative pointers are resolved from each metadata entry’s base address).</p>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md43"></a>
 Index type metadata (16 bytes each)</h2>
 <p>Array of <code>n_index_type</code> entries. Each describes a merged index buffer.</p>
 <div class="fragment"><div class="line">%%{init: { &#39;theme&#39;: &#39;forest&#39;, &#39;config&#39;: {&#39;bitsPerRow&#39;: 64, &#39;bitWidth&#39;: 15}}}%%</div>
@@ -247,7 +247,7 @@ Index type metadata (16 bytes each)</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>s_index_size</code>   </td><td class="markdownTableBodyNone">16 bits   </td><td class="markdownTableBodyNone">Bytes per index: 2 (uint16) or 4 (uint32)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md36"></a>
+<h2><a class="anchor" id="autotoc_md44"></a>
 ENCD block</h2>
 <p>Vertex and index payloads share the same ENCD container, compressed with meshoptimizer.</p>
 <div class="fragment"><div class="line">[4 bytes] magic = 0x44434E45 (&quot;ENCD&quot; as little-endian uint32)</div>
@@ -258,10 +258,10 @@ ENCD block</h2>
 <li>Indices: <code>meshopt_decodeIndexBuffer(dst_u32, element_count, 4, payload, payload_size)</code> then downcast each u32 to u16 if <code>s_index_size == 2</code>.</li>
 </ul>
 <p>If the magic does not match <code>ENCD</code>, the bloc is treated as raw (uncompressed) data.</p>
-<h2><a class="anchor" id="autotoc_md37"></a>
+<h2><a class="anchor" id="autotoc_md45"></a>
 Vertex layout (after ENCD decode)</h2>
 <p>Vertices are tightly packed at <code>s_vertex_size</code> bytes each. Fields present depend on the vertex type name. All multi-byte values are little-endian.</p>
-<h3><a class="anchor" id="autotoc_md38"></a>
+<h3><a class="anchor" id="autotoc_md46"></a>
 Attribute encoding</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -279,7 +279,7 @@ Attribute encoding</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">pc   </td><td class="markdownTableBodyNone">0 B   </td><td class="markdownTableBodyNone">Per-vertex color flag only — no bytes in buffer   </td></tr>
 </table>
-<h3><a class="anchor" id="autotoc_md39"></a>
+<h3><a class="anchor" id="autotoc_md47"></a>
 Vertex type layouts</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -307,7 +307,7 @@ Vertex type layouts</h3>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>set3/xyznuv2iiiwwtbpc</code>   </td><td class="markdownTableBodyNone">40   </td><td class="markdownTableBodyNone">xyz(12) + n(4) + uv0(4) + uv1(4) + iiiww(8) + t(4) + b(4)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md40"></a>
+<h2><a class="anchor" id="autotoc_md48"></a>
 Collision model data</h2>
 <p>Present when <code>n_collision_bloc &gt; 0</code> at <code>off_collision_models</code>.</p>
 <p>The binary format is <b>not yet fully reversed</b>. What is known:</p>
@@ -315,7 +315,7 @@ Collision model data</h2>
 <li>The number of blocs is <code>n_collision_bloc</code>.</li>
 <li>The section holds simplified hull geometry used for physics collision detection.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md41"></a>
+<h2><a class="anchor" id="autotoc_md49"></a>
 Armor model data</h2>
 <p>Present when <code>n_armor_bloc &gt; 0</code> at <code>off_armor_models</code>.</p>
 <p>The binary format is <b>not yet fully reversed</b>. What is known:</p>
