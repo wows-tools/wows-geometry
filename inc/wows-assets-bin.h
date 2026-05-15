@@ -181,6 +181,58 @@ void wows_assets_bin_visual_info_free(wows_assets_bin_visual_info_t *info);
 
 /** @} */
 
+/** @defgroup assets_prop Propeller positions
+ *  Propeller shaft positions and geometry paths derived from `assets.bin`.
+ *
+ *  Positions come from skeleton extension records (skel_ext, blob 2).
+ *  The propeller model is found via the ship's compound model record (blob 3).
+ *  @{
+ */
+
+/**
+ * @brief One propeller placement entry.
+ */
+typedef struct {
+    float mat[16];       /**< Column-major 4×4 translation-only transform (shaft centre). */
+    char geom_path[512]; /**< Geometry path within the game asset tree. */
+    char name[64];       /**< "Propeller_L_1", "Propeller_R_1", etc. */
+} wows_assets_bin_propeller_t;
+
+/**
+ * @brief List of propeller placements for a ship.
+ */
+typedef struct {
+    wows_assets_bin_propeller_t *entries; /**< Array of propeller entries. */
+    size_t count;                         /**< Number of entries. */
+} wows_assets_bin_propeller_list_t;
+
+/**
+ * @brief Query propeller geometry and shaft positions from an open PDB handle.
+ *
+ * @param pdb             Open PDB handle.
+ * @param hull_model_path Full or relative path to the ship's main `.model` file
+ *                        (as returned by GameParams; used to find the compound record).
+ * @param hull_geom_paths Array of full paths to hull `.geometry` files
+ *                        (used to locate the matching `.skel_ext` skeletons).
+ * @param n_geom_paths    Number of entries in @p hull_geom_paths.
+ * @return Heap-allocated list, or `NULL` when no propeller data is available.
+ *         Free with ::wows_assets_bin_propeller_list_free.
+ */
+wows_assets_bin_propeller_list_t *wows_assets_bin_get_propellers_pdb(
+    wows_assets_bin_pdb_t *pdb,
+    const char *hull_model_path,
+    const char **hull_geom_paths,
+    size_t n_geom_paths);
+
+/**
+ * @brief Free memory allocated by ::wows_assets_bin_get_propellers_pdb.
+ *
+ * @param list  Pointer returned by ::wows_assets_bin_get_propellers_pdb.
+ */
+void wows_assets_bin_propeller_list_free(wows_assets_bin_propeller_list_t *list);
+
+/** @} */
+
 /** @defgroup assets_oneshot One-shot helpers
  *  Convenience wrappers that open the PDB internally for a single query.
  *  Use the PDB-handle API instead when making multiple queries on the same file.

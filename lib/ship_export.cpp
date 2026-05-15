@@ -120,7 +120,7 @@ bool wows_stitch_export_ship_to_glb_mem(
     };
     std::unique_ptr<wows_assets_bin_pdb_t, decltype(pdb_deleter)> assets_pdb(nullptr, pdb_deleter);
     const bool want_assets_bin =
-        opts.with_turrets || opts.with_textures || opts.exclude_damage;
+        opts.with_turrets || opts.with_textures || opts.exclude_damage || opts.with_propellers;
     if (want_assets_bin && (assets_from_mem || !assets_bin_path.empty())) {
         wows_assets_bin_pdb_t *p = assets_from_mem
             ? wows_assets_bin_pdb_open_memory(opts.assets_bin_data.data(), opts.assets_bin_data.size())
@@ -258,7 +258,10 @@ bool wows_stitch_export_ship_to_glb_mem(
 
         for (const auto &m : sorted_mounts) {
             const std::string &geom_path = model_to_geom[m.model_path];
-            if (geom_path.empty()) continue;
+            if (geom_path.empty()) {
+                vlog(m.hp_name.c_str(), "skipping mount (geometry not found for model: %s)\n", m.model_path.c_str());
+                continue;
+            }
 
             wows_mat16d transform;
             auto hp_it = hp_transforms.find(m.hp_name);
@@ -276,6 +279,70 @@ bool wows_stitch_export_ship_to_glb_mem(
             part.matrix = transform;
             if (read_geom(geom_path, part.model))
                 parts.push_back(std::move(part));
+        }
+    }
+
+    /* TODO: propeller placement is not yet correct — Y-offset heuristic (keel-relative
+     * vs. visual space) is unreliable and shaft positions are wrong for several ships.
+     * This block is disabled at the CLI level until the underlying issues are resolved. */
+    if (opts.with_propellers) {
+        if (!assets_pdb_ptr) {
+            vlog(ship_name.c_str(), "assets.bin unavailable — propellers skipped\n");
+        } else {
+            std::vector<const char *> geom_ptrs;
+            for (const auto &gp : hull_geoms)
+                geom_ptrs.push_back(gp.c_str());
+
+            wows_assets_bin_propeller_list_t *prop_list = wows_assets_bin_get_propellers_pdb(
+                assets_pdb_ptr, hull.hull_model.c_str(),
+                geom_ptrs.data(), geom_ptrs.size());
+
+            if (prop_list) {
+                /* Skel_ext bone Y is measured from the ship's keel (Y=0=keel),
+                 * while the visual coordinate system has Y=0=waterline.
+                 * Apply correction: visual_Y = skel_ext_Y + hull_keel_Y_visual.
+                 * Compute hull keel Y as the minimum Y across all hull part AABBs. */
+                float hull_keel_y = 0.0f;
+                bool keel_found = false;
+                for (const auto &hp : parts) {
+                    for (const auto &acc : hp.model.accessors) {
+                        if (acc.type == TINYGLTF_TYPE_VEC3 && acc.minValues.size() >= 2) {
+                            float y_min = (float)acc.minValues[1];
+                            if (!keel_found || y_min < hull_keel_y) {
+                                hull_keel_y = y_min;
+                                keel_found = true;
+                            }
+                        }
+                    }
+                }
+                if (keel_found)
+                    vlog(ship_name.c_str(), "hull keel Y=%.3f → applying propeller Y correction\n", hull_keel_y);
+                for (size_t i = 0; i < prop_list->count; ++i) {
+                    /* Only apply keel→visual offset when the bone Y is positive
+                     * (keel-relative space, Y=0=keel).  Negative Y means the
+                     * coordinate is already in visual/world space (Y=0≈waterline)
+                     * and must not be shifted further. */
+                    if (keel_found && prop_list->entries[i].mat[13] > 0.05f)
+                        prop_list->entries[i].mat[13] += hull_keel_y;
+                }
+
+                vlog(ship_name.c_str(), "propellers: %zu\n", prop_list->count);
+                for (size_t i = 0; i < prop_list->count; ++i) {
+                    const wows_assets_bin_propeller_t &p = prop_list->entries[i];
+                    vlog(p.name, "position (%.3f, %.3f, %.3f)\n",
+                         p.mat[12], p.mat[13], p.mat[14]);
+                    std::string geom_full = norm_dir + "/" + p.geom_path;
+                    wows_glb_part part;
+                    part.mesh_name = p.name;
+                    part.geom_path = geom_full;
+                    part.matrix = wows_stitch_float_to_double_mat(p.mat);
+                    if (read_geom(geom_full, part.model))
+                        parts.push_back(std::move(part));
+                }
+                wows_assets_bin_propeller_list_free(prop_list);
+            } else {
+                vlog(ship_name.c_str(), "no propeller data in assets.bin\n");
+            }
         }
     }
 

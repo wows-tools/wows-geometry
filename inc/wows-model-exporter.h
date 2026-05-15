@@ -63,6 +63,7 @@ struct wows_ship_export_options {
     std::vector<uint8_t> assets_bin_data;
     std::string hull_upgrade;    /**< Upgrade name substring used to select a hull; empty = latest hull. */
     bool with_turrets = true;    /**< Include turret and module meshes. */
+    bool with_propellers = true; /**< Include propeller/screw meshes (discovered by name pattern). */
     bool with_textures = true;   /**< Embed textures in the output GLB. */
     int max_tex_size = 2048;     /**< Maximum texture dimension in pixels; larger textures are downscaled. */
     int lod_level = -1;          /**< LOD level to export; -1 = auto-select the highest detail level. */
@@ -208,6 +209,19 @@ std::string wows_stitch_geom_to_visual_suffix(const std::string &geom_path);
  * @return Sorted list of filesystem paths to the part `.geometry` files.
  */
 std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_model, const std::string &game_dir);
+
+/**
+ * @brief Find propeller/screw `.geometry` files for a ship.
+ *
+ * Scans the same directory as the hull geometry for files whose names contain
+ * "prop" or "screw" (case-insensitive) and end in `.geometry`.  These are the
+ * propeller meshes that the game animates at runtime.
+ *
+ * @param hull_model  Path to the hull `.visual` or `.model` file.
+ * @param game_dir    Root resource directory.
+ * @return Sorted list of filesystem paths to propeller `.geometry` files.
+ */
+std::vector<std::string> wows_stitch_find_propeller_geoms(const std::string &hull_model, const std::string &game_dir);
 
 /**
  * @brief Search for a game asset file by name under @p game_dir.

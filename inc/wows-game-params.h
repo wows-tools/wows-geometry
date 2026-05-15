@@ -23,6 +23,7 @@ struct wows_ship_entry {
     std::string index;  /**< Short code, e.g. "JSB007". */
     std::string nation; /**< Nation string, e.g. "Japan". */
     std::string type;   /**< Ship type string, e.g. "Battleship". */
+    int tier = 0;       /**< Ship tier (1–11); 0 if unknown. */
 };
 
 /**
@@ -60,3 +61,8 @@ bool wows_load_hull_info_from_memory(const uint8_t *gameparams_data, size_t game
  * @return `true` on success; errors are printed to stderr.
  */
 bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out);
+
+/**
+ * @brief Same as ::wows_list_ships but reads pickled `GameParams.data` from a memory buffer.
+ */
+bool wows_list_ships_from_memory(const uint8_t *gameparams_data, size_t gameparams_size, std::vector<wows_ship_entry> &out);

@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
     if (args.hull)
         opts.hull_upgrade = args.hull;
     opts.with_turrets = args.with_turrets;
+    opts.with_propellers = false; /* TODO: propeller placement not yet correct */
     opts.with_textures = args.textures;
     opts.max_tex_size = args.tex_size;
     opts.lod_level = args.lod;

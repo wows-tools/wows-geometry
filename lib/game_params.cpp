@@ -103,11 +103,13 @@ def wows_list_ships(game_params):
         species = typeinfo.get("species", "")
         nation  = typeinfo.get("nation",  "")
         index   = val.get("index", key)
+        tier = val.get("level", 0)
         ships.append({
             "key":    key,
             "index":  str(index),
             "nation": str(nation),
             "type":   str(species),
+            "tier":   int(tier) if isinstance(tier, (int, float)) else 0,
         })
     return ships
 
@@ -351,15 +353,7 @@ bool wows_load_hull_info_from_memory(const uint8_t *gameparams_data, size_t game
     return wows_load_hull_info_from_gp(mod, gp, ship_name, hull_sel, out);
 }
 
-bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out) {
-    PyObject *mod = PyImport_AddModule("game_params");
-    if (!mod) { PyErr_Print(); return false; }
-    if (!game_params_eval_embedded(mod))
-        return false;
-
-    PyObject *gp = PyObject_CallMethod(mod, "load_game_params", "s", gameparams_path);
-    if (!gp) { PyErr_Print(); return false; }
-
+static bool wows_list_ships_from_gp(PyObject *mod, PyObject *gp, std::vector<wows_ship_entry> &out) {
     PyObject *ships = PyObject_CallMethod(mod, "wows_list_ships", "O", gp);
     Py_DECREF(gp);
     if (!ships) { PyErr_Print(); return false; }
@@ -373,8 +367,30 @@ bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &
         se.index  = py_str(PyDict_GetItemString(entry, "index"));
         se.nation = py_str(PyDict_GetItemString(entry, "nation"));
         se.type   = py_str(PyDict_GetItemString(entry, "type"));
+        PyObject *tier_obj = PyDict_GetItemString(entry, "tier");
+        se.tier   = (tier_obj && PyLong_Check(tier_obj)) ? (int)PyLong_AsLong(tier_obj) : 0;
         out.push_back(std::move(se));
     }
     Py_DECREF(ships);
     return true;
+}
+
+bool wows_list_ships(const char *gameparams_path, std::vector<wows_ship_entry> &out) {
+    PyObject *mod = PyImport_AddModule("game_params");
+    if (!mod) { PyErr_Print(); return false; }
+    if (!game_params_eval_embedded(mod))
+        return false;
+    PyObject *gp = game_params_load_from_path(mod, gameparams_path);
+    if (!gp) { PyErr_Print(); return false; }
+    return wows_list_ships_from_gp(mod, gp, out);
+}
+
+bool wows_list_ships_from_memory(const uint8_t *gameparams_data, size_t gameparams_size, std::vector<wows_ship_entry> &out) {
+    PyObject *mod = PyImport_AddModule("game_params");
+    if (!mod) { PyErr_Print(); return false; }
+    if (!game_params_eval_embedded(mod))
+        return false;
+    PyObject *gp = game_params_load_from_bytes(mod, gameparams_data, gameparams_size);
+    if (!gp) { PyErr_Print(); return false; }
+    return wows_list_ships_from_gp(mod, gp, out);
 }

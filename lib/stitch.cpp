@@ -112,6 +112,32 @@ std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_mod
     return results;
 }
 
+std::vector<std::string> wows_stitch_find_propeller_geoms(const std::string &hull_model, const std::string &game_dir) {
+    std::string geom_path = wows_stitch_model_to_geom_path(hull_model, game_dir);
+    std::string ship_dir = wows_stitch_path_dirname(geom_path);
+
+    DIR *dir = opendir(ship_dir.c_str());
+    if (!dir)
+        return {};
+
+    std::vector<std::string> results;
+    struct dirent *ent;
+    while ((ent = readdir(dir))) {
+        std::string fname = ent->d_name;
+        if (fname.size() <= 9)
+            continue;
+        if (fname.compare(fname.size() - 9, 9, ".geometry") != 0)
+            continue;
+        std::string flower = fname;
+        std::transform(flower.begin(), flower.end(), flower.begin(), ::tolower);
+        if (flower.find("prop") != std::string::npos || flower.find("screw") != std::string::npos)
+            results.push_back(ship_dir + "/" + fname);
+    }
+    closedir(dir);
+    std::sort(results.begin(), results.end());
+    return results;
+}
+
 /* ── game file discovery ────────────────────────────────────────── */
 
 static void find_recursive(const std::string &dir, const std::string &target, int depth,

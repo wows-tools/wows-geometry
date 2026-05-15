@@ -4,6 +4,7 @@
 #include "wows-assets-bin.h"
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -467,6 +468,424 @@ static bool get_vis(const PDB &pdb, const char *suffix, VisNodes *vn_out) {
     return parse_vis_nodes(pdb, rd_off, *vn_out);
 }
 
+/* ── propeller lookup ─────────────────────────────────────────────── */
+
+#define SKEL_EXT_BLOB 2u
+
+/* Last two slash-separated path components (keeps the original extension). */
+static std::string two_part_suffix(const char *path) {
+    std::string s = path;
+    for (auto &c : s)
+        if (c == '\\')
+            c = '/';
+    auto sl = s.rfind('/');
+    if (sl == std::string::npos || sl == 0)
+        return s;
+    auto sl2 = s.rfind('/', sl - 1);
+    if (sl2 == std::string::npos)
+        return s;
+    return s.substr(sl2 + 1);
+}
+
+/* Record byte-size for a blob, computed from stored metadata. */
+static size_t blob_isize(const PDB &pdb, int bi) {
+    if (bi < 0 || (size_t)bi >= pdb.blobs.size())
+        return 0;
+    const DbBlob &b = pdb.blobs[bi];
+    if (!b.record_count || b.size < 16)
+        return 0;
+    return (b.size - 16) / b.record_count;
+}
+
+/* Build name_id → propeller-model-name map from the PDB string table.
+ * Matches "MP_*Propeller*" strings; strips _INDEX_N suffix for deduplication. */
+/* TODO: propeller support is incomplete — discovery, placement, and orientation
+ * are all wrong for several ship types; the functions below are WIP.
+ * Known discovery issues:
+ *   - Only finds propellers whose compound model is recorded in the PDB skel_ext
+ *     blobs.  Many ships (Yamato, Alabama, Fletcher, …) have propellers baked
+ *     directly into the hull geometry and are therefore never discovered here.
+ *   - The MP_*Propeller* name_id scan assumes a fixed string-table layout that
+ *     may not hold for all game versions.
+ */
+
+static std::unordered_map<uint32_t, std::string> build_prop_mount_id_map(const PDB &pdb) {
+    std::unordered_map<uint32_t, std::string> out;
+    const uint8_t *d = pdb.d();
+    size_t dlen = pdb.len();
+    for (uint32_t slot = 0; slot < pdb.str.cap; ++slot) {
+        size_t b = pdb.str.boff + slot * 8;
+        if (b + 8 > dlen) break;
+        uint32_t bk = ru32(d, b), bs = ru32(d, b + 4);
+        if (!bk && !bs) continue;
+        uint32_t soff = ru32(d, pdb.str.voff + slot * 4);
+        size_t abs = pdb.str.str_off + soff;
+        if (abs >= pdb.str.str_off + pdb.str.str_size || abs >= dlen) continue;
+        std::string s = read_cstr(d, dlen, abs);
+        if (s.size() < 7 || s.substr(0, 3) != "MP_") continue;
+        if (s.find("Propeller") == std::string::npos &&
+            s.find("Screw") == std::string::npos) continue;
+        std::string model_name = s.substr(3);
+        auto dot = model_name.find('.');
+        if (dot != std::string::npos) model_name = model_name.substr(0, dot);
+        auto idx = model_name.find("_INDEX_");
+        if (idx != std::string::npos) model_name = model_name.substr(0, idx);
+        out[bk] = model_name;
+    }
+    return out;
+}
+
+/* Resolve a propeller model name to a geometry path via its visual record. */
+/* TODO: verify geometry path resolution for all compound model naming schemes. */
+static std::string resolve_prop_model_to_geom(const PDB &pdb, const std::string &model_name) {
+    const uint8_t *d = pdb.d();
+    size_t dlen = pdb.len();
+    std::string vis_suf = model_name + "/" + model_name + ".visual";
+    int vbi, vri;
+    if (!pdb.resolve(vis_suf.c_str(), &vbi, &vri)) return "";
+    if ((unsigned)vbi != VISUAL_BLOB) return "";
+    size_t vrd_off = pdb.record_abs(vbi, vri, VISUAL_ISIZE);
+    if (!vrd_off || vrd_off + VISUAL_ISIZE > dlen) return "";
+    uint64_t geom_sid = ru64(d, vrd_off + 48);
+    if (!geom_sid) return "";
+    auto sit = pdb.sid_idx.find(geom_sid);
+    if (sit == pdb.sid_idx.end()) return "";
+    return pdb.reconstruct_path(sit->second);
+}
+
+/* Scan one skel_ext record for propeller data.
+ *
+ * Returns:
+ *   l_path / r_path  – geometry paths for the L and R propeller models
+ *   n_l / n_r        – number of L / R propeller instances found
+ *   bone_mats        – all 64-byte world-space 4×4 matrices from Region C
+ *                      (the section of the record that follows the filler block)
+ *
+ * Region C is located by finding the last propeller name_id in the record,
+ * then skipping forward past filler (0x10c30510) to the first non-filler value.
+ *
+ * TODO: Region C parsing is fragile — the filler sentinel (0x10c30510) may not
+ * be reliable across all game versions or ship types.  Validate against more ships.
+ */
+static bool scan_skel_ext(const PDB &pdb, int bi, int ri,
+                           const std::unordered_map<uint32_t, std::string> &prop_ids,
+                           std::string &l_path, std::string &r_path,
+                           int &n_l, int &n_r,
+                           std::vector<std::array<float, 16>> &bone_mats) {
+    const uint8_t *d = pdb.d();
+    size_t isize = blob_isize(pdb, bi);
+    if (!isize) return false;
+    size_t rd_off = pdb.record_abs(bi, ri, isize);
+    if (!rd_off) return false;
+
+    static const uint32_t FILLER = 0x10c30510u;
+
+    /* Scan record for propeller name_ids, tracking the last offset found. */
+    std::unordered_map<std::string, std::string> l_models, r_models;
+    size_t last_prop_k = 0;
+    bool found_any = false;
+
+    for (size_t k = 0; k + 4 <= isize; k += 4) {
+        auto it = prop_ids.find(ru32(d, rd_off + k));
+        if (it == prop_ids.end()) continue;
+        const std::string &mn = it->second;
+        vlog("propellers", "  skel_ext[+%zu] name_id=0x%08x model='%s'\n",
+             k, ru32(d, rd_off + k), mn.c_str());
+        last_prop_k = k;
+        found_any = true;
+        bool is_l = mn.size() >= 2 && mn.substr(mn.size() - 2) == "_L";
+        bool is_r = mn.size() >= 2 && mn.substr(mn.size() - 2) == "_R";
+        if (is_l && !l_models.count(mn)) {
+            std::string gp = resolve_prop_model_to_geom(pdb, mn);
+            if (!gp.empty()) l_models[mn] = gp;
+        }
+        if (is_r && !r_models.count(mn)) {
+            std::string gp = resolve_prop_model_to_geom(pdb, mn);
+            if (!gp.empty()) r_models[mn] = gp;
+        }
+    }
+    if (!found_any) return false;
+
+    /* Count L and R propeller instances (each unique name_id counts once). */
+    n_l = 0; n_r = 0;
+    for (size_t k = 0; k + 4 <= isize; k += 4) {
+        auto it = prop_ids.find(ru32(d, rd_off + k));
+        if (it == prop_ids.end()) continue;
+        const std::string &mn = it->second;
+        if (mn.size() >= 2 && mn.substr(mn.size() - 2) == "_L") ++n_l;
+        if (mn.size() >= 2 && mn.substr(mn.size() - 2) == "_R") ++n_r;
+    }
+    /* n_l / n_r count total name_id slots, not distinct models;
+     * cap to ensure at least one if a side was found. */
+    if (!l_models.empty() && n_l == 0) n_l = 1;
+    if (!r_models.empty() && n_r == 0) n_r = 1;
+
+    if (!l_models.empty()) l_path = l_models.begin()->second;
+    if (!r_models.empty()) r_path = r_models.begin()->second;
+
+    /* Find Region C: skip past filler that follows the name_ids block.
+     * Region C contains the world-space 4×4 matrices for all skel_ext bones. */
+    size_t rc_off = rd_off + last_prop_k + 4;
+    /* skip any remaining non-filler values (e.g. extra name_ids) */
+    while (rc_off + 4 <= rd_off + isize && ru32(d, rc_off) != FILLER)
+        rc_off += 4;
+    /* skip filler */
+    while (rc_off + 4 <= rd_off + isize && ru32(d, rc_off) == FILLER)
+        rc_off += 4;
+
+    /* Read 64-byte column-major 4×4 matrices from Region C. */
+    bone_mats.clear();
+    for (size_t boff = rc_off; boff + 64 <= rd_off + isize; boff += 64) {
+        std::array<float, 16> m;
+        for (int j = 0; j < 16; ++j)
+            m[j] = rf32(d, boff + j * 4);
+        /* Sanity: last row should be (0,0,0,1). */
+        if (fabsf(m[3]) > 0.1f || fabsf(m[7]) > 0.1f ||
+            fabsf(m[11]) > 0.1f || fabsf(m[15] - 1.0f) > 0.1f)
+            break;
+        bone_mats.push_back(m);
+    }
+
+    vlog("propellers", "  skel_ext: n_l=%d n_r=%d region_c_bones=%zu\n",
+         n_l, n_r, bone_mats.size());
+    if (wows_assets_bin_verbose) {
+        for (size_t bi2 = 0; bi2 < bone_mats.size(); ++bi2) {
+            const auto &m = bone_mats[bi2];
+            vlog("propellers", "  bone[%zu]: col0=(%.3f,%.3f,%.3f) col1=(%.3f,%.3f,%.3f) col2=(%.3f,%.3f,%.3f) pos=(%.3f,%.3f,%.3f)\n",
+                 bi2, m[0],m[1],m[2], m[4],m[5],m[6], m[8],m[9],m[10], m[12],m[13],m[14]);
+        }
+    }
+    return !bone_mats.empty() && (!l_path.empty() || !r_path.empty());
+}
+
+
+
+/* TODO: shaft-pair selection heuristics (spin-axis filter, col0-direction filter,
+ * scale-consistency filter, solo-bone fallback) are tuned against a small sample
+ * of ships and will likely need adjustment.  Known issues:
+ *   - Y coordinate correction (keel-relative vs. visual space) is not reliable
+ *     across all ship types.
+ *   - Multi-shaft ships where all shafts are on the centreline are not handled.
+ */
+static wows_assets_bin_propeller_list_t *propellers_from_pdb(
+    const PDB &pdb,
+    const char *hull_model_path,
+    const char **hull_geom_paths,
+    size_t n_geom_paths)
+{
+    /* Build the global propeller mount-point name_id map once. */
+    auto prop_ids = build_prop_mount_id_map(pdb);
+    if (prop_ids.empty()) {
+        vlog("propellers", "no MP_*Propeller* strings found in PDB\n");
+        return nullptr;
+    }
+
+    size_t isize = blob_isize(pdb, SKEL_EXT_BLOB);
+    if (!isize) {
+        vlog("propellers", "skel_ext blob not found in PDB\n");
+        return nullptr;
+    }
+
+    /* Scan each hull skel_ext record.  Prefer records that have both L and
+     * R propeller name_ids; among those prefer non-bow sections. */
+    std::string best_l, best_r;
+    int best_nl = 0, best_nr = 0;
+    std::vector<std::array<float, 16>> best_mats;
+    bool best_has_lr = false, best_nonbow = false;
+
+    auto lc_str = [](std::string s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        return s;
+    };
+
+    for (size_t gi = 0; gi < n_geom_paths; ++gi) {
+        std::string gsuf = two_part_suffix(hull_geom_paths[gi]);
+        {
+            auto ep = gsuf.rfind(".geometry");
+            if (ep == std::string::npos) continue;
+            gsuf.replace(ep, 9, ".skel_ext");
+        }
+        int bi, ri;
+        if (!pdb.resolve(gsuf.c_str(), &bi, &ri)) continue;
+        if ((unsigned)bi != SKEL_EXT_BLOB) continue;
+
+        std::string l_path, r_path;
+        int nl = 0, nr = 0;
+        std::vector<std::array<float, 16>> mats;
+
+        vlog("propellers", "scanning skel_ext %s\n", gsuf.c_str());
+        if (!scan_skel_ext(pdb, bi, ri, prop_ids, l_path, r_path, nl, nr, mats))
+            continue;
+
+        bool has_lr = !l_path.empty() && !r_path.empty();
+        bool nonbow = lc_str(hull_geom_paths[gi]).find("bow") == std::string::npos;
+
+        bool better = best_mats.empty();
+        if (!better) {
+            if (has_lr && !best_has_lr)                        better = true;
+            else if (has_lr == best_has_lr && nonbow && !best_nonbow) better = true;
+        }
+        if (better) {
+            best_l = l_path; best_r = r_path;
+            best_nl = nl; best_nr = nr;
+            best_mats = std::move(mats);
+            best_has_lr = has_lr; best_nonbow = nonbow;
+        }
+        if (best_has_lr && best_nonbow) break;
+    }
+
+    if (best_mats.empty() || (best_l.empty() && best_r.empty())) {
+        vlog("propellers", "no propeller data found in any skel_ext\n");
+        return nullptr;
+    }
+
+    /* Number of propellers per side = total name_id instances per side.
+     * n_side = max(n_L, n_R) to handle unequal counts gracefully. */
+    int n_side = std::max(best_nl, best_nr);
+    if (n_side < 1) n_side = 1;
+    vlog("propellers", "propeller geometry L='%s' R='%s' n_l=%d n_r=%d n_side=%d\n",
+         best_l.c_str(), best_r.c_str(), best_nl, best_nr, n_side);
+
+    /* Find symmetric pairs in Region C.
+     * Criteria: bones on opposite sides of centreline, near-perfect mirror
+     * symmetry in X, same height (Y), same longitudinal position (Z), and
+     * a minimum off-centre offset in X (propeller shafts are never on the
+     * centreline). */
+    struct Pair {
+        size_t i_neg, i_pos; /* index of negative-x and positive-x bone */
+        float abs_z;
+        float scale; /* col0 magnitude — proxy for uniform bone scale */
+    };
+    std::vector<Pair> pairs;
+    size_t n = best_mats.size();
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = i + 1; j < n; ++j) {
+            /* translation at mat[12..14] (column-major) */
+            float xi = best_mats[i][12], yi = best_mats[i][13], zi = best_mats[i][14];
+            float xj = best_mats[j][12], yj = best_mats[j][13], zj = best_mats[j][14];
+            if (xi * xj >= 0.0f) continue;           /* must straddle centreline */
+            if (fabsf(xi + xj) > 0.01f) continue;    /* near-perfect X symmetry */
+            if (fabsf(yi - yj) > 0.3f) continue;     /* same height */
+            if (fabsf(zi - zj) > 0.3f) continue;     /* same Z position */
+            if (fabsf(xi) < 0.01f) continue;          /* must be off-centre */
+            /* Spin axis filter: propeller shafts spin around the bow-stern (Z) axis.
+             * col2_z = mat[10] in column-major layout.  Reject bones whose local
+             * Z axis is not approximately aligned with world Z (e.g. rudder hinges). */
+            if (fabsf(best_mats[i][10]) < 0.7f || fabsf(best_mats[j][10]) < 0.7f) continue;
+            /* col0-direction filter: the bone's local-X axis (col0) must point
+             * primarily in the world-X direction.  Propeller shaft bones have their
+             * blade plane perpendicular to Z; symmetric non-propeller structures
+             * (e.g. breakwaters, angled braces) have col0 rotated significantly
+             * around Y.  Require |col0_x_normalised| > 0.9 for both bones. */
+            {
+                const auto &mi = best_mats[i]; const auto &mj = best_mats[j];
+                float sxi = sqrtf(mi[0]*mi[0] + mi[1]*mi[1] + mi[2]*mi[2]);
+                float sxj = sqrtf(mj[0]*mj[0] + mj[1]*mj[1] + mj[2]*mj[2]);
+                if (sxi < 1e-6f || sxj < 1e-6f) continue;
+                if (fabsf(mi[0]) / sxi < 0.9f || fabsf(mj[0]) / sxj < 0.9f) continue;
+            }
+            size_t neg_idx = (xi < 0.0f) ? i : j;
+            size_t pos_idx = (xi < 0.0f) ? j : i;
+            /* Scale = col0 magnitude (proxy for uniform scale of the bone). */
+            const auto &mi = best_mats[i]; const auto &mj = best_mats[j];
+            float si = sqrtf(mi[0]*mi[0] + mi[1]*mi[1] + mi[2]*mi[2]);
+            float sj = sqrtf(mj[0]*mj[0] + mj[1]*mj[1] + mj[2]*mj[2]);
+            pairs.push_back({neg_idx, pos_idx, fabsf(zi), (si + sj) * 0.5f});
+        }
+    }
+
+    if (pairs.empty()) {
+        vlog("propellers", "no symmetric shaft pairs found in Region C\n");
+        /* Fallback: single-shaft or centerline-only ships (e.g. KGV) have
+         * only one bone that passes the quality filters.  Output it directly. */
+        std::vector<size_t> solo_bones;
+        for (size_t i2 = 0; i2 < n; ++i2) {
+            const auto &m = best_mats[i2];
+            if (fabsf(m[10]) < 0.7f) continue;
+            float col0_len = sqrtf(m[0]*m[0] + m[1]*m[1] + m[2]*m[2]);
+            if (col0_len < 1e-6f || fabsf(m[0]) / col0_len < 0.9f) continue;
+            solo_bones.push_back(i2);
+        }
+        if (solo_bones.empty()) {
+            vlog("propellers", "no valid solo bones either\n");
+            return nullptr;
+        }
+        if ((int)solo_bones.size() > n_side)
+            solo_bones.resize(n_side);
+        vlog("propellers", "using %zu solo bone(s) as propeller position(s)\n", solo_bones.size());
+        auto *list = new wows_assets_bin_propeller_list_t;
+        list->count = solo_bones.size();
+        list->entries = new wows_assets_bin_propeller_t[list->count]();
+        for (size_t pi = 0; pi < solo_bones.size(); ++pi) {
+            auto &e = list->entries[pi];
+            memcpy(e.mat, best_mats[solo_bones[pi]].data(), 64);
+            const std::string &gp = best_l.empty() ? best_r : best_l;
+            strncpy(e.geom_path, gp.c_str(), 511); e.geom_path[511] = '\0';
+            snprintf(e.name, 63, "Propeller_%zu", pi + 1);
+            vlog("propellers", "  solo prop_%zu pos=(%.3f,%.3f,%.3f) geom=%s\n",
+                 pi + 1, e.mat[12], e.mat[13], e.mat[14], gp.c_str());
+        }
+        return list;
+    }
+
+    /* Sort by |Z| descending: stern-most pairs first. */
+    std::sort(pairs.begin(), pairs.end(),
+              [](const Pair &a, const Pair &b) { return a.abs_z > b.abs_z; });
+
+    /* Scale-consistency filter: all propeller pairs on a ship share the same
+     * propeller geometry, so their bone scales should match the outermost pair.
+     * Reject any pair whose scale deviates more than 8 % from the reference.
+     * This discards placeholder/bounding-box bones that happen to be symmetric
+     * but represent a different object (e.g. a shaft strut attachment). */
+    {
+        float ref_scale = pairs[0].scale;
+        auto it = std::remove_if(pairs.begin() + 1, pairs.end(),
+            [ref_scale](const Pair &p) {
+                return fabsf(p.scale - ref_scale) > 0.05f * ref_scale;
+            });
+        pairs.erase(it, pairs.end());
+    }
+
+    /* Take the top n_side pairs. */
+    if ((int)pairs.size() > n_side)
+        pairs.resize(n_side);
+
+    vlog("propellers", "selected %zu propeller pair(s)\n", pairs.size());
+
+    auto *list = new wows_assets_bin_propeller_list_t;
+    list->count = pairs.size() * 2;
+    list->entries = new wows_assets_bin_propeller_t[list->count]();
+    size_t ei = 0;
+
+    for (size_t pi = 0; pi < pairs.size(); ++pi) {
+        const Pair &pr = pairs[pi];
+
+        /* L (port, negative X) entry */
+        {
+            auto &e = list->entries[ei++];
+            memcpy(e.mat, best_mats[pr.i_neg].data(), 64);
+            const std::string &gp = best_l.empty() ? best_r : best_l;
+            strncpy(e.geom_path, gp.c_str(), 511); e.geom_path[511] = '\0';
+            snprintf(e.name, 63, "Propeller_L_%zu", pi + 1);
+            vlog("propellers", "  prop L_%zu pos=(%.3f,%.3f,%.3f) geom=%s\n",
+                 pi + 1, e.mat[12], e.mat[13], e.mat[14], gp.c_str());
+        }
+
+        /* R (starboard, positive X) entry */
+        {
+            auto &e = list->entries[ei++];
+            memcpy(e.mat, best_mats[pr.i_pos].data(), 64);
+            const std::string &gp = best_r.empty() ? best_l : best_r;
+            strncpy(e.geom_path, gp.c_str(), 511); e.geom_path[511] = '\0';
+            snprintf(e.name, 63, "Propeller_R_%zu", pi + 1);
+            vlog("propellers", "  prop R_%zu pos=(%.3f,%.3f,%.3f) geom=%s\n",
+                 pi + 1, e.mat[12], e.mat[13], e.mat[14], gp.c_str());
+        }
+    }
+
+    return list;
+}
+
 /* ── public C API ─────────────────────────────────────────────────── */
 
 static wows_assets_bin_hp_list_t *hp_transforms_from_pdb(const PDB &pdb, const char *visual_suffix) {
@@ -478,6 +897,7 @@ static wows_assets_bin_hp_list_t *hp_transforms_from_pdb(const PDB &pdb, const c
     std::vector<std::pair<std::string, int>> hp;
     for (size_t i = 0; i < vn.name_ids.size(); ++i) {
         std::string name = pdb.str.get(pdb.d(), pdb.len(), vn.name_ids[i]);
+        vlog("nodes", "  node[%zu] in %s: %s\n", i, visual_suffix, name.c_str());
         if (name.size() < 3 || name.substr(0, 3) != "HP_")
             continue;
         int ni = find_node_by_name(vn, pdb, name.c_str());
@@ -492,6 +912,9 @@ static wows_assets_bin_hp_list_t *hp_transforms_from_pdb(const PDB &pdb, const c
         strncpy(list->entries[i].name, hp[i].first.c_str(), 255);
         list->entries[i].name[255] = '\0';
         world_transform(vn, hp[i].second, list->entries[i].mat);
+        vlog("HP_xform", "  %s: pos=(%.3f,%.3f,%.3f)\n",
+             hp[i].first.c_str(),
+             list->entries[i].mat[12], list->entries[i].mat[13], list->entries[i].mat[14]);
     }
     return list;
 }
@@ -775,6 +1198,23 @@ void wows_assets_bin_visual_info_free(wows_assets_bin_visual_info_t *info) {
         delete[] info->lods;
     }
     delete info;
+}
+
+wows_assets_bin_propeller_list_t *wows_assets_bin_get_propellers_pdb(
+    wows_assets_bin_pdb_t *handle,
+    const char *hull_model_path,
+    const char **hull_geom_paths,
+    size_t n_geom_paths)
+{
+    PDB &pdb = *reinterpret_cast<PDB *>(handle);
+    return propellers_from_pdb(pdb, hull_model_path, hull_geom_paths, n_geom_paths);
+}
+
+void wows_assets_bin_propeller_list_free(wows_assets_bin_propeller_list_t *list) {
+    if (!list)
+        return;
+    delete[] list->entries;
+    delete list;
 }
 
 } /* extern "C" */
