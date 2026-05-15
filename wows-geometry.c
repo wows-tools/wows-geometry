@@ -28,17 +28,20 @@ const char *argp_program_version = BFD_VERSION;
 
 const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/issues";
 
-static char doc[] = "\nWorld of Warships .geometry debug tool";
+static char doc[] = "\nWorld of Warships .geometry debug tool\n"
+                    "\n"
+                    "Example:\n"
+                    "  wows-geometry-cli -i path/to/hull.geometry -o hull.glb\n";
 
 static struct argp_option options[] = {
     {"input", 'i', "INPUT_FILE", 0, "Input .geometry file"},
     {"print", 'p', NULL, 0, "Print parsed data"},
     {"verbose", 'v', NULL, 0, "Print all vertices (use with -p)"},
-    {"glb", 'g', "OUTPUT_FILE", 0, "Export to binary glTF (.glb)"},
+    {"output-glb", 'o', "OUTPUT_FILE", 0, "Export to binary glTF (.glb)"},
     {"sections", 's', "0,1,2,...", 0, "Comma-separated vertex section indices to export (default: all)"},
     {0}};
 
-static char args_doc[] = "-i INPUT_FILE [-p] [-g OUTPUT_FILE] [-s 0,1,...]";
+static char args_doc[] = "-i INPUT_FILE [-p] [-o OUTPUT_FILE] [-s 0,1,...]";
 
 struct arguments {
     char *input;
@@ -60,7 +63,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'v':
         arguments->verbose = true;
         break;
-    case 'g':
+    case 'o':
         arguments->glb_output = arg;
         break;
     case 's':

@@ -3,39 +3,48 @@
 [![Ubuntu-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml)
 [![Documentation](https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-model-exporter/)
 
-Parser and GLB exporter for World of Warships `.geometry` 3D model files.
+Parser and GLB exporter for World of Warships 3D model files.
 
-## Format
+File formats and organization are documented in [FORMAT.md](FORMAT.md).
 
-The `.geometry` format is documented in [FORMAT.md](FORMAT.md).
+## Build
 
-In brief: vertex and index data are meshoptimizer-compressed (ENCD blocks).
-Ship geometry is split across multiple part files (`_Bow`, `_MidFront`, etc.)
-that share a common coordinate space. LOD levels, render sets, HP_ hardpoint
-transforms, and material paths are stored separately in `assets.bin`.
+Install dependencies (Debian/Ubuntu):
+```sh
+sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev git clang \
+                 libtinygltf-dev python3-dev
+```
+
+Clone code:
+```sh
+git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git
+cd wows-model-exporter
+```
+
+Compile:
+```sh
+cmake .
+make
+
+./wows-gltf-exporter --help
+```
 
 ## Tools
 
-### **wows-gltf-exporter** — full ship GLB assembler
+### wows-gltf-exporter: full ship GLB assembler
 
-Reads `GameParams.data` to find hull and mount-point models, loads HP_ transforms
-and BlendBone corrections from `assets.bin`, decodes DDS textures, and writes a
-single textured GLB containing the hull and all turret/weapon mounts.
-
-`GameParams.data` and `assets.bin` are auto-detected under `-d` if not supplied
-explicitly (recursive scan, up to 3 levels, newest version wins).
+Reads the game files, in particular `GameParams.data` and `assets.bin` (via [wows-depack](https://github.com/wows-tools/wows-depack)),
+and stitches the model parts (`.geometry` vertices, `.dds` textures) together to export to `.gltf`/`.glb` format.
 
 ```
-wows-gltf-exporter -d <game-dir> -s <ship> -o <output.glb> [options]
+wows-gltf-exporter -W <wows-dir> -s <ship> -o <output.glb> [options]
 
 Required:
-  -d DIR     Root game directory
+  -W DIR     Root game directory (--wows-dir)
   -s NAME    Ship name or pattern (case-insensitive, words joined as .*w1.*w2.*)
   -o FILE    Output .glb file
 
 Optional:
-  -g FILE    GameParams.data (auto-detected from -d if omitted)
-  -a FILE    assets.bin      (auto-detected from -d if omitted)
   -H UPG     Hull upgrade name substring (default: latest)
   -t         Exclude turret / mounted-component models
   -T         Skip DDS texture application
@@ -45,40 +54,54 @@ Optional:
   -v         Verbose progress output
 ```
 
-**Example — export Kongo with all defaults:**
+Hidden options (not shown in `--help`, but supported): `-g` / `--gameparams` and `-a` /
+`--assets-bin` to pass explicit paths to `GameParams.data` and `assets.bin`, this might be useful when
+working on unpacked resources (e.g. after extracting game all game files with
+[wows-depack](https://github.com/wows-tools/wows-depack)) instead of relying on auto-detection
+under `-W`.
+
+export Kongo with all defaults:
 ```sh
-wows-gltf-exporter -d ~/Games/World\ of\ Warships/ -s Kongo_1942 -o kongo.glb
+wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -o kongo.glb
 ```
 
-**Example — specific hull, no turrets, Level of Detail 2:**
+export Kongo specific hull, no turrets, Level of Detail 2 (LOD is 0 to 4, with 0 being the highest level):
 ```sh
-wows-gltf-exporter -d ~/Games/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_ldo2.glb
+wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_lod2.glb
 ```
 
-### **wows-list-ships** — enumerate available ships
+### wows-list-ships: enumerate available ships
 
-Lists all ships found in `GameParams.data`, with optional filtering by nation or type.
+Lists all ships found in `GameParams.data`, with optional filtering by nation or type:
 
 ```
-wows-list-ships [-d <game-dir>] [-g GameParams.data] [-n nation] [-t type]
+wows-list-ships [-W <wows-dir>] [-n nation] [-t type]
 
-  -d DIR     Root game directory (auto-detects GameParams.data)
-  -g FILE    GameParams.data (alternative to -d)
+  -W DIR     Root game directory (--wows-dir; auto-detects GameParams.data)
   -n STR     Filter by nation (case-insensitive substring)
   -t STR     Filter by ship type (case-insensitive substring)
 ```
 
-### **wows-geometry-cli** — single-file inspector / exporter
+Can be combined to export all ships to gltf (requires ~40GB):
+```sh
+wows-list-ships -W /path/to/World\ of\ Warships  | sed 's/[[:space:]].*//' | \
+while read line;
+do
+    echo "------ $line ----";
+    wows-gltf-exporter -W /path/to/World\ of\ Warships -s $line -o $line.glb --verbose;
+done
+
+### wows-geometry-cli - single-file inspector / exporter
 
 Parses one `.geometry` file, prints its structure, or exports it as GLB.
 
 ```
-wows-geometry-cli -i <file.geometry> [-p] [-v] [-g output.glb] [-s 0,1,...]
+wows-geometry-cli -i <file.geometry> [-p] [-v] [-o output.glb] [-s 0,1,...]
 
   -i FILE    Input .geometry file
   -p         Print parsed structure
   -v         Print all vertex data (use with -p)
-  -g FILE    Export submeshes to GLB
+  -o FILE    Export submeshes to GLB (--output-glb)
   -s 0,1,…   Comma-separated vertex section indices to export (default: all)
 ```
 
@@ -105,7 +128,7 @@ wows_ship_export_options opts;
 // opts.gameparams_path      = "/explicit/path/GameParams.data";  // auto-detected if empty
 // opts.wows_assets_bin_path = "/explicit/path/assets.bin";       // auto-detected if empty
 
-bool ok = wows_stitch_export_ship("~/Games/World\ of\ Warships/", "Kongo_1942", "kongo.glb", opts);
+bool ok = wows_stitch_export_ship("/path/to/World\ of\ Warships/", "Kongo_1942", "kongo.glb", opts);
 ```
 
 `wows_stitch_export_ship` handles everything: auto-detecting `GameParams.data` and
@@ -114,18 +137,18 @@ transforms and BlendBone corrections, decoding geometry, merging, texturing, and
 writing the GLB. Errors are printed to stderr; Python is initialised and finalised
 internally.
 
-### **wows_ship_export_options** fields
+### Export fields
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `gameparams_path` | `""` | Path to `GameParams.data`; auto-detected from `game_dir` if empty |
-| `wows_assets_bin_path` | `""` | Path to `assets.bin`; auto-detected from `game_dir` if empty |
-| `hull_upgrade` | `""` | Hull upgrade name substring (e.g. `"HullB"`); empty = latest |
-| `with_turrets` | `true` | Include turret / mount geometry |
-| `with_textures` | `true` | Apply DDS albedo textures |
-| `max_tex_size` | `2048` | Maximum texture dimension in pixels |
-| `lod_level` | `-1` | LOD level; `-1` = auto-select highest triangle count |
-| `exclude_damage` | `true` | Strip damage/crack render sets |
+| Field                  | Default | Description                                                         |
+|------------------------|---------|---------------------------------------------------------------------|
+| `gameparams_path`      | `""`    | Path to `GameParams.data`; auto-detected from `game_dir` if empty   |
+| `wows_assets_bin_path` | `""`    | Path to `assets.bin`; auto-detected from `game_dir` if empty        |
+| `hull_upgrade`         | `""`    | Hull upgrade name substring (e.g. `"HullB"`); empty = latest        |
+| `with_turrets`         | `true`  | Include turret / mount geometry                                     |
+| `with_textures`        | `true`  | Apply DDS albedo textures                                           |
+| `max_tex_size`         | `2048`  | Maximum texture dimension in pixels                                 |
+| `lod_level`            | `-1`    | LOD level; `-1` = auto-select highest triangle count                |
+| `exclude_damage`       | `true`  | Strip damage/crack render sets                                      |
 
 ### Verbose output
 
@@ -149,51 +172,10 @@ building-block functions used internally by `wows_stitch_export_ship` are also p
 `wows_stitch_merge_parts`, `wows_stitch_apply_textures`, and the `wows_assets_bin_*`
 helpers in `inc/wows-assets-bin.h`.
 
----
-
-## Build
-
-### Clone with submodules
-
-The following libraries are bundled as git submodules under `deps/`:
-
-| Submodule | Purpose |
-|-----------|---------|
-| [`wows-depack`](https://github.com/wows-tools/wows-depack) | WoWs resource file unpacker |
-| [`stb`](https://github.com/nothings/stb) | Image resize and write headers |
-
-Clone with `--recurse-submodules`:
-
-```sh
-git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git
-```
-
-On an existing clone:
-
-```sh
-git submodule update --init --recursive
-```
-
-### Dependencies (Debian/Ubuntu)
-
-```sh
-sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev \
-                 libtinygltf-dev python3-dev
-```
-
-`libpcre2-dev` and `zlib1g-dev` are required by the `wows-depack` submodule.
-
-For the test suite, also install:
+# Unit Tests
 
 ```sh
 sudo apt install libcunit1-dev
-```
-
-### Compile
-
-```sh
-cmake .
-make
 ```
 
 To build and run tests with coverage (requires GCC):

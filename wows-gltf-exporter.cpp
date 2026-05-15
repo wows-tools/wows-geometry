@@ -11,17 +11,20 @@ const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/iss
 
 static char doc[] = "\nStitch WoWS ship geometry parts into a single GLB.\n"
                     "\n"
-                    "GameParams.data and assets.bin are auto-detected from -d if not given\n"
-                    "(recursive scan up to 3 directory levels; newest version wins).";
+                    "Examples:\n"
+                    "  wows-gltf-exporter -W /path/to/World\\ of\\ Warships \\\n"
+                    "    -s Kongo_1942 -o kongo.glb\n"
+                    "  wows-gltf-exporter -W /path/to/World\\ of\\ Warships \\\n"
+                    "    -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb.glb\n";
 
 static struct argp_option options[] = {
-    {"gameparams", 'g', "FILE", 0, "GameParams.data (auto-detected from -d if omitted)"},
-    {"game-dir", 'd', "DIR", 0, "Root game directory"},
+    {"gameparams", 'g', "FILE", OPTION_HIDDEN, "GameParams.data"},
+    {"wows-dir", 'W', "DIR", 0, "Root game directory"},
     {"ship", 's', "NAME", 0, "Ship name / pattern (words joined as .*word1.*word2.*, case-insensitive)"},
     {"output", 'o', "FILE", 0, "Output .glb file"},
     {"hull", 'H', "UPG", 0, "Hull upgrade name substring (default: latest)"},
     {"no-turrets", 't', nullptr, 0, "Exclude turret / mounted-component models (default: included)"},
-    {"assets-bin", 'a', "FILE", 0, "assets.bin (auto-detected from -d if omitted)"},
+    {"assets-bin", 'a', "FILE", OPTION_HIDDEN, "assets.bin"},
     {"no-textures", 'T', nullptr, 0, "Skip DDS texture application (default: applied)"},
     {"texture-size", 'Z', "N", 0, "Max texture dimension in pixels (default: 2048)"},
     {"lod", 'L', "N", 0, "LOD level to export (-1=auto, default: -1)"},
@@ -50,7 +53,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'g':
         a->gameparams = arg;
         break;
-    case 'd':
+    case 'W':
         a->game_dir = arg;
         break;
     case 's':
@@ -99,7 +102,7 @@ int main(int argc, char **argv) {
     wows_stitch_set_verbose(args.verbose);
 
     if (!args.game_dir || !args.ship || !args.output) {
-        vlog("wows-gltf-exporter", "Error: -d, -s, and -o are required.\n");
+        vlog("wows-gltf-exporter", "Error: -W, -s, and -o are required.\n");
         return 1;
     }
 
