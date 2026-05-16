@@ -1,0 +1,65 @@
+name: Windows x86_64 MSI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+  VCPKG_DEFAULT_TRIPLET: x64-windows
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: C:/vcpkg/installed
+          key: vcpkg-x64-windows-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: vcpkg-x64-windows-
+
+      - name: Install dependencies via vcpkg
+        run: |
+          vcpkg install zlib:x64-windows pcre2:x64-windows meshoptimizer:x64-windows tinygltf:x64-windows
+
+      - name: Install WiX Toolset
+        run: choco install wixtoolset -y --no-progress
+
+      - name: Configure CMake
+        run: |
+          $pythonDir = Split-Path (python.exe -c "import sys; print(sys.executable)") -Parent
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DBUILD_TESTS=OFF `
+            -DPython3_ROOT_DIR="$pythonDir"
+
+      - name: Build
+        run: cmake --build build --config $env:BUILD_TYPE
+
+      - name: Package MSI
+        run: |
+          cd build
+          cpack -G WIX -C $env:BUILD_TYPE -V
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wows-model-exporter-${{ github.ref_name }}-win64
+          path: build/*.msi
+          if-no-files-found: error

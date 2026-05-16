@@ -188,11 +188,19 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall")
 
 if(NOT LIB_INSTALL_DIR)
-  set(LIB_INSTALL_DIR lib)
+  if(WIN32)
+    set(LIB_INSTALL_DIR ".")
+  else()
+    set(LIB_INSTALL_DIR lib)
+  endif()
 endif()
 
 if(NOT BIN_INSTALL_DIR)
-  set(BIN_INSTALL_DIR bin)
+  if(WIN32)
+    set(BIN_INSTALL_DIR ".")
+  else()
+    set(BIN_INSTALL_DIR bin)
+  endif()
 endif()
 
 if(NOT INCLUDE_INSTALL_DIR)
@@ -234,3 +242,75 @@ endif(BUILD_DOC)
 
 # install header file
 install(FILES inc/wows-geometry.h DESTINATION ${INCLUDE_INSTALL_DIR})
+
+# Windows MSI packaging via CPack + WiX
+if(WIN32)
+  # Optional: path to Qt6 bin dir so Qt DLLs (e.g. Qt6Quick.dll) get bundled.
+  # Set with -DQT6_BIN_DIR=C:/Qt/6.x/msvc2022_64/bin at configure time.
+  set(QT6_BIN_DIR "" CACHE PATH "Qt6 bin directory for DLL bundling (Windows only)")
+
+  get_filename_component(PYTHON_BIN_DIR "${Python3_EXECUTABLE}" DIRECTORY)
+
+  # MSVC runtime DLLs (MSVCP140.dll, VCRUNTIME140.dll, VCRUNTIME140_1.dll …)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+  include(InstallRequiredSystemLibraries)
+
+  # Collect all remaining runtime DLLs (python311.dll, Qt6Quick.dll, …)
+  # at CPack time so paths are resolved against the actual build environment.
+  install(CODE "
+    set(_exes)
+    foreach(_name wows-geometry-cli wows-gltf-exporter wows-list-ships)
+      set(_p \"\${CMAKE_INSTALL_PREFIX}/\${_name}.exe\")
+      if(EXISTS \"\${_p}\")
+        list(APPEND _exes \"\${_p}\")
+      endif()
+    endforeach()
+    set(_dlls)
+    foreach(_name wows-geometry)
+      set(_p \"\${CMAKE_INSTALL_PREFIX}/\${_name}.dll\")
+      if(EXISTS \"\${_p}\")
+        list(APPEND _dlls \"\${_p}\")
+      endif()
+    endforeach()
+    if(_exes OR _dlls)
+      set(_dirs \"${PYTHON_BIN_DIR}\")
+      if(NOT \"${QT6_BIN_DIR}\" STREQUAL \"\")
+        list(APPEND _dirs \"${QT6_BIN_DIR}\")
+      endif()
+      file(GET_RUNTIME_DEPENDENCIES
+        EXECUTABLES \${_exes}
+        LIBRARIES   \${_dlls}
+        RESOLVED_DEPENDENCIES_VAR   _r_deps
+        UNRESOLVED_DEPENDENCIES_VAR _u_deps
+        DIRECTORIES \${_dirs}
+        PRE_EXCLUDE_REGEXES  \"api-ms-win-.*\" \"ext-ms-.*\"
+        POST_EXCLUDE_REGEXES \".*[Ss]ystem32.*\" \".*[Ww]in[Ss][Xx][Ss].*\"
+      )
+      foreach(_dep \${_r_deps})
+        file(INSTALL \"\${_dep}\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}\")
+      endforeach()
+      if(_u_deps)
+        message(WARNING \"Unresolved runtime deps (may need manual copy): \${_u_deps}\")
+      endif()
+    endif()
+  ")
+
+  # CPack / WiX MSI settings
+  set(CPACK_PACKAGE_NAME             "WoWS Model Exporter")
+  set(CPACK_PACKAGE_VENDOR           "kakwalab")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "World of Warships model exporter tools")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY   "WoWS Model Exporter")
+  set(CPACK_PACKAGE_VERSION_MAJOR    ${wows-model-exporter_VERSION_MAJOR})
+  set(CPACK_PACKAGE_VERSION_MINOR    ${wows-model-exporter_VERSION_MINOR})
+  set(CPACK_PACKAGE_VERSION_PATCH    ${wows-model-exporter_VERSION_PATCH})
+
+  set(CPACK_GENERATOR    "WIX")
+  # UPGRADE_GUID must stay constant across all releases so Windows Installer
+  # recognises this as an upgrade of the same product family.
+  set(CPACK_WIX_UPGRADE_GUID "3F2B7A09-4D1C-4E8F-B023-59A7E614C83D")
+  set(CPACK_WIX_PRODUCT_GUID "*")
+  set(CPACK_WIX_EXTRA_SOURCES
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/wix_desktop_shortcut.wxs")
+
+  include(CPack)
+endif()

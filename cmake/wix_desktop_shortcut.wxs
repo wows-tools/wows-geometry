@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Adds a desktop shortcut for wows-gltf-exporter.exe.
+  APPLICATIONFOLDER is the CPack WiX root install directory property.
+  DesktopFolder is a standard Windows Installer system folder property.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <!-- Declare DesktopFolder under TARGETDIR so WiX knows about it -->
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR">
+      <Directory Id="DesktopFolder" Name="Desktop"/>
+    </DirectoryRef>
+  </Fragment>
+
+  <!-- Component that owns the desktop shortcut -->
+  <Fragment>
+    <DirectoryRef Id="DesktopFolder">
+      <Component Id="DesktopShortcutComp"
+                 Guid="{C8D2E4F1-3A5B-4091-B7E2-16A3D894C521}">
+        <Shortcut Id="DesktopShortcutGLTF"
+                  Name="WoWS Model Exporter"
+                  Target="[APPLICATIONFOLDER]wows-gltf-exporter.exe"
+                  WorkingDirectory="APPLICATIONFOLDER"
+                  Advertise="no"/>
+        <!-- Registry key used as the KeyPath so the component is self-contained -->
+        <RegistryValue Root="HKCU"
+                       Key="Software\kakwalab\WoWS Model Exporter"
+                       Name="DesktopShortcut"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+
+  <!-- Feature that pulls in the desktop shortcut component -->
+  <Fragment>
+    <Feature Id="DesktopShortcutFeature"
+             Title="Desktop Shortcut"
+             Description="Add a desktop shortcut for WoWS Model Exporter"
+             Level="1">
+      <ComponentRef Id="DesktopShortcutComp"/>
+    </Feature>
+  </Fragment>
+
+</Wix>
