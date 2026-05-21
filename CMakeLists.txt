@@ -43,6 +43,10 @@ option(FORCELE "force little endian architecture" OFF)
 option(COVERAGE "Enable code coverage" OFF)
 option(BUILD_DOC "Build documentation" OFF)
 option(BUILD_TESTS "Build tests" OFF)
+option(
+  BUNDLE_WOWS_DEPACK
+  "Bundle wows-depack from the submodule instead of using a system-installed version"
+  OFF)
 
 if(USE_CLANG)
   set(CMAKE_CXX_COMPILER "clang++")
@@ -112,13 +116,19 @@ add_executable(wows-geometry-cli wows-geometry.c)
 target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
 find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
 
-# Build depack sources directly so they are compiled with -fPIC for the shared
-# lib
-set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
-file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
-if(WOWS_DEPACK_SOURCES)
-  target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
-  target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
+if(BUNDLE_WOWS_DEPACK)
+  # Build depack sources directly so they are compiled with -fPIC for the shared
+  # lib
+  set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
+  file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
+  if(WOWS_DEPACK_SOURCES)
+    target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
+    target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
+    target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
+  endif()
+else()
+  find_package(WowsDepack REQUIRED)
+  target_link_libraries(wows-geometry PUBLIC WowsDepack::WowsDepack)
   target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 endif()
 
@@ -137,7 +147,7 @@ target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
 # directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
-if(WOWS_DEPACK_SOURCES)
+if(BUNDLE_WOWS_DEPACK AND WOWS_DEPACK_SOURCES)
   target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
 endif()
 target_link_libraries(wows-list-ships PRIVATE wows-geometry)
@@ -247,7 +257,9 @@ install(FILES inc/wows-geometry.h DESTINATION ${INCLUDE_INSTALL_DIR})
 if(WIN32)
   # Optional: path to Qt6 bin dir so Qt DLLs (e.g. Qt6Quick.dll) get bundled.
   # Set with -DQT6_BIN_DIR=C:/Qt/6.x/msvc2022_64/bin at configure time.
-  set(QT6_BIN_DIR "" CACHE PATH "Qt6 bin directory for DLL bundling (Windows only)")
+  set(QT6_BIN_DIR
+      ""
+      CACHE PATH "Qt6 bin directory for DLL bundling (Windows only)")
 
   get_filename_component(PYTHON_BIN_DIR "${Python3_EXECUTABLE}" DIRECTORY)
 
@@ -255,9 +267,10 @@ if(WIN32)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
   include(InstallRequiredSystemLibraries)
 
-  # Collect all remaining runtime DLLs (python311.dll, Qt6Quick.dll, …)
-  # at CPack time so paths are resolved against the actual build environment.
-  install(CODE "
+  # Collect all remaining runtime DLLs (python311.dll, Qt6Quick.dll, …) at CPack
+  # time so paths are resolved against the actual build environment.
+  install(
+    CODE "
     set(_exes)
     foreach(_name wows-geometry-cli wows-gltf-exporter wows-list-ships)
       set(_p \"\${CMAKE_INSTALL_PREFIX}/\${_name}.exe\")
@@ -296,15 +309,16 @@ if(WIN32)
   ")
 
   # CPack / WiX MSI settings
-  set(CPACK_PACKAGE_NAME             "WoWS Model Exporter")
-  set(CPACK_PACKAGE_VENDOR           "kakwalab")
-  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "World of Warships model exporter tools")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY   "WoWS Model Exporter")
-  set(CPACK_PACKAGE_VERSION_MAJOR    ${wows-model-exporter_VERSION_MAJOR})
-  set(CPACK_PACKAGE_VERSION_MINOR    ${wows-model-exporter_VERSION_MINOR})
-  set(CPACK_PACKAGE_VERSION_PATCH    ${wows-model-exporter_VERSION_PATCH})
+  set(CPACK_PACKAGE_NAME "WoWS Model Exporter")
+  set(CPACK_PACKAGE_VENDOR "kakwalab")
+  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+      "World of Warships model exporter tools")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "WoWS Model Exporter")
+  set(CPACK_PACKAGE_VERSION_MAJOR ${wows-model-exporter_VERSION_MAJOR})
+  set(CPACK_PACKAGE_VERSION_MINOR ${wows-model-exporter_VERSION_MINOR})
+  set(CPACK_PACKAGE_VERSION_PATCH ${wows-model-exporter_VERSION_PATCH})
 
-  set(CPACK_GENERATOR    "WIX")
+  set(CPACK_GENERATOR "WIX")
   # UPGRADE_GUID must stay constant across all releases so Windows Installer
   # recognises this as an upgrade of the same product family.
   set(CPACK_WIX_UPGRADE_GUID "3F2B7A09-4D1C-4E8F-B023-59A7E614C83D")

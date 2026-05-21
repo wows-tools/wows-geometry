@@ -23,7 +23,7 @@ cd wows-model-exporter
 
 Compile:
 ```sh
-cmake .
+cmake . -DBUNDLE_WOWS_DEPACK=ON
 make
 
 ./wows-gltf-exporter --help
