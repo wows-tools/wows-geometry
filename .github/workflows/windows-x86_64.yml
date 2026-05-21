@@ -47,6 +47,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DBUILD_TESTS=OFF `
+            -DBUNDLE_WOWS_DEPACK=ON `
             -DPython3_ROOT_DIR="$pythonDir"
 
       - name: Build

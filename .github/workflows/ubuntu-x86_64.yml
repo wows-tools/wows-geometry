@@ -23,7 +23,7 @@ jobs:
         sudo apt install cmake zlib1g-dev libpcre2-dev clang lcov libcunit1-dev valgrind \
           libmeshoptimizer-dev libtinygltf-dev python3-dev
     - name: Configure CMake
-      run: cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON .
+      run: cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCOVERAGE=ON -DBUILD_TESTS=ON -DBUNDLE_WOWS_DEPACK=ON .
     - name: Build
       run: make
     - name: Coverage
