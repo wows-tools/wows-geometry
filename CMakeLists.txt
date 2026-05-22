@@ -121,11 +121,16 @@ if(BUNDLE_WOWS_DEPACK)
   # lib
   set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
   file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
-  if(WOWS_DEPACK_SOURCES)
-    target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
-    target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
-    target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
+  if(NOT WOWS_DEPACK_SOURCES)
+    message(
+      FATAL_ERROR
+        "BUNDLE_WOWS_DEPACK=ON but no sources found in ${WOWS_DEPACK_DIR}/lib. "
+        "Did you forget to initialize the submodule? "
+        "Run: git submodule update --init --recursive")
   endif()
+  target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
+  target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
+  target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 else()
   find_package(WowsDepack REQUIRED)
   target_link_libraries(wows-geometry PUBLIC WowsDepack::WowsDepack)
@@ -147,7 +152,7 @@ target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
 # directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
-if(BUNDLE_WOWS_DEPACK AND WOWS_DEPACK_SOURCES)
+if(BUNDLE_WOWS_DEPACK)
   target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
 endif()
 target_link_libraries(wows-list-ships PRIVATE wows-geometry)
