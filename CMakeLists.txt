@@ -9,6 +9,20 @@ set(wows-model-exporter_VERSION_PATCH 0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+
+if(MSVC)
+  add_compile_options(/W3 /D_CRT_SECURE_NO_WARNINGS)
+else()
+  add_compile_options(-Wall)
+endif()
+
 find_library(CUNIT_LIBRARY cunit)
 
 find_package(meshoptimizer CONFIG QUIET)
@@ -304,20 +318,6 @@ if(BUILD_TESTS)
     message(WARNING "CUnit not found; not building tests.")
   endif(CUNIT_LIBRARY)
 endif(BUILD_TESTS)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
-
-if(MSVC)
-  add_compile_options(/W3)
-else()
-  add_compile_options(-Wall)
-endif()
 
 if(NOT LIB_INSTALL_DIR)
   if(WIN32)
