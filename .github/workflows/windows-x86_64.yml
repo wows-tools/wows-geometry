@@ -2,8 +2,7 @@ name: Windows x86_64 MSI
 
 on:
   push:
-    tags:
-      - 'v*'
+  pull_request:
   workflow_dispatch:
 
 env:

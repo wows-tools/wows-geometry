@@ -1,7 +1,10 @@
 # wows-model-exporter
 
 [![Ubuntu-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml)
+[![Windows-x86_64](https://github.com/wows-tools/wows-model-exporter/actions/workflows/windows-x86_64.yml/badge.svg)](https://github.com/wows-tools/wows-model-exporter/actions/workflows/windows-x86_64.yml)
 [![Documentation](https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg)](https://wows-tools.github.io/wows-model-exporter/)
+[![Release](https://img.shields.io/github/v/release/wows-tools/wows-model-exporter)](https://github.com/wows-tools/wows-model-exporter/releases)
+[![.deb repository](https://img.shields.io/badge/.deb-repository-A81D33?logo=debian&logoColor=white)](https://github.com/wows-tools/wows-pkg)
 
 Vibe coded parser and glTF/GLB exporter for World of Warships ship 3D models.
 

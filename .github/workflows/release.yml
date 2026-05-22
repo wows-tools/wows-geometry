@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt install -y cmake zlib1g-dev libpcre2-dev python3-dev \
+            libmeshoptimizer-dev libtinygltf-dev
+
+      - name: Configure CMake
+        run: cmake -DCMAKE_BUILD_TYPE=Release -DBUNDLE_WOWS_DEPACK=ON .
+
+      - name: Build
+        run: make
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp wows-geometry-cli wows-gltf-exporter wows-list-ships dist/
+          cp -P libwows-geometry.so* dist/ 2>/dev/null || true
+          cp LICENSE README.md dist/
+          tar -czf wows-model-exporter-linux-x86_64.tar.gz -C dist .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: wows-model-exporter-linux-x86_64.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    env:
+      BUILD_TYPE: Release
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: C:/vcpkg/installed
+          key: vcpkg-x64-windows-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: vcpkg-x64-windows-
+
+      - name: Install dependencies via vcpkg
+        run: vcpkg install zlib:x64-windows pcre2:x64-windows meshoptimizer:x64-windows tinygltf:x64-windows
+
+      - name: Install WiX Toolset
+        run: choco install wixtoolset -y --no-progress
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          $pythonDir = Split-Path (python.exe -c "import sys; print(sys.executable)") -Parent
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DBUILD_TESTS=OFF `
+            -DBUNDLE_WOWS_DEPACK=ON `
+            -DPython3_ROOT_DIR="$pythonDir"
+
+      - name: Build
+        run: cmake --build build --config $env:BUILD_TYPE
+
+      - name: Package MSI
+        run: |
+          cd build
+          cpack -G WIX -C $env:BUILD_TYPE -V
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86_64
+          path: build/*.msi
+          if-no-files-found: error
+
+  publish:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Publish versioned release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            artifacts/wows-model-exporter-linux-x86_64.tar.gz
+            artifacts/*.msi
+
+      - name: Publish latest pre-release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build (main branch)
+          prerelease: true
+          make_latest: false
+          files: |
+            artifacts/wows-model-exporter-linux-x86_64.tar.gz
+            artifacts/*.msi
