@@ -13,8 +13,14 @@ extern "C" {
 #include <string>
 #include <vector>
 
-#include <dirent.h>
-#include <sys/stat.h>
+#include <filesystem>
+#include <system_error>
+
+#ifdef _WIN32
+extern "C" {
+#include "posix_compat.h"
+}
+#endif
 
 bool wows_stitch_verbose = false;
 /* mirror verbosity into assets_bin */
@@ -53,8 +59,8 @@ std::string wows_stitch_normalize_slashes(std::string s) {
 }
 
 bool wows_stitch_file_exists(const std::string &p) {
-    struct stat st;
-    return stat(p.c_str(), &st) == 0 && S_ISREG(st.st_mode);
+    std::error_code ec;
+    return std::filesystem::is_regular_file(p, ec);
 }
 
 /* ── model path helpers ─────────────────────────────────────────── */
@@ -89,14 +95,12 @@ std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_mod
     std::string ship_dir = wows_stitch_path_dirname(geom_path);
     std::string base_name = wows_stitch_stem(wows_stitch_path_basename(geom_path));
 
-    DIR *dir = opendir(ship_dir.c_str());
-    if (!dir)
-        return {};
-
     std::vector<std::string> results;
-    struct dirent *ent;
-    while ((ent = readdir(dir))) {
-        std::string fname = ent->d_name;
+    std::error_code ec;
+    for (auto &entry : std::filesystem::directory_iterator(ship_dir, ec)) {
+        if (!entry.is_regular_file())
+            continue;
+        std::string fname = entry.path().filename().string();
         if (fname.size() <= 9)
             continue;
         if (fname.compare(fname.size() - 9, 9, ".geometry") != 0)
@@ -107,7 +111,6 @@ std::vector<std::string> wows_stitch_find_hull_geoms(const std::string &hull_mod
             continue;
         results.push_back(ship_dir + "/" + fname);
     }
-    closedir(dir);
     std::sort(results.begin(), results.end());
     return results;
 }
@@ -116,14 +119,12 @@ std::vector<std::string> wows_stitch_find_propeller_geoms(const std::string &hul
     std::string geom_path = wows_stitch_model_to_geom_path(hull_model, game_dir);
     std::string ship_dir = wows_stitch_path_dirname(geom_path);
 
-    DIR *dir = opendir(ship_dir.c_str());
-    if (!dir)
-        return {};
-
     std::vector<std::string> results;
-    struct dirent *ent;
-    while ((ent = readdir(dir))) {
-        std::string fname = ent->d_name;
+    std::error_code ec;
+    for (auto &entry : std::filesystem::directory_iterator(ship_dir, ec)) {
+        if (!entry.is_regular_file())
+            continue;
+        std::string fname = entry.path().filename().string();
         if (fname.size() <= 9)
             continue;
         if (fname.compare(fname.size() - 9, 9, ".geometry") != 0)
@@ -133,7 +134,6 @@ std::vector<std::string> wows_stitch_find_propeller_geoms(const std::string &hul
         if (flower.find("prop") != std::string::npos || flower.find("screw") != std::string::npos)
             results.push_back(ship_dir + "/" + fname);
     }
-    closedir(dir);
     std::sort(results.begin(), results.end());
     return results;
 }
@@ -144,25 +144,17 @@ static void find_recursive(const std::string &dir, const std::string &target, in
                            std::vector<std::string> &out) {
     if (depth < 0)
         return;
-    DIR *d = opendir(dir.c_str());
-    if (!d)
-        return;
-    struct dirent *ent;
-    while ((ent = readdir(d))) {
-        std::string name = ent->d_name;
-        if (name == "." || name == "..")
-            continue;
+    std::error_code ec;
+    for (auto &entry : std::filesystem::directory_iterator(dir, ec)) {
+        std::string name = entry.path().filename().string();
         std::string full = dir + "/" + name;
         if (name == target) {
             if (wows_stitch_file_exists(full))
                 out.push_back(full);
-        } else if (depth > 0) {
-            struct stat st;
-            if (stat(full.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
-                find_recursive(full, target, depth - 1, out);
+        } else if (depth > 0 && entry.is_directory(ec)) {
+            find_recursive(full, target, depth - 1, out);
         }
     }
-    closedir(d);
 }
 
 std::string wows_stitch_find_game_file(const std::string &game_dir, const std::string &filename) {

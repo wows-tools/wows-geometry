@@ -93,17 +93,47 @@ endif(UNIX)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # Mac OS X specific code
   set(EXTERNAL_ICONV "iconv")
-  set(EXTERNAL_ARGP "argp")
   add_definitions(-DDARWIN)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# ── Bundled portability deps (local deps/ — independent of optional submodules) ──
+
+# compat: endian macros on all platforms + POSIX shims on Windows
+set(COMPAT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/compat)
+
+# fmem: portable open_memstream — selects the right backend per platform
+add_subdirectory(deps/fmem EXCLUDE_FROM_ALL)
+
+# mman-win32: mmap/munmap shim for Windows
+set(MMAN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/mman-win32)
+
+# argp: use system argp where available, fall back to bundled argp-standalone
+include(CheckIncludeFile)
+check_include_file("argp.h" HAVE_ARGP_H)
+if(HAVE_ARGP_H)
+  # On Linux argp lives in glibc (no separate lib); macOS/brew needs -largp
+  find_library(_ARGP_LIB argp)
+  if(_ARGP_LIB)
+    set(ARGP_LIBRARIES ${_ARGP_LIB})
+  else()
+    set(ARGP_LIBRARIES "")
+  endif()
+  set(ARGP_INCLUDE_DIRS "")
+  message(STATUS "Using system argp")
+else()
+  message(STATUS "System argp not found, building bundled argp-standalone")
+  add_subdirectory(deps/argp EXCLUDE_FROM_ALL)
+  set(ARGP_LIBRARIES argp-standalone)
+  set(ARGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/argp/include)
+endif()
 
 # linking directories
 link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
                  ${CMAKE_CURRENT_SOURCE_DIR}/../lib/)
 
-# headers directories
+# headers directories (compat dir is global so bundled depack lib/*.c find it too)
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
-                    /usr/include/ /sw/include/ ${CMAKE_CURRENT_SOURCE_DIR}/deps)
+                    /usr/include/ /sw/include/ ${COMPAT_DIR})
 
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
@@ -116,9 +146,19 @@ add_executable(wows-geometry-cli wows-geometry.c)
 target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
 find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
 
+# Portability shims — always from local deps/, regardless of BUNDLE_WOWS_DEPACK
+target_link_libraries(wows-geometry PRIVATE fmem::fmem)
+if(WIN32)
+  target_sources(wows-geometry PRIVATE
+    ${COMPAT_DIR}/posix_compat.c
+    ${MMAN_DIR}/mmap.c)
+  target_include_directories(wows-geometry PRIVATE ${MMAN_DIR})
+else()
+  target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
+endif()
+
 if(BUNDLE_WOWS_DEPACK)
-  # Build depack sources directly so they are compiled with -fPIC for the shared
-  # lib
+  # Build depack sources directly so they are compiled with -fPIC for the shared lib
   set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
   file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
   if(NOT WOWS_DEPACK_SOURCES)
@@ -130,45 +170,35 @@ if(BUNDLE_WOWS_DEPACK)
   endif()
   target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
   target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
-  # posix_compat.h supplies endian macros on all platforms and Windows POSIX shims
-  target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/deps/compat)
-  if(WIN32)
-    target_sources(wows-geometry PRIVATE
-      ${WOWS_DEPACK_DIR}/deps/compat/posix_compat.c
-      ${WOWS_DEPACK_DIR}/deps/mman-win32/mmap.c)
-    target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/deps/mman-win32)
-  else()
-    target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
-  endif()
 else()
   find_package(WowsDepack REQUIRED)
   target_link_libraries(wows-geometry PUBLIC WowsDepack::WowsDepack)
-  target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 endif()
 
 target_link_libraries(
   wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
                        ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
 
-target_link_libraries(wows-geometry-cli PRIVATE wows-geometry)
+target_include_directories(wows-geometry-cli PRIVATE ${ARGP_INCLUDE_DIRS})
+target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
 
 # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
 target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
                                                  ${TINYGLTF_LIBRARY})
 
-# Ship lister: enumerate ships from GameParams.data (uses wows-depack API
-# directly)
+# Ship lister: enumerate ships from GameParams.data (uses wows-depack API directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
-target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS})
+target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS}
+                                                   ${ARGP_INCLUDE_DIRS})
 if(BUNDLE_WOWS_DEPACK)
   target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
-  target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/deps/compat)
   if(WIN32)
-    target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/deps/mman-win32)
+    target_include_directories(wows-list-ships PRIVATE ${MMAN_DIR})
   endif()
 endif()
-target_link_libraries(wows-list-ships PRIVATE wows-geometry)
+target_link_libraries(wows-list-ships PRIVATE wows-geometry fmem::fmem
+                                              ${ARGP_LIBRARIES})
 
 if(BUILD_TESTS)
   if(CUNIT_LIBRARY)
@@ -212,7 +242,7 @@ if(BUILD_TESTS)
   endif(CUNIT_LIBRARY)
 endif(BUILD_TESTS)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall")
 
 if(NOT LIB_INSTALL_DIR)

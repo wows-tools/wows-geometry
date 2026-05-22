@@ -6,6 +6,7 @@
 extern "C" {
 #include "wows-assets-bin.h"
 #include "wows-depack.h"
+#include "fmem.h"
 }
 #include "wows-model-exporter.h"
 #include "wows-game-params.h"
@@ -50,19 +51,24 @@ static WOWS_CONTEXT *ship_open_depack(const std::string &game_dir) {
 
 /* Extract archive_path from depack directly into a memory buffer. */
 static std::vector<uint8_t> ship_depack_read(WOWS_CONTEXT *ctx, const std::string &archive_path) {
-    char *buf = nullptr;
-    size_t sz = 0;
-    FILE *fp = open_memstream(&buf, &sz);
-    if (!fp)
-        return {};
-    int ret = wows_extract_file_fp(ctx, const_cast<char *>(archive_path.c_str()), fp);
-    fclose(fp);
-    if (ret != 0) {
-        free(buf);
+    fmem fm;
+    fmem_init(&fm);
+    FILE *fp = fmem_open(&fm, "w+");
+    if (!fp) {
+        fmem_term(&fm);
         return {};
     }
-    std::vector<uint8_t> result(buf, buf + sz);
-    free(buf);
+    int ret = wows_extract_file_fp(ctx, const_cast<char *>(archive_path.c_str()), fp);
+    std::vector<uint8_t> result;
+    if (ret == 0) {
+        void *mem = nullptr;
+        size_t sz = 0;
+        fmem_mem(&fm, &mem, &sz);
+        if (mem && sz > 0)
+            result.assign(static_cast<uint8_t *>(mem), static_cast<uint8_t *>(mem) + sz);
+    }
+    fclose(fp);
+    fmem_term(&fm);
     return result;
 }
 

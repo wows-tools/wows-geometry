@@ -5,6 +5,7 @@
 
 extern "C" {
 #include "wows-depack.h"
+#include "fmem.h"
 }
 #include "wows-game-params.h"
 #include "wows-model-exporter.h"
@@ -101,19 +102,24 @@ static std::vector<uint8_t> depack_search_read(WOWS_CONTEXT *ctx, const char *pa
         free(results[i]);
     free(results);
 
-    char *buf = nullptr;
-    size_t sz = 0;
-    FILE *fp = open_memstream(&buf, &sz);
-    if (!fp)
-        return {};
-    int ret = wows_extract_file_fp(ctx, const_cast<char *>(path.c_str()), fp);
-    fclose(fp);
-    if (ret != 0) {
-        free(buf);
+    fmem fm;
+    fmem_init(&fm);
+    FILE *fp = fmem_open(&fm, "w+");
+    if (!fp) {
+        fmem_term(&fm);
         return {};
     }
-    std::vector<uint8_t> data(buf, buf + sz);
-    free(buf);
+    int ret = wows_extract_file_fp(ctx, const_cast<char *>(path.c_str()), fp);
+    std::vector<uint8_t> data;
+    if (ret == 0) {
+        void *mem = nullptr;
+        size_t sz = 0;
+        fmem_mem(&fm, &mem, &sz);
+        if (mem && sz > 0)
+            data.assign(static_cast<uint8_t *>(mem), static_cast<uint8_t *>(mem) + sz);
+    }
+    fclose(fp);
+    fmem_term(&fm);
     return data;
 }
 
