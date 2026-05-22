@@ -153,7 +153,8 @@ link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
 
 # headers directories (compat dir is global so bundled depack lib/*.c find it too)
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
-                    /usr/include/ /sw/include/ ${COMPAT_DIR})
+                    /usr/include/ /sw/include/ ${CMAKE_CURRENT_SOURCE_DIR}/deps
+                    ${COMPAT_DIR})
 
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
