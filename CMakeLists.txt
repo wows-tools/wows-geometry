@@ -19,19 +19,6 @@ else()
   set(MESHOPTIMIZER_LIBRARIES ${MESHOPTIMIZER_LIBRARY})
 endif()
 
-# tinygltf is header-only on vcpkg but compiled on Debian; try CMake config first
-find_package(TinyGLTF CONFIG QUIET)
-if(TinyGLTF_FOUND)
-  set(TINYGLTF_LIBRARIES TinyGLTF::TinyGLTF)
-else()
-  find_package(tinygltf CONFIG QUIET)
-  if(tinygltf_FOUND)
-    set(TINYGLTF_LIBRARIES tinygltf::tinygltf)
-  else()
-    find_library(TINYGLTF_LIBRARY tinygltf)
-    set(TINYGLTF_LIBRARIES ${TINYGLTF_LIBRARY})
-  endif()
-endif()
 find_package(ZLIB REQUIRED)
 find_package(
   Python3
@@ -66,6 +53,10 @@ option(BUILD_TESTS "Build tests" OFF)
 option(
   BUNDLE_WOWS_DEPACK
   "Bundle wows-depack from the submodule instead of using a system-installed version"
+  OFF)
+option(
+  BUNDLE_TINYGLTF
+  "Bundle tinygltf from the submodule instead of using a system-installed version"
   OFF)
 
 if(USE_CLANG)
@@ -116,7 +107,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   add_definitions(-DDARWIN)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# ── Bundled portability deps (local deps/ — independent of optional submodules) ──
+# ── Bundled portability deps (local deps/ — independent of optional submodules)
+# ──
 
 # compat: endian macros on all platforms + POSIX shims on Windows
 set(COMPAT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/compat)
@@ -151,13 +143,22 @@ endif()
 link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
                  ${CMAKE_CURRENT_SOURCE_DIR}/../lib/)
 
-# headers directories (compat dir is global so bundled depack lib/*.c find it too)
-include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
-                    /usr/include/ /sw/include/ ${CMAKE_CURRENT_SOURCE_DIR}/deps
-                    ${COMPAT_DIR})
+# headers directories (compat dir is global so bundled depack lib/*.c find it
+# too)
+include_directories(
+  ./inc/
+  ${ZLIB_INCLUDE_DIRS}
+  ${PCRE_INCLUDE_DIRS}
+  /usr/include/
+  /sw/include/
+  ${CMAKE_CURRENT_SOURCE_DIR}/deps
+  ${COMPAT_DIR})
 
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
+if(BUNDLE_TINYGLTF)
+  target_compile_definitions(wows-geometry PRIVATE WOWS_DDS_NO_STB_WRITE)
+endif()
 set_target_properties(
   wows-geometry PROPERTIES VERSION ${wows-model-exporter_VERSION}
                            SOVERSION ${wows-model-exporter_VERSION_MAJOR})
@@ -170,16 +171,45 @@ find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
 # Portability shims — always from local deps/, regardless of BUNDLE_WOWS_DEPACK
 target_link_libraries(wows-geometry PRIVATE fmem::fmem)
 if(WIN32)
-  target_sources(wows-geometry PRIVATE
-    ${COMPAT_DIR}/posix_compat.c
-    ${MMAN_DIR}/mmap.c)
+  target_sources(wows-geometry PRIVATE ${COMPAT_DIR}/posix_compat.c
+                                       ${MMAN_DIR}/mmap.c)
   target_include_directories(wows-geometry PRIVATE ${MMAN_DIR})
 else()
   target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 endif()
 
+if(BUNDLE_TINYGLTF)
+  set(TINYGLTF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/tinygltf)
+  if(NOT EXISTS "${TINYGLTF_DIR}/tiny_gltf.h")
+    message(
+      FATAL_ERROR
+        "BUNDLE_TINYGLTF=ON but tiny_gltf.h not found in ${TINYGLTF_DIR}. "
+        "Did you forget to initialize the submodule? "
+        "Run: git submodule update --init deps/tinygltf")
+  endif()
+  add_library(tinygltf_bundled STATIC
+              ${CMAKE_CURRENT_SOURCE_DIR}/deps/bundled/tinygltf_impl.cpp)
+  target_include_directories(tinygltf_bundled PUBLIC ${TINYGLTF_DIR})
+  set_target_properties(tinygltf_bundled PROPERTIES POSITION_INDEPENDENT_CODE
+                                                     ON)
+  set(TINYGLTF_LIBRARIES tinygltf_bundled)
+else()
+  find_package(TinyGLTF CONFIG QUIET)
+  if(TinyGLTF_FOUND)
+    set(TINYGLTF_LIBRARIES TinyGLTF::TinyGLTF)
+  else()
+    find_package(tinygltf CONFIG REQUIRED)
+    if(TARGET unofficial::tinygltf::tinygltf)
+      set(TINYGLTF_LIBRARIES unofficial::tinygltf::tinygltf)
+    else()
+      set(TINYGLTF_LIBRARIES tinygltf::tinygltf)
+    endif()
+  endif()
+endif()
+
 if(BUNDLE_WOWS_DEPACK)
-  # Build depack sources directly so they are compiled with -fPIC for the shared lib
+  # Build depack sources directly so they are compiled with -fPIC for the shared
+  # lib
   set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
   file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
   if(NOT WOWS_DEPACK_SOURCES)
@@ -198,12 +228,12 @@ else()
   elseif(NOT BUILD_DOC)
     message(
       FATAL_ERROR
-        "WowsDepack not found. Install the library or set -DBUNDLE_WOWS_DEPACK=ON.")
+        "WowsDepack not found. Install the library or set -DBUNDLE_WOWS_DEPACK=ON."
+    )
   else()
     message(
-      WARNING
-        "WowsDepack not found; wows-geometry compilation will fail. "
-        "This is expected for doc-only builds (make doc_doxygen).")
+      WARNING "WowsDepack not found; wows-geometry compilation will fail. "
+              "This is expected for doc-only builds (make doc_doxygen).")
   endif()
 endif()
 
@@ -219,7 +249,8 @@ add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
 target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
                                                  ${TINYGLTF_LIBRARIES})
 
-# Ship lister: enumerate ships from GameParams.data (uses wows-depack API directly)
+# Ship lister: enumerate ships from GameParams.data (uses wows-depack API
+# directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
 target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS}
                                                    ${ARGP_INCLUDE_DIRS})

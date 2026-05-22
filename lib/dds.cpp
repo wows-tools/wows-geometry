@@ -1,4 +1,6 @@
+#ifndef WOWS_DDS_NO_STB_WRITE
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#endif
 #include <stb/stb_image_write.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize2.h>

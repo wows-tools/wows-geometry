@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies via vcpkg
         run: |
-          vcpkg install zlib:x64-windows pcre2:x64-windows meshoptimizer:x64-windows tinygltf:x64-windows
+          vcpkg install zlib:x64-windows pcre2:x64-windows meshoptimizer:x64-windows
 
       - name: Install WiX Toolset
         run: choco install wixtoolset -y --no-progress
@@ -47,6 +47,7 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DBUILD_TESTS=OFF `
             -DBUNDLE_WOWS_DEPACK=ON `
+            -DBUNDLE_TINYGLTF=ON `
             -DPython3_ROOT_DIR="$pythonDir"
 
       - name: Build

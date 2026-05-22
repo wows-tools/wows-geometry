@@ -136,7 +136,7 @@ if (-not (Test-Path "$VcpkgRoot\vcpkg.exe")) {
     & "$VcpkgRoot\bootstrap-vcpkg.bat" -disableMetrics
 }
 
-$packages = @("zlib:x64-windows", "pcre2:x64-windows", "meshoptimizer:x64-windows", "tinygltf:x64-windows")
+$packages = @("zlib:x64-windows", "pcre2:x64-windows", "meshoptimizer:x64-windows")
 foreach ($pkg in $packages) {
     Write-Host "  vcpkg install $pkg"
     & "$VcpkgRoot\vcpkg.exe" install $pkg | Out-Null
@@ -161,6 +161,8 @@ $cmakeArgs = @(
     "-DCMAKE_TOOLCHAIN_FILE=$VcpkgRoot\scripts\buildsystems\vcpkg.cmake",
     "-DVCPKG_TARGET_TRIPLET=x64-windows",
     "-DBUILD_TESTS=OFF",
+    "-DBUNDLE_WOWS_DEPACK=ON",
+    "-DBUNDLE_TINYGLTF=ON",
     "-DPython3_ROOT_DIR=$PythonBinDir"
 )
 if ($Qt6BinDir -ne "") {

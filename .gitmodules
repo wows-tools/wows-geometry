@@ -4,6 +4,9 @@
 [submodule "deps/stb"]
 	path = deps/stb
 	url = https://github.com/nothings/stb.git
+[submodule "deps/tinygltf"]
+	path = deps/tinygltf
+	url = https://github.com/syoyo/tinygltf.git
 [submodule "deps/vcpkg"]
 	path = deps/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
