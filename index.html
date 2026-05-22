@@ -96,7 +96,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
   <div class="headertitle"><div class="title">wows-model-exporter </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a> <a href="https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml"><img src="https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg" alt="Ubuntu-x86_64" style="pointer-events: none;" class="inline"/></a> <a href="https://wows-tools.github.io/wows-model-exporter/"><img src="https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg" alt="Documentation" style="pointer-events: none;" class="inline"/></a></p>
+<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a> <a href="https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml"><img src="https://github.com/wows-tools/wows-model-exporter/actions/workflows/ubuntu-x86_64.yml/badge.svg" alt="Ubuntu-x86_64" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/wows-tools/wows-model-exporter/actions/workflows/windows-x86_64.yml"><img src="https://github.com/wows-tools/wows-model-exporter/actions/workflows/windows-x86_64.yml/badge.svg" alt="Windows-x86_64" style="pointer-events: none;" class="inline"/></a> <a href="https://wows-tools.github.io/wows-model-exporter/"><img src="https://github.com/wows-tools/wows-model-exporter/actions/workflows/doxygen.yml/badge.svg" alt="Documentation" style="pointer-events: none;" class="inline"/></a> <a href="https://github.com/wows-tools/wows-model-exporter/releases"><img src="https://img.shields.io/github/v/release/wows-tools/wows-model-exporter" alt="Release" class="inline"/></a> <a href="https://github.com/wows-tools/wows-pkg"><img src="https://img.shields.io/badge/.deb-repository-A81D33?logo=debian&amp;logoColor=white" alt=".deb repository" class="inline"/></a></p>
 <p>Vibe coded parser and glTF/GLB exporter for World of Warships ship 3D models.</p>
 <p>File formats and organization: <a class="el" href="md__m_o_d_e_l.html">MODEL.md</a> (ship mesh pipeline — <code>GameParams</code>, <code>assets.bin</code>, LOD, textures) and <a class="el" href="md__g_e_o_m_e_t_r_y.html">GEOMETRY.md</a> (<code>.geometry</code> binary layout).</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
@@ -105,7 +105,7 @@ Build</h1>
 <div class="line">                 libtinygltf-dev python3-dev</div>
 </div><!-- fragment --><p>Clone code: </p><div class="fragment"><div class="line">git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git</div>
 <div class="line">cd wows-model-exporter</div>
-</div><!-- fragment --><p>Compile: </p><div class="fragment"><div class="line">cmake .</div>
+</div><!-- fragment --><p>Compile: </p><div class="fragment"><div class="line">cmake . -DBUNDLE_WOWS_DEPACK=ON</div>
 <div class="line">make</div>
 <div class="line"> </div>
 <div class="line">./wows-gltf-exporter --help</div>
