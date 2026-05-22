@@ -10,8 +10,28 @@ set(wows-model-exporter_VERSION_PATCH 0)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 find_library(CUNIT_LIBRARY cunit)
-find_library(MESHOPTIMIZER_LIBRARY meshoptimizer)
-find_library(TINYGLTF_LIBRARY tinygltf)
+
+find_package(meshoptimizer CONFIG QUIET)
+if(meshoptimizer_FOUND)
+  set(MESHOPTIMIZER_LIBRARIES meshoptimizer::meshoptimizer)
+else()
+  find_library(MESHOPTIMIZER_LIBRARY meshoptimizer REQUIRED)
+  set(MESHOPTIMIZER_LIBRARIES ${MESHOPTIMIZER_LIBRARY})
+endif()
+
+# tinygltf is header-only on vcpkg but compiled on Debian; try CMake config first
+find_package(TinyGLTF CONFIG QUIET)
+if(TinyGLTF_FOUND)
+  set(TINYGLTF_LIBRARIES TinyGLTF::TinyGLTF)
+else()
+  find_package(tinygltf CONFIG QUIET)
+  if(tinygltf_FOUND)
+    set(TINYGLTF_LIBRARIES tinygltf::tinygltf)
+  else()
+    find_library(TINYGLTF_LIBRARY tinygltf)
+    set(TINYGLTF_LIBRARIES ${TINYGLTF_LIBRARY})
+  endif()
+endif()
 find_package(ZLIB REQUIRED)
 find_package(
   Python3
@@ -171,13 +191,24 @@ if(BUNDLE_WOWS_DEPACK)
   target_sources(wows-geometry PRIVATE ${WOWS_DEPACK_SOURCES})
   target_include_directories(wows-geometry PRIVATE ${WOWS_DEPACK_DIR}/inc)
 else()
-  find_package(WowsDepack REQUIRED)
-  target_link_libraries(wows-geometry PUBLIC WowsDepack::WowsDepack)
+  find_package(WowsDepack)
+  if(WowsDepack_FOUND)
+    target_link_libraries(wows-geometry PUBLIC WowsDepack::WowsDepack)
+  elseif(NOT BUILD_DOC)
+    message(
+      FATAL_ERROR
+        "WowsDepack not found. Install the library or set -DBUNDLE_WOWS_DEPACK=ON.")
+  else()
+    message(
+      WARNING
+        "WowsDepack not found; wows-geometry compilation will fail. "
+        "This is expected for doc-only builds (make doc_doxygen).")
+  endif()
 endif()
 
 target_link_libraries(
-  wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARY}
-                       ${TINYGLTF_LIBRARY} ${Python3_LIBRARIES})
+  wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARIES}
+                       ${TINYGLTF_LIBRARIES} ${Python3_LIBRARIES})
 
 target_include_directories(wows-geometry-cli PRIVATE ${ARGP_INCLUDE_DIRS})
 target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
@@ -185,7 +216,7 @@ target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
 # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
 add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
 target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
-                                                 ${TINYGLTF_LIBRARY})
+                                                 ${TINYGLTF_LIBRARIES})
 
 # Ship lister: enumerate ships from GameParams.data (uses wows-depack API directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
