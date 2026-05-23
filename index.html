@@ -101,17 +101,50 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <p>File formats and organization: <a class="el" href="md__m_o_d_e_l.html">MODEL.md</a> (ship mesh pipeline — <code>GameParams</code>, <code>assets.bin</code>, LOD, textures) and <a class="el" href="md__g_e_o_m_e_t_r_y.html">GEOMETRY.md</a> (<code>.geometry</code> binary layout).</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Build</h1>
-<p>Install dependencies (Debian/Ubuntu): </p><div class="fragment"><div class="line">sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev git clang \</div>
-<div class="line">                 libtinygltf-dev python3-dev</div>
-</div><!-- fragment --><p>Clone code: </p><div class="fragment"><div class="line">git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git</div>
+<p>Clone the repository (submodules are required for bundled <code>wows-depack</code> on Linux):</p>
+<div class="fragment"><div class="line">git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git</div>
 <div class="line">cd wows-model-exporter</div>
-</div><!-- fragment --><p>Compile: </p><div class="fragment"><div class="line">cmake . -DBUNDLE_WOWS_DEPACK=ON -DBUNDLE_TINYGLTF=ON</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md2"></a>
+Linux (Debian / Ubuntu)</h2>
+<p>Install dependencies from packages (<code>tinygltf</code> is <b>not</b> bundled on Linux — use <code>libtinygltf-dev</code>):</p>
+<div class="fragment"><div class="line">sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev libtinygltf-dev \</div>
+<div class="line">                 python3-dev git clang</div>
+</div><!-- fragment --><p>Configure and build (<code>BUNDLE_WOWS_DEPACK</code> compiles <a href="https://github.com/wows-tools/wows-depack">wows-depack</a> from <code>deps/wows-depack</code>; omit it if you have a system <code>libwows-depack</code> and matching CMake package):</p>
+<div class="fragment"><div class="line">cmake . -DBUNDLE_WOWS_DEPACK=ON</div>
 <div class="line">make</div>
 <div class="line"> </div>
 <div class="line">./wows-gltf-exporter --help</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md2"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3"></a>
+Windows</h2>
+<p>C++ and Python dependencies are declared in <a href="vcpkg.json"><code>vcpkg.json</code></a> (<code>zlib</code>, <code>pcre2</code>, <code>meshoptimizer</code>, <code>python3</code>) and installed automatically by the bundled <a href="https://github.com/microsoft/vcpkg">vcpkg</a> submodule at <code>deps/vcpkg</code> on the first CMake configure. <code>wows-depack</code> and <code>tinygltf</code> are built from their submodules (<code>BUNDLE_WOWS_DEPACK</code> and <code>BUNDLE_TINYGLTF</code>). No separate Python install is required on Windows.</p>
+<p><b>Prerequisites</b></p>
+<ul>
+<li><a href="https://git-scm.com/">Git</a></li>
+<li><a href="https://cmake.org/">CMake</a></li>
+</ul>
+<p><b>Automated build</b></p>
+<p>From PowerShell in the repo root (CMake and Git on <code>PATH</code>):</p>
+<div class="fragment"><div class="line">.\scripts\setup_windows.ps1</div>
+<div class="line">.\scripts\setup_windows.ps1 -BuildType Debug</div>
+</div><!-- fragment --><p>The script initializes submodules, bootstraps <code>deps\vcpkg</code> if needed, configures, and builds under <code>build\</code>.</p>
+<p><b>Manual build</b></p>
+<p>Matches <a href=".github/workflows/windows-x86_64.yml">Windows CI</a>:</p>
+<div class="fragment"><div class="line">git submodule update --init --recursive</div>
+<div class="line">deps\vcpkg\bootstrap-vcpkg.bat -disableMetrics</div>
+<div class="line"> </div>
+<div class="line">cmake -B build `</div>
+<div class="line">  -DCMAKE_BUILD_TYPE=Release `</div>
+<div class="line">  -DBUILD_TESTS=OFF `</div>
+<div class="line">  -DBUNDLE_WOWS_DEPACK=ON `</div>
+<div class="line">  -DBUNDLE_TINYGLTF=ON</div>
+<div class="line"> </div>
+<div class="line">cmake --build build --config Release</div>
+</div><!-- fragment --><p>Binaries are under <code>build\Release\</code>. To ship a portable folder or zip with the embedded Python runtime:</p>
+<div class="fragment"><div class="line">.\scripts\package_windows.ps1</div>
+</div><!-- fragment --><p>This copies the tools from <code>vcpkg_installed\x64-windows\tools\python3\</code> (<code>python*.dll</code>, <code>Lib\</code>, <code>DLLs\</code>) next to the executables.</p>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Tools</h1>
-<h2><a class="anchor" id="autotoc_md3"></a>
+<h2><a class="anchor" id="autotoc_md5"></a>
 wows-gltf-exporter: full ship GLB assembler</h2>
 <p>Reads the game files, in particular <code>GameParams.data</code> and <code>assets.bin</code> (via <a href="https://github.com/wows-tools/wows-depack">wows-depack</a>), and stitches the model parts (<code>.geometry</code> vertices, <code>.dds</code> textures) together to export to <code>.gltf</code>/<code>.glb</code> format.</p>
 <div class="fragment"><div class="line">wows-gltf-exporter -W &lt;wows-dir&gt; -s &lt;ship&gt; -o &lt;output.glb&gt; [options]</div>
@@ -135,7 +168,7 @@ wows-gltf-exporter: full ship GLB assembler</h2>
 </div><!-- fragment --><p>To visualize and inspect the model, you can load it in <a href="https://sandbox.babylonjs.com/">babylonjs sandbox</a>, or locally, you can use <code>blender</code> or <code>f3d</code>:</p>
 <div class="fragment"><div class="line"># sudo apt install f3d # if not available</div>
 <div class="line">f3d kongo_hullb_lod2.glb</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md4"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
 wows-list-ships: enumerate available ships</h2>
 <p>Lists all ships found in <code>GameParams.data</code>, with optional filtering by nation or type:</p>
 <div class="fragment"><div class="line">wows-list-ships [-W &lt;wows-dir&gt;] [-n nation] [-t type]</div>
@@ -149,7 +182,7 @@ wows-list-ships: enumerate available ships</h2>
 <div class="line">    echo &quot;------ $line ----&quot;;</div>
 <div class="line">    wows-gltf-exporter -W /path/to/World\ of\ Warships -s $line -o $line.glb --verbose;</div>
 <div class="line">done</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
 wows-geometry-cli - single-file inspector / exporter</h2>
 <p>Parses one <code>.geometry</code> file, prints its structure, or exports it as GLB.</p>
 <div class="fragment"><div class="line">wows-geometry-cli -i &lt;file.geometry&gt; [-p] [-v] [-o output.glb] [-s 0,1,...]</div>
@@ -159,11 +192,11 @@ wows-geometry-cli - single-file inspector / exporter</h2>
 <div class="line">  -v         Print all vertex data (use with -p)</div>
 <div class="line">  -o FILE    Export submeshes to GLB (--output-glb)</div>
 <div class="line">  -s 0,1,…   Comma-separated vertex section indices to export (default: all)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md6"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
 Library API</h1>
 <p><code>wows-geometry</code> exposes a C++ API for embedding ship export into your own tools. The main entry point is <code><a class="el" href="group__wows__stitch__export.html#ga7d0ad2a4e0f4e3e1a282d5188dab4d12" title="Export a complete ship model to a binary glTF (GLB) file.">wows_stitch_export_ship()</a></code> from <code><a class="el" href="wows-model-exporter_8h.html">inc/wows-model-exporter.h</a></code>.</p>
 <p>Full API reference: <b><a href="https://wows-tools.github.io/wows-model-exporter/">wows-tools.github.io/wows-model-exporter</a></b></p>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Quick start</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="wows-model-exporter_8h.html">wows-model-exporter.h</a>&quot;</span></div>
 <div class="line"> </div>
@@ -183,7 +216,7 @@ Quick start</h2>
 <div class="ttc" id="astructwows__ship__export__options_html"><div class="ttname"><a href="structwows__ship__export__options.html">wows_ship_export_options</a></div><div class="ttdoc">Options controlling a full-ship GLB export.</div><div class="ttdef"><b>Definition</b> wows-model-exporter.h:57</div></div>
 <div class="ttc" id="awows-model-exporter_8h_html"><div class="ttname"><a href="wows-model-exporter_8h.html">wows-model-exporter.h</a></div></div>
 </div><!-- fragment --><p><code>wows_stitch_export_ship</code> handles everything: auto-detecting <code>GameParams.data</code> and <code>assets.bin</code> under <code>game_dir</code>, resolving hull and turret models, loading HP_ transforms and BlendBone corrections, decoding geometry, merging, texturing, and writing the GLB. Errors are printed to stderr; Python is initialised and finalised internally.</p>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md10"></a>
 Export fields</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -205,18 +238,18 @@ Export fields</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>exclude_damage</code>   </td><td class="markdownTableBodyNone"><code>true</code>   </td><td class="markdownTableBodyNone">Strip damage/crack render sets   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md9"></a>
+<h2><a class="anchor" id="autotoc_md11"></a>
 Verbose output</h2>
 <div class="fragment"><div class="line"><a class="code hl_variable" href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a> = <span class="keyword">true</span>;   <span class="comment">// prints progress to stderr</span></div>
 <div class="ttc" id="awows-model-exporter_8h_html_a7ae6defa062122b4b7719deee73aa8c8"><div class="ttname"><a href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a></div><div class="ttdeci">bool wows_stitch_verbose</div><div class="ttdoc">Set to true before calling any stitch function to enable verbose logging to stderr.</div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md12"></a>
 Linking</h2>
 <div class="fragment"><div class="line">target_link_libraries(my_tool wows-geometry)</div>
 </div><!-- fragment --><p>Python 3 and all other dependencies are already linked into <code>wows-geometry</code>.</p>
-<h2><a class="anchor" id="autotoc_md11"></a>
+<h2><a class="anchor" id="autotoc_md13"></a>
 Lower-level API</h2>
 <p>If you need finer control (custom merge logic, streaming parts, etc.) the building-block functions used internally by <code>wows_stitch_export_ship</code> are also public: <code>wows_stitch_find_hull_geoms</code>, <code>wows_stitch_geom_to_model</code>, <code>wows_stitch_merge_parts</code>, <code>wows_stitch_apply_textures</code>, and the <code>wows_assets_bin_*</code> helpers in <code><a class="el" href="wows-assets-bin_8h.html">inc/wows-assets-bin.h</a></code>.</p>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 Unit Tests</h1>
 <div class="fragment"><div class="line">sudo apt install libcunit1-dev</div>
 </div><!-- fragment --><p>To build and run tests with coverage (requires GCC):</p>
