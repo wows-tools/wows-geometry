@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <libgen.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
