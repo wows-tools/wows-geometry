@@ -36,12 +36,13 @@
 #include <direct.h>
 #include <stdio.h>
 
-#ifndef S_ISREG
+/* Macro form for translation units that include this header after <sys/stat.h>.
+ * TUs that omit this header (bundled wows-depack) link S_ISDIR/S_ISREG from
+ * posix_compat.c instead. */
+#undef S_ISREG
+#undef S_ISDIR
 #define S_ISREG(m) (((m) & _S_IFMT) == _S_IFREG)
-#endif
-#ifndef S_ISDIR
 #define S_ISDIR(m) (((m) & _S_IFMT) == _S_IFDIR)
-#endif
 
 /* lstat: Windows has no symlinks; stat and lstat are equivalent here */
 #define lstat(path, buf) stat(path, buf)

@@ -311,8 +311,9 @@ else()
 endif()
 
 if(BUNDLE_WOWS_DEPACK)
-  # Build depack sources directly so they are compiled with -fPIC for the shared
-  # lib
+  # Build depack sources directly (unmodified submodule).  Windows POSIX shims
+  # (fcntl, dirent, mmap, S_ISDIR/S_ISREG, endian, …) come from deps/compat/ in
+  # this repo — not from deps/wows-depack/deps/.
   set(WOWS_DEPACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/wows-depack)
   file(GLOB WOWS_DEPACK_SOURCES ${WOWS_DEPACK_DIR}/lib/*.c)
   if(NOT WOWS_DEPACK_SOURCES)
