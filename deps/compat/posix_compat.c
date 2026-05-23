@@ -3,14 +3,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <direct.h>
 #include <sys/stat.h>
-#include "posix_compat.h"
 
 /*
  * Bundled wows-depack sources (e.g. utils.c) set _POSIX_C_SOURCE and include
  * <sys/stat.h> without posix_compat.h.  MSVC then treats S_ISDIR/S_ISREG as
  * CRT functions — provide them here (main-project portability layer).
+ * Do not include posix_compat.h in this file: it defines S_ISDIR/S_ISREG as
+ * macros and would break these function definitions.
  */
+#undef S_ISDIR
+#undef S_ISREG
+
 int S_ISDIR(int mode) { return (((mode) & _S_IFMT) == _S_IFDIR); }
 
 int S_ISREG(int mode) { return (((mode) & _S_IFMT) == _S_IFREG); }
