@@ -240,6 +240,9 @@ link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
 
 # headers directories (compat dir is global so bundled depack lib/*.c find it
 # too)
+if(WIN32)
+  include_directories(BEFORE ${COMPAT_DIR})
+endif()
 include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/deps ${COMPAT_DIR})
 # Skip host system paths when cross-compiling (they belong to the host, not
@@ -271,7 +274,9 @@ target_link_libraries(wows-geometry PRIVATE fmem::fmem)
 if(WIN32)
   target_sources(wows-geometry PRIVATE ${COMPAT_DIR}/posix_compat.c
                                        ${MMAN_DIR}/mmap.c)
-  target_include_directories(wows-geometry PRIVATE ${MMAN_DIR})
+  # Prefer deps/compat/fcntl.h and posix_compat.h over the UCRT headers.
+  target_include_directories(wows-geometry BEFORE PRIVATE ${COMPAT_DIR}
+                                                        ${MMAN_DIR})
 else()
   target_compile_definitions(wows-geometry PRIVATE _GNU_SOURCE)
 endif()

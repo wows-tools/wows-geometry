@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <endian.h>
+#include "posix_compat.h"
 #include <math.h>
 #include <meshoptimizer.h>
 
