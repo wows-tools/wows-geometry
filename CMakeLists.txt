@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
-# Windows: use bundled vcpkg submodule (manifest mode installs deps on configure).
-set(_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg/scripts/buildsystems/vcpkg.cmake")
+# Windows: use bundled vcpkg submodule (manifest mode installs deps on
+# configure).
+set(_vcpkg_toolchain
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg/scripts/buildsystems/vcpkg.cmake")
 if(WIN32
    AND NOT CMAKE_TOOLCHAIN_FILE
    AND EXISTS "${_vcpkg_toolchain}")
-  set(CMAKE_TOOLCHAIN_FILE "${_vcpkg_toolchain}"
+  set(CMAKE_TOOLCHAIN_FILE
+      "${_vcpkg_toolchain}"
       CACHE FILEPATH "Vcpkg toolchain file")
 endif()
 unset(_vcpkg_toolchain)
@@ -33,6 +36,10 @@ else()
   add_compile_options(-Wall)
 endif()
 
+option(
+  WITH_PYTHON
+  "Build with embedded CPython support (required for GameParams/ship-export features)"
+  ON)
 
 find_library(CUNIT_LIBRARY cunit)
 
@@ -55,7 +62,10 @@ if(CMAKE_TOOLCHAIN_FILE MATCHES "[Vv]cpkg")
     message(FATAL_ERROR "pcre2 found but no known CMake target")
   endif()
   if(WITH_PYTHON)
-    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+    find_package(
+      Python3
+      COMPONENTS Interpreter Development
+      REQUIRED)
   endif()
 else()
   find_package(meshoptimizer CONFIG QUIET)
@@ -68,8 +78,30 @@ else()
   find_package(ZLIB REQUIRED)
   find_library(PCRE_LIBRARIES NAMES pcre2-8 pcre pcre2 REQUIRED)
   if(WITH_PYTHON)
-    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+    find_package(
+      Python3
+      COMPONENTS Interpreter Development
+      REQUIRED)
   endif()
+endif()
+
+# FindPython3 imported targets (Python3::Python) require CMake 3.19+; fall back
+# on older CMake or minimal python3-dev pkg-config layouts.
+if(WITH_PYTHON)
+  if(TARGET Python3::Python)
+    set(WOWS_PYTHON_LIBS Python3::Python)
+  elseif(TARGET Python3::Module)
+    set(WOWS_PYTHON_LIBS Python3::Module)
+  elseif(Python3_LIBRARIES)
+    add_library(wows_python INTERFACE)
+    target_link_libraries(wows_python INTERFACE ${Python3_LIBRARIES})
+    target_include_directories(wows_python INTERFACE ${Python3_INCLUDE_DIRS})
+    set(WOWS_PYTHON_LIBS wows_python)
+  else()
+    message(FATAL_ERROR "Python3 development libraries not found")
+  endif()
+else()
+  set(WOWS_PYTHON_LIBS "")
 endif()
 
 set(wows-model-exporter_VERSION
@@ -105,10 +137,6 @@ option(
   BUNDLE_TINYGLTF
   "Bundle tinygltf from the submodule instead of using a system-installed version"
   OFF)
-option(
-  WITH_PYTHON
-  "Build with embedded CPython support (required for GameParams/ship-export features)"
-  ON)
 
 if(USE_CLANG)
   set(CMAKE_CXX_COMPILER "clang++")
@@ -191,12 +219,18 @@ else()
   # GCC 15 + mingw-w64: intrinsic headers pulled via windows.h → winnt.h have
   # type errors in C compilation units. Block the chain for this C-only target.
   if(WIN32 AND NOT MSVC)
-    target_compile_definitions(argp-standalone PRIVATE
-      _X86INTRIN_H_INCLUDED _MMINTRIN_H_INCLUDED _XMMINTRIN_H_INCLUDED
-      _EMMINTRIN_H_INCLUDED _PMMINTRIN_H_INCLUDED _TMMINTRIN_H_INCLUDED
-      _SMMINTRIN_H_INCLUDED _NMMINTRIN_H_INCLUDED _WMMINTRIN_H_INCLUDED
-      _IMMINTRIN_H_INCLUDED
-    )
+    target_compile_definitions(
+      argp-standalone
+      PRIVATE _X86INTRIN_H_INCLUDED
+              _MMINTRIN_H_INCLUDED
+              _XMMINTRIN_H_INCLUDED
+              _EMMINTRIN_H_INCLUDED
+              _PMMINTRIN_H_INCLUDED
+              _TMMINTRIN_H_INCLUDED
+              _SMMINTRIN_H_INCLUDED
+              _NMMINTRIN_H_INCLUDED
+              _WMMINTRIN_H_INCLUDED
+              _IMMINTRIN_H_INCLUDED)
   endif()
 endif()
 
@@ -206,13 +240,10 @@ link_directories(${CMAKE_BINARY_DIR}/ /usr/local/lib /usr/lib/
 
 # headers directories (compat dir is global so bundled depack lib/*.c find it
 # too)
-include_directories(
-  ./inc/
-  ${ZLIB_INCLUDE_DIRS}
-  ${PCRE_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/deps
-  ${COMPAT_DIR})
-# Skip host system paths when cross-compiling (they belong to the host, not target)
+include_directories(./inc/ ${ZLIB_INCLUDE_DIRS} ${PCRE_INCLUDE_DIRS}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/deps ${COMPAT_DIR})
+# Skip host system paths when cross-compiling (they belong to the host, not
+# target)
 if(NOT CMAKE_CROSSCOMPILING)
   include_directories(/usr/include/ /sw/include/)
 endif()
@@ -258,7 +289,7 @@ if(BUNDLE_TINYGLTF)
               ${CMAKE_CURRENT_SOURCE_DIR}/deps/bundled/tinygltf_impl.cpp)
   target_include_directories(tinygltf_bundled PUBLIC ${TINYGLTF_DIR})
   set_target_properties(tinygltf_bundled PROPERTIES POSITION_INDEPENDENT_CODE
-                                                     ON)
+                                                    ON)
   set(TINYGLTF_LIBRARIES tinygltf_bundled)
 else()
   find_package(TinyGLTF CONFIG QUIET)
@@ -304,14 +335,9 @@ else()
   endif()
 endif()
 
-if(WITH_PYTHON)
-  set(_PYTHON_LIBS Python3::Python)
-else()
-  set(_PYTHON_LIBS "")
-endif()
 target_link_libraries(
   wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARIES} ${MESHOPTIMIZER_LIBRARIES}
-                       ${TINYGLTF_LIBRARIES} ${_PYTHON_LIBS})
+                       ${TINYGLTF_LIBRARIES} ${WOWS_PYTHON_LIBS})
 
 target_include_directories(wows-geometry-cli PRIVATE ${ARGP_INCLUDE_DIRS})
 if(WIN32)
