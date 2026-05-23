@@ -105,10 +105,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   add_definitions(-DDARWIN)
 endif()
 
-set(CMAKE_C_FLAGS
-    "${CMAKE_C_FLAGS}   -DBFD_VERSION='\"${wows-model-exporter_VERSION}\"'")
-set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -DBFD_VERSION='\"${wows-model-exporter_VERSION}\"'")
+add_compile_definitions(BFD_VERSION="${wows-model-exporter_VERSION}")
 
 # ── System dependencies ───────────────────────────────────────────────────────
 include(cmake/SystemDeps.cmake)
@@ -274,8 +271,10 @@ target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
 
 if(WITH_PYTHON)
   add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
+  target_include_directories(wows-gltf-exporter PRIVATE ${ARGP_INCLUDE_DIRS})
   target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
-                                                   ${TINYGLTF_LIBRARIES})
+                                                   ${TINYGLTF_LIBRARIES}
+                                                   ${ARGP_LIBRARIES})
 
   add_executable(wows-list-ships wows-list-ships.cpp)
   target_include_directories(wows-list-ships PRIVATE ${ARGP_INCLUDE_DIRS})
