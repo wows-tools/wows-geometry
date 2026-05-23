@@ -33,6 +33,7 @@ else()
   add_compile_options(-Wall)
 endif()
 
+
 find_library(CUNIT_LIBRARY cunit)
 
 if(CMAKE_TOOLCHAIN_FILE MATCHES "[Vv]cpkg")
@@ -42,6 +43,10 @@ if(CMAKE_TOOLCHAIN_FILE MATCHES "[Vv]cpkg")
   set(MESHOPTIMIZER_LIBRARIES meshoptimizer::meshoptimizer)
   if(TARGET pcre2::pcre2-8)
     set(PCRE_LIBRARIES pcre2::pcre2-8)
+  elseif(TARGET pcre2::pcre2-8-static)
+    set(PCRE_LIBRARIES pcre2::pcre2-8-static)
+  elseif(TARGET PCRE2::8BIT)
+    set(PCRE_LIBRARIES PCRE2::8BIT)
   elseif(TARGET pcre2::pcre2)
     set(PCRE_LIBRARIES pcre2::pcre2)
   elseif(TARGET unofficial::pcre2::pcre2-8)
@@ -49,7 +54,9 @@ if(CMAKE_TOOLCHAIN_FILE MATCHES "[Vv]cpkg")
   else()
     message(FATAL_ERROR "pcre2 found but no known CMake target")
   endif()
-  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  if(WITH_PYTHON)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  endif()
 else()
   find_package(meshoptimizer CONFIG QUIET)
   if(meshoptimizer_FOUND)
@@ -60,7 +67,9 @@ else()
   endif()
   find_package(ZLIB REQUIRED)
   find_library(PCRE_LIBRARIES NAMES pcre2-8 pcre pcre2 REQUIRED)
-  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  if(WITH_PYTHON)
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+  endif()
 endif()
 
 set(wows-model-exporter_VERSION
@@ -96,6 +105,10 @@ option(
   BUNDLE_TINYGLTF
   "Bundle tinygltf from the submodule instead of using a system-installed version"
   OFF)
+option(
+  WITH_PYTHON
+  "Build with embedded CPython support (required for GameParams/ship-export features)"
+  ON)
 
 if(USE_CLANG)
   set(CMAKE_CXX_COMPILER "clang++")
@@ -175,6 +188,16 @@ else()
   add_subdirectory(deps/argp EXCLUDE_FROM_ALL)
   set(ARGP_LIBRARIES argp-standalone)
   set(ARGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/deps/argp/include)
+  # GCC 15 + mingw-w64: intrinsic headers pulled via windows.h → winnt.h have
+  # type errors in C compilation units. Block the chain for this C-only target.
+  if(WIN32 AND NOT MSVC)
+    target_compile_definitions(argp-standalone PRIVATE
+      _X86INTRIN_H_INCLUDED _MMINTRIN_H_INCLUDED _XMMINTRIN_H_INCLUDED
+      _EMMINTRIN_H_INCLUDED _PMMINTRIN_H_INCLUDED _TMMINTRIN_H_INCLUDED
+      _SMMINTRIN_H_INCLUDED _NMMINTRIN_H_INCLUDED _WMMINTRIN_H_INCLUDED
+      _IMMINTRIN_H_INCLUDED
+    )
+  endif()
 endif()
 
 # linking directories
@@ -187,13 +210,22 @@ include_directories(
   ./inc/
   ${ZLIB_INCLUDE_DIRS}
   ${PCRE_INCLUDE_DIRS}
-  /usr/include/
-  /sw/include/
   ${CMAKE_CURRENT_SOURCE_DIR}/deps
   ${COMPAT_DIR})
+# Skip host system paths when cross-compiling (they belong to the host, not target)
+if(NOT CMAKE_CROSSCOMPILING)
+  include_directories(/usr/include/ /sw/include/)
+endif()
 
 file(GLOB WOWS_SOURCES lib/*.c lib/*.cpp)
+if(NOT WITH_PYTHON)
+  list(FILTER WOWS_SOURCES EXCLUDE REGEX ".*/game_params\\.cpp$")
+  list(FILTER WOWS_SOURCES EXCLUDE REGEX ".*/ship_export\\.cpp$")
+endif()
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
+if(WITH_PYTHON)
+  target_compile_definitions(wows-geometry PRIVATE WOWS_WITH_PYTHON)
+endif()
 if(BUNDLE_TINYGLTF)
   target_compile_definitions(wows-geometry PRIVATE WOWS_DDS_NO_STB_WRITE)
 endif()
@@ -272,30 +304,40 @@ else()
   endif()
 endif()
 
+if(WITH_PYTHON)
+  set(_PYTHON_LIBS Python3::Python)
+else()
+  set(_PYTHON_LIBS "")
+endif()
 target_link_libraries(
   wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARIES} ${MESHOPTIMIZER_LIBRARIES}
-                       ${TINYGLTF_LIBRARIES} Python3::Python)
+                       ${TINYGLTF_LIBRARIES} ${_PYTHON_LIBS})
 
 target_include_directories(wows-geometry-cli PRIVATE ${ARGP_INCLUDE_DIRS})
+if(WIN32)
+  target_include_directories(wows-geometry-cli PRIVATE ${MMAN_DIR})
+endif()
 target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
 
-# Ship stitcher: GameParams via libpython, geometry via libwows-geometry
-add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
-target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
-                                                 ${TINYGLTF_LIBRARIES})
+if(WITH_PYTHON)
+  # Ship stitcher: GameParams via libpython, geometry via libwows-geometry
+  add_executable(wows-gltf-exporter wows-gltf-exporter.cpp)
+  target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
+                                                   ${TINYGLTF_LIBRARIES})
 
-# Ship lister: enumerate ships from GameParams.data (uses wows-depack API
-# directly)
-add_executable(wows-list-ships wows-list-ships.cpp)
-target_include_directories(wows-list-ships PRIVATE ${ARGP_INCLUDE_DIRS})
-if(BUNDLE_WOWS_DEPACK)
-  target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
-  if(WIN32)
-    target_include_directories(wows-list-ships PRIVATE ${MMAN_DIR})
+  # Ship lister: enumerate ships from GameParams.data (uses wows-depack API
+  # directly)
+  add_executable(wows-list-ships wows-list-ships.cpp)
+  target_include_directories(wows-list-ships PRIVATE ${ARGP_INCLUDE_DIRS})
+  if(BUNDLE_WOWS_DEPACK)
+    target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
+    if(WIN32)
+      target_include_directories(wows-list-ships PRIVATE ${MMAN_DIR})
+    endif()
   endif()
-endif()
-target_link_libraries(wows-list-ships PRIVATE wows-geometry fmem::fmem
-                                              ${ARGP_LIBRARIES})
+  target_link_libraries(wows-list-ships PRIVATE wows-geometry fmem::fmem
+                                                ${ARGP_LIBRARIES})
+endif(WITH_PYTHON)
 
 if(BUILD_TESTS)
   if(CUNIT_LIBRARY)
@@ -360,8 +402,13 @@ if(NOT INCLUDE_INSTALL_DIR)
 endif()
 
 # install binaries and library
+if(WITH_PYTHON)
+  set(_INSTALL_PYTHON_TARGETS wows-gltf-exporter wows-list-ships)
+else()
+  set(_INSTALL_PYTHON_TARGETS "")
+endif()
 install(
-  TARGETS wows-geometry wows-geometry-cli wows-gltf-exporter wows-list-ships
+  TARGETS wows-geometry wows-geometry-cli ${_INSTALL_PYTHON_TARGETS}
   RUNTIME DESTINATION ${BIN_INSTALL_DIR}
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   ARCHIVE DESTINATION ${LIB_INSTALL_DIR})

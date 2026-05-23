@@ -1,15 +1,16 @@
 /*
- * fcntl.h shim for Windows (MSVC / UCRT).
+ * fcntl.h shim for Windows (MSVC / UCRT / MinGW).
  * On non-Windows platforms this forwards to the real system header via
  * #include_next.
- * On Windows, MSVC has <fcntl.h> but uses _O_* names; this header provides
+ * On Windows with MSVC/UCRT, <fcntl.h> uses _O_* names; this header provides
  * the standard O_* names and maps open() to _open().
- * Note: we cannot use #include_next on MSVC, so constants are defined directly.
+ * On MinGW, we use #include_next so the real system fcntl.h (which defines
+ * both _O_* and O_*) is included directly, avoiding circular include issues.
  */
 #ifndef COMPAT_FCNTL_H
 #define COMPAT_FCNTL_H
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__)
 #include_next <fcntl.h>
 #else
 
@@ -47,5 +48,5 @@
 
 #define open  _open
 
-#endif /* _WIN32 */
+#endif /* _WIN32 and not MinGW */
 #endif /* COMPAT_FCNTL_H */
