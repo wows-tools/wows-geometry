@@ -1,4 +1,4 @@
-name: Windows x86_64 MSI
+name: Windows x86_64
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   VCPKG_DEFAULT_TRIPLET: x64-windows
 
 jobs:
-  build-msi:
+  build:
     runs-on: windows-latest
 
     steps:
@@ -19,48 +19,37 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache vcpkg packages
+      - name: Cache vcpkg
         uses: actions/cache@v4
         with:
-          path: C:/vcpkg/installed
-          key: vcpkg-x64-windows-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: vcpkg-x64-windows-
+          path: |
+            vcpkg_installed
+            deps/vcpkg/downloads
+            deps/vcpkg/buildtrees
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
 
-      - name: Install dependencies via vcpkg
-        run: |
-          vcpkg install zlib:x64-windows pcre2:x64-windows meshoptimizer:x64-windows
-
-      - name: Install WiX Toolset
-        run: choco install wixtoolset -y --no-progress
+      - name: Bootstrap vcpkg
+        run: deps\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 
       - name: Configure CMake
         run: |
-          $pythonDir = Split-Path (python.exe -c "import sys; print(sys.executable)") -Parent
           cmake -B build `
             -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
-            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
-            -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DBUILD_TESTS=OFF `
             -DBUNDLE_WOWS_DEPACK=ON `
-            -DBUNDLE_TINYGLTF=ON `
-            -DPython3_ROOT_DIR="$pythonDir"
+            -DBUNDLE_TINYGLTF=ON
 
       - name: Build
         run: cmake --build build --config $env:BUILD_TYPE
 
-      - name: Package MSI
-        run: |
-          cd build
-          cpack -G WIX -C $env:BUILD_TYPE -V
+      - name: Package
+        shell: pwsh
+        run: .\scripts\package_windows.ps1 -Config $env:BUILD_TYPE
 
-      - name: Upload MSI artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: wows-model-exporter-${{ github.ref_name }}-win64
-          path: build/*.msi
+          path: wows-model-exporter-windows-x86_64.zip
           if-no-files-found: error

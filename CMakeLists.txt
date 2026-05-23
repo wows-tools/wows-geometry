@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 
+# Windows: use bundled vcpkg submodule (manifest mode installs deps on configure).
+set(_vcpkg_toolchain "${CMAKE_CURRENT_SOURCE_DIR}/deps/vcpkg/scripts/buildsystems/vcpkg.cmake")
+if(WIN32
+   AND NOT CMAKE_TOOLCHAIN_FILE
+   AND EXISTS "${_vcpkg_toolchain}")
+  set(CMAKE_TOOLCHAIN_FILE "${_vcpkg_toolchain}"
+      CACHE FILEPATH "Vcpkg toolchain file")
+endif()
+unset(_vcpkg_toolchain)
+
 project(wows-model-exporter)
 
 # Project version (sematic versionning)
@@ -25,19 +35,33 @@ endif()
 
 find_library(CUNIT_LIBRARY cunit)
 
-find_package(meshoptimizer CONFIG QUIET)
-if(meshoptimizer_FOUND)
+if(CMAKE_TOOLCHAIN_FILE MATCHES "[Vv]cpkg")
+  find_package(ZLIB REQUIRED)
+  find_package(pcre2 CONFIG REQUIRED)
+  find_package(meshoptimizer CONFIG REQUIRED)
   set(MESHOPTIMIZER_LIBRARIES meshoptimizer::meshoptimizer)
+  if(TARGET pcre2::pcre2-8)
+    set(PCRE_LIBRARIES pcre2::pcre2-8)
+  elseif(TARGET pcre2::pcre2)
+    set(PCRE_LIBRARIES pcre2::pcre2)
+  elseif(TARGET unofficial::pcre2::pcre2-8)
+    set(PCRE_LIBRARIES unofficial::pcre2::pcre2-8)
+  else()
+    message(FATAL_ERROR "pcre2 found but no known CMake target")
+  endif()
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 else()
-  find_library(MESHOPTIMIZER_LIBRARY meshoptimizer REQUIRED)
-  set(MESHOPTIMIZER_LIBRARIES ${MESHOPTIMIZER_LIBRARY})
+  find_package(meshoptimizer CONFIG QUIET)
+  if(meshoptimizer_FOUND)
+    set(MESHOPTIMIZER_LIBRARIES meshoptimizer::meshoptimizer)
+  else()
+    find_library(MESHOPTIMIZER_LIBRARY meshoptimizer REQUIRED)
+    set(MESHOPTIMIZER_LIBRARIES ${MESHOPTIMIZER_LIBRARY})
+  endif()
+  find_package(ZLIB REQUIRED)
+  find_library(PCRE_LIBRARIES NAMES pcre2-8 pcre pcre2 REQUIRED)
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 endif()
-
-find_package(ZLIB REQUIRED)
-find_package(
-  Python3
-  COMPONENTS Interpreter Development
-  REQUIRED)
 
 set(wows-model-exporter_VERSION
     ${wows-model-exporter_VERSION_MAJOR}.${wows-model-exporter_VERSION_MINOR}.${wows-model-exporter_VERSION_PATCH}
@@ -179,9 +203,6 @@ set_target_properties(
 
 # Compile the executable
 add_executable(wows-geometry-cli wows-geometry.c)
-target_include_directories(wows-geometry PRIVATE ${Python3_INCLUDE_DIRS})
-find_library(PCRE_LIBRARY NAMES pcre2-8 pcre pcre2)
-
 # Portability shims — always from local deps/, regardless of BUNDLE_WOWS_DEPACK
 target_link_libraries(wows-geometry PRIVATE fmem::fmem)
 if(WIN32)
@@ -252,8 +273,8 @@ else()
 endif()
 
 target_link_libraries(
-  wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARY} ${MESHOPTIMIZER_LIBRARIES}
-                       ${TINYGLTF_LIBRARIES} ${Python3_LIBRARIES})
+  wows-geometry PUBLIC ZLIB::ZLIB ${PCRE_LIBRARIES} ${MESHOPTIMIZER_LIBRARIES}
+                       ${TINYGLTF_LIBRARIES} Python3::Python)
 
 target_include_directories(wows-geometry-cli PRIVATE ${ARGP_INCLUDE_DIRS})
 target_link_libraries(wows-geometry-cli PRIVATE wows-geometry ${ARGP_LIBRARIES})
@@ -266,8 +287,7 @@ target_link_libraries(wows-gltf-exporter PRIVATE wows-geometry
 # Ship lister: enumerate ships from GameParams.data (uses wows-depack API
 # directly)
 add_executable(wows-list-ships wows-list-ships.cpp)
-target_include_directories(wows-list-ships PRIVATE ${Python3_INCLUDE_DIRS}
-                                                   ${ARGP_INCLUDE_DIRS})
+target_include_directories(wows-list-ships PRIVATE ${ARGP_INCLUDE_DIRS})
 if(BUNDLE_WOWS_DEPACK)
   target_include_directories(wows-list-ships PRIVATE ${WOWS_DEPACK_DIR}/inc)
   if(WIN32)
@@ -374,79 +394,3 @@ endif(BUILD_DOC)
 
 # install header file
 install(FILES inc/wows-geometry.h DESTINATION ${INCLUDE_INSTALL_DIR})
-
-# Windows MSI packaging via CPack + WiX
-if(WIN32)
-  # Optional: path to Qt6 bin dir so Qt DLLs (e.g. Qt6Quick.dll) get bundled.
-  # Set with -DQT6_BIN_DIR=C:/Qt/6.x/msvc2022_64/bin at configure time.
-  set(QT6_BIN_DIR
-      ""
-      CACHE PATH "Qt6 bin directory for DLL bundling (Windows only)")
-
-  get_filename_component(PYTHON_BIN_DIR "${Python3_EXECUTABLE}" DIRECTORY)
-
-  # MSVC runtime DLLs (MSVCP140.dll, VCRUNTIME140.dll, VCRUNTIME140_1.dll …)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
-  include(InstallRequiredSystemLibraries)
-
-  # Collect all remaining runtime DLLs (python311.dll, Qt6Quick.dll, …) at CPack
-  # time so paths are resolved against the actual build environment.
-  install(
-    CODE "
-    set(_exes)
-    foreach(_name wows-geometry-cli wows-gltf-exporter wows-list-ships)
-      set(_p \"\${CMAKE_INSTALL_PREFIX}/\${_name}.exe\")
-      if(EXISTS \"\${_p}\")
-        list(APPEND _exes \"\${_p}\")
-      endif()
-    endforeach()
-    set(_dlls)
-    foreach(_name wows-geometry)
-      set(_p \"\${CMAKE_INSTALL_PREFIX}/\${_name}.dll\")
-      if(EXISTS \"\${_p}\")
-        list(APPEND _dlls \"\${_p}\")
-      endif()
-    endforeach()
-    if(_exes OR _dlls)
-      set(_dirs \"${PYTHON_BIN_DIR}\")
-      if(NOT \"${QT6_BIN_DIR}\" STREQUAL \"\")
-        list(APPEND _dirs \"${QT6_BIN_DIR}\")
-      endif()
-      file(GET_RUNTIME_DEPENDENCIES
-        EXECUTABLES \${_exes}
-        LIBRARIES   \${_dlls}
-        RESOLVED_DEPENDENCIES_VAR   _r_deps
-        UNRESOLVED_DEPENDENCIES_VAR _u_deps
-        DIRECTORIES \${_dirs}
-        PRE_EXCLUDE_REGEXES  \"api-ms-win-.*\" \"ext-ms-.*\"
-        POST_EXCLUDE_REGEXES \".*[Ss]ystem32.*\" \".*[Ww]in[Ss][Xx][Ss].*\"
-      )
-      foreach(_dep \${_r_deps})
-        file(INSTALL \"\${_dep}\" DESTINATION \"\${CMAKE_INSTALL_PREFIX}\")
-      endforeach()
-      if(_u_deps)
-        message(WARNING \"Unresolved runtime deps (may need manual copy): \${_u_deps}\")
-      endif()
-    endif()
-  ")
-
-  # CPack / WiX MSI settings
-  set(CPACK_PACKAGE_NAME "WoWS Model Exporter")
-  set(CPACK_PACKAGE_VENDOR "kakwalab")
-  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-      "World of Warships model exporter tools")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "WoWS Model Exporter")
-  set(CPACK_PACKAGE_VERSION_MAJOR ${wows-model-exporter_VERSION_MAJOR})
-  set(CPACK_PACKAGE_VERSION_MINOR ${wows-model-exporter_VERSION_MINOR})
-  set(CPACK_PACKAGE_VERSION_PATCH ${wows-model-exporter_VERSION_PATCH})
-
-  set(CPACK_GENERATOR "WIX")
-  # UPGRADE_GUID must stay constant across all releases so Windows Installer
-  # recognises this as an upgrade of the same product family.
-  set(CPACK_WIX_UPGRADE_GUID "3F2B7A09-4D1C-4E8F-B023-59A7E614C83D")
-  set(CPACK_WIX_PRODUCT_GUID "*")
-  set(CPACK_WIX_EXTRA_SOURCES
-      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/wix_desktop_shortcut.wxs")
-
-  include(CPack)
-endif()

@@ -12,25 +12,75 @@ File formats and organization: [MODEL.md](MODEL.md) (ship mesh pipeline — `Gam
 
 ## Build
 
-Install dependencies (Debian/Ubuntu):
-```sh
-sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev git clang \
-                 libtinygltf-dev python3-dev
-```
+Clone the repository (submodules are required for bundled `wows-depack` on Linux):
 
-Clone code:
 ```sh
 git clone --recurse-submodules https://github.com/wows-tools/wows-model-exporter.git
 cd wows-model-exporter
 ```
 
-Compile:
+### Linux (Debian / Ubuntu)
+
+Install dependencies from packages (`tinygltf` is **not** bundled on Linux — use `libtinygltf-dev`):
+
 ```sh
-cmake . -DBUNDLE_WOWS_DEPACK=ON -DBUNDLE_TINYGLTF=ON
+sudo apt install cmake zlib1g-dev libpcre2-dev libmeshoptimizer-dev libtinygltf-dev \
+                 python3-dev git clang
+```
+
+Configure and build (`BUNDLE_WOWS_DEPACK` compiles [wows-depack](https://github.com/wows-tools/wows-depack) from `deps/wows-depack`; omit it if you have a system `libwows-depack` and matching CMake package):
+
+```sh
+cmake . -DBUNDLE_WOWS_DEPACK=ON
 make
 
 ./wows-gltf-exporter --help
 ```
+
+### Windows
+
+C++ and Python dependencies are declared in [`vcpkg.json`](vcpkg.json) (`zlib`, `pcre2`, `meshoptimizer`, `python3`) and installed automatically by the bundled [vcpkg](https://github.com/microsoft/vcpkg) submodule at `deps/vcpkg` on the first CMake configure. `wows-depack` and `tinygltf` are built from their submodules (`BUNDLE_WOWS_DEPACK` and `BUNDLE_TINYGLTF`). No separate Python install is required on Windows.
+
+**Prerequisites**
+
+- [Git](https://git-scm.com/)
+- [CMake](https://cmake.org/)
+
+**Automated build**
+
+From PowerShell in the repo root (CMake and Git on `PATH`):
+
+```powershell
+.\scripts\setup_windows.ps1
+.\scripts\setup_windows.ps1 -BuildType Debug
+```
+
+The script initializes submodules, bootstraps `deps\vcpkg` if needed, configures, and builds under `build\`.
+
+**Manual build**
+
+Matches [Windows CI](.github/workflows/windows-x86_64.yml):
+
+```powershell
+git submodule update --init --recursive
+deps\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+cmake -B build `
+  -DCMAKE_BUILD_TYPE=Release `
+  -DBUILD_TESTS=OFF `
+  -DBUNDLE_WOWS_DEPACK=ON `
+  -DBUNDLE_TINYGLTF=ON
+
+cmake --build build --config Release
+```
+
+Binaries are under `build\Release\`. To ship a portable folder or zip with the embedded Python runtime:
+
+```powershell
+.\scripts\package_windows.ps1
+```
+
+This copies the tools from `vcpkg_installed\x64-windows\tools\python3\` (`python*.dll`, `Lib\`, `DLLs\`) next to the executables.
 
 ## Tools
 

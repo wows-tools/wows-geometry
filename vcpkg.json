@@ -1,0 +1,13 @@
+{
+  "name": "wows-model-exporter",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "zlib",
+    "pcre2",
+    "meshoptimizer",
+    {
+      "name": "python3",
+      "features": ["extensions"]
+    }
+  ]
+}

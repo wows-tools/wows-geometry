@@ -8,6 +8,8 @@ __pycache__/
 out
 res_unpack
 build*/
+vcpkg_installed/
+dist/
 
 # Object files
 *.o
