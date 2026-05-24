@@ -209,7 +209,8 @@ endif()
 add_library(wows-geometry ${SHARED} ${WOWS_SOURCES})
 set_target_properties(
   wows-geometry PROPERTIES VERSION ${wows-model-exporter_VERSION}
-                           SOVERSION ${wows-model-exporter_VERSION_MAJOR})
+                           SOVERSION ${wows-model-exporter_VERSION_MAJOR}
+                           WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if(WITH_PYTHON)
   target_compile_definitions(wows-geometry PRIVATE WOWS_WITH_PYTHON)
