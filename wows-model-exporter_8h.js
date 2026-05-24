@@ -23,8 +23,9 @@ var wows_model_exporter_8h =
     [ "wows_stitch_path_dirname", "group__wows__stitch__path.html#gad4b42e56b2b0b455a6d534d0677b6e76", null ],
     [ "wows_stitch_set_verbose", "wows-model-exporter_8h.html#a305d39aeaf195a079648a983165b1bbd", null ],
     [ "wows_stitch_stem", "group__wows__stitch__path.html#ga27eb02fe1dc5af48a7bbcd361053c205", null ],
+    [ "WOWS_API", "wows-model-exporter_8h.html#a096fdde0f5d04746f7cd5edea13c390c", null ],
     [ "wows_stitch_vlog", "wows-model-exporter_8h.html#a37aeae823a6f120dd6aea114235e3398", null ],
     [ "wows_file_provider_t", "group__wows__stitch__export.html#ga3b3a8c6180d999dbdffb4567667ebe7b", null ],
     [ "wows_mat16d", "wows-model-exporter_8h.html#a84c7fae16289716fc9a778058d788110", null ],
-    [ "wows_stitch_verbose", "wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8", null ]
+    [ "wows_stitch_verbose", "wows-model-exporter_8h.html#ac431e52486b89b272620819781b3b24b", null ]
 ];

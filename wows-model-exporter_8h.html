@@ -201,6 +201,8 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:a096fdde0f5d04746f7cd5edea13c390c" id="r_a096fdde0f5d04746f7cd5edea13c390c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-model-exporter_8h.html#a096fdde0f5d04746f7cd5edea13c390c">WOWS_API</a></td></tr>
+<tr class="separator:a096fdde0f5d04746f7cd5edea13c390c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37aeae823a6f120dd6aea114235e3398" id="r_a37aeae823a6f120dd6aea114235e3398"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-model-exporter_8h.html#a37aeae823a6f120dd6aea114235e3398">wows_stitch_vlog</a>(...)</td></tr>
 <tr class="memdesc:a37aeae823a6f120dd6aea114235e3398"><td class="mdescLeft">&#160;</td><td class="mdescRight">Conditionally print a formatted message to stderr when verbose mode is active.  <br /></td></tr>
 <tr class="separator:a37aeae823a6f120dd6aea114235e3398"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,9 +218,9 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a7ae6defa062122b4b7719deee73aa8c8" id="r_a7ae6defa062122b4b7719deee73aa8c8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a></td></tr>
-<tr class="memdesc:a7ae6defa062122b4b7719deee73aa8c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to <code>true</code> before calling any stitch function to enable verbose logging to stderr.  <br /></td></tr>
-<tr class="separator:a7ae6defa062122b4b7719deee73aa8c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac431e52486b89b272620819781b3b24b" id="r_ac431e52486b89b272620819781b3b24b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="wows-model-exporter_8h.html#a096fdde0f5d04746f7cd5edea13c390c">WOWS_API</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="wows-model-exporter_8h.html#ac431e52486b89b272620819781b3b24b">wows_stitch_verbose</a></td></tr>
+<tr class="memdesc:ac431e52486b89b272620819781b3b24b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set to <code>true</code> before calling any stitch function to enable verbose logging to stderr.  <br /></td></tr>
+<tr class="separator:ac431e52486b89b272620819781b3b24b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a305d39aeaf195a079648a983165b1bbd" name="a305d39aeaf195a079648a983165b1bbd"></a>
@@ -248,6 +250,20 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a096fdde0f5d04746f7cd5edea13c390c" name="a096fdde0f5d04746f7cd5edea13c390c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a096fdde0f5d04746f7cd5edea13c390c">&#9670;&#160;</a></span>WOWS_API</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define WOWS_API</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a37aeae823a6f120dd6aea114235e3398" name="a37aeae823a6f120dd6aea114235e3398"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a37aeae823a6f120dd6aea114235e3398">&#9670;&#160;</a></span>wows_stitch_vlog</h2>
 
@@ -264,10 +280,10 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    <span class="keywordflow">do</span> {                                                                                                               \</div>
-<div class="line">        if (<a class="code hl_variable" href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a>)                                                                                       \</div>
+<div class="line">        if (<a class="code hl_variable" href="wows-model-exporter_8h.html#ac431e52486b89b272620819781b3b24b">wows_stitch_verbose</a>)                                                                                       \</div>
 <div class="line">            fprintf(stderr, __VA_ARGS__);                                                                              \</div>
 <div class="line">    } <span class="keywordflow">while</span> (0)</div>
-<div class="ttc" id="awows-model-exporter_8h_html_a7ae6defa062122b4b7719deee73aa8c8"><div class="ttname"><a href="wows-model-exporter_8h.html#a7ae6defa062122b4b7719deee73aa8c8">wows_stitch_verbose</a></div><div class="ttdeci">bool wows_stitch_verbose</div><div class="ttdoc">Set to true before calling any stitch function to enable verbose logging to stderr.</div></div>
+<div class="ttc" id="awows-model-exporter_8h_html_ac431e52486b89b272620819781b3b24b"><div class="ttname"><a href="wows-model-exporter_8h.html#ac431e52486b89b272620819781b3b24b">wows_stitch_verbose</a></div><div class="ttdeci">WOWS_API bool wows_stitch_verbose</div><div class="ttdoc">Set to true before calling any stitch function to enable verbose logging to stderr.</div></div>
 </div><!-- fragment -->
 <p>Conditionally print a formatted message to stderr when verbose mode is active. </p>
 <p>Usage mirrors <code>fprintf(stderr, ...)</code>. </p>
@@ -292,8 +308,8 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
-<a id="a7ae6defa062122b4b7719deee73aa8c8" name="a7ae6defa062122b4b7719deee73aa8c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ae6defa062122b4b7719deee73aa8c8">&#9670;&#160;</a></span>wows_stitch_verbose</h2>
+<a id="ac431e52486b89b272620819781b3b24b" name="ac431e52486b89b272620819781b3b24b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac431e52486b89b272620819781b3b24b">&#9670;&#160;</a></span>wows_stitch_verbose</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -302,7 +318,7 @@ Variables</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool wows_stitch_verbose</td>
+          <td class="memname"><a class="el" href="wows-model-exporter_8h.html#a096fdde0f5d04746f7cd5edea13c390c">WOWS_API</a> bool wows_stitch_verbose</td>
         </tr>
       </table>
   </td>
