@@ -13,14 +13,26 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 $BuildDir = Join-Path $RepoRoot $BuildDir
 $BinDir = Join-Path $BuildDir $Config
-$PyRoot = Join-Path $RepoRoot "vcpkg_installed\x64-windows\tools\python3"
 $Dist = Join-Path $RepoRoot "dist"
 
 if (-not (Test-Path $BinDir)) {
     Write-Error "Build output not found: $BinDir"
 }
+
+# Locate Python runtime: prefer vcpkg-installed copy, fall back to system Python.
+$PyRoot = Join-Path $RepoRoot "vcpkg_installed\x64-windows\tools\python3"
 if (-not (Test-Path $PyRoot)) {
-    Write-Error "vcpkg Python not found: $PyRoot (run cmake configure first)"
+    Write-Host "vcpkg Python not found at $PyRoot — searching system Python..."
+    $PythonExe = $null
+    foreach ($cmd in @('python', 'python3')) {
+        $found = Get-Command $cmd -ErrorAction SilentlyContinue
+        if ($found) { $PythonExe = $found.Source; break }
+    }
+    if (-not $PythonExe) {
+        Write-Error "Python not found: neither vcpkg nor a system Python could be located"
+    }
+    $PyRoot = & $PythonExe -c "import sys; print(sys.prefix)"
+    Write-Host "Using system Python at $PyRoot"
 }
 
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
