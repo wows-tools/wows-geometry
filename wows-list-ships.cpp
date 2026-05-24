@@ -161,10 +161,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    Py_Initialize();
+    wows_setup_python_home();
     std::vector<wows_ship_entry> ships;
     bool ok;
-    wows_setup_python_home();
     if (!gameparams_mem.empty())
         ok = wows_list_ships_from_memory(gameparams_mem.data(), gameparams_mem.size(), ships);
     else

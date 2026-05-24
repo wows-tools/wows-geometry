@@ -62,13 +62,18 @@ void wows_setup_python_home() {
         return;
 
     std::filesystem::path home = find_python_home();
-    if (home.empty())
-        return;
 
-    wchar_t *whome = Py_DecodeLocale(home.u8string().c_str(), nullptr);
-    if (!whome)
-        return;
+    PyConfig config;
+    PyConfig_InitPythonConfig(&config);
 
-    Py_SetPythonHome(whome);
-    PyMem_RawFree(whome);
+    if (!home.empty()) {
+        wchar_t *whome = Py_DecodeLocale(home.u8string().c_str(), nullptr);
+        if (whome) {
+            PyConfig_SetString(&config, &config.home, whome);
+            PyMem_RawFree(whome);
+        }
+    }
+
+    Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
 }
