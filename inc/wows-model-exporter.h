@@ -11,6 +11,17 @@
  */
 
 #pragma once
+
+#if defined(_WIN32)
+#  if defined(WOWS_GEOMETRY_BUILDING)
+#    define WOWS_API __declspec(dllexport)
+#  else
+#    define WOWS_API __declspec(dllimport)
+#  endif
+#else
+#  define WOWS_API
+#endif
+
 #include <string>
 #include <vector>
 #include <map>
@@ -20,7 +31,7 @@
 #include "wows-assets-bin.h"
 
 /** @brief Set to `true` before calling any stitch function to enable verbose logging to stderr. */
-extern bool wows_stitch_verbose;
+WOWS_API extern bool wows_stitch_verbose;
 
 /**
  * @brief Enable or disable verbose diagnostic output.

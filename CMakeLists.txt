@@ -212,6 +212,8 @@ set_target_properties(
                            SOVERSION ${wows-model-exporter_VERSION_MAJOR}
                            WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+target_compile_definitions(wows-geometry PRIVATE WOWS_GEOMETRY_BUILDING)
+
 if(WITH_PYTHON)
   target_compile_definitions(wows-geometry PRIVATE WOWS_WITH_PYTHON)
 endif()
