@@ -20,6 +20,8 @@ if (-not (Test-Path $BinDir)) {
 }
 
 # Locate Python runtime: prefer vcpkg-installed copy, fall back to system Python.
+# The release archive bundles this Python runtime so the executables can auto-discover
+# it without requiring PYTHONHOME or PYTHONPATH to be manually set.
 $PyRoot = Join-Path $RepoRoot "vcpkg_installed\x64-windows\tools\python3"
 if (-not (Test-Path $PyRoot)) {
     Write-Host "vcpkg Python not found at $PyRoot — searching system Python..."

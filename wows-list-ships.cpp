@@ -18,6 +18,8 @@ extern "C" {
 #include <string>
 #include <vector>
 
+void wows_setup_python_home();
+
 const char *argp_program_version = "wows-list-ships " BFD_VERSION;
 const char *argp_program_bug_address = "https://github.com/kakwa/wows-depack/issues";
 
@@ -162,6 +164,7 @@ int main(int argc, char **argv) {
     Py_Initialize();
     std::vector<wows_ship_entry> ships;
     bool ok;
+    wows_setup_python_home();
     if (!gameparams_mem.empty())
         ok = wows_list_ships_from_memory(gameparams_mem.data(), gameparams_mem.size(), ships);
     else
