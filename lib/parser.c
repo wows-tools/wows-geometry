@@ -112,25 +112,30 @@ int wows_parse_geometry_buffer(char *contents, size_t length, wows_geometry **ge
             contents + i * WOWS_VERTEX_META_SIZE - start + vertex_meta_sections[i].off_ver_bloc_start;
         vertex_meta_sections[i]._abs_end =
             contents + i * WOWS_VERTEX_META_SIZE - start + vertex_meta_sections[i].off_ver_bloc_end + 8;
-        vertex_meta_sections[i]._vertex_type = vertex2id(start + vertex_meta_sections[i]._abs_end);
+        if (vertex_meta_sections[i]._abs_end < length)
+            vertex_meta_sections[i]._vertex_type = vertex2id(start + vertex_meta_sections[i]._abs_end);
+        else
+            vertex_meta_sections[i]._vertex_type = WOWS_ID_UNKNOWN;
     }
 
     // Parsing the index type metadata (merged_indices array) at header->off_merged_indices
     wows_geometry_index_section_metadata *index_meta_sections =
         calloc(sizeof(wows_geometry_index_section_metadata), header->n_index_type);
     geometry->index_meta_sections = index_meta_sections;
-    char *idx_meta_ptr = start + header->off_merged_indices;
-    for (int i = 0; i < (int)header->n_index_type; i++) {
-        size_t struct_base = (idx_meta_ptr + i * WOWS_INDEX_META_SIZE) - start;
-        // data_relptr is a signed 64-bit relative pointer from struct base to ENCD block
-        int64_t relptr;
-        uint64_t raw = geom_datatoh64(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 0, context);
-        memcpy(&relptr, &raw, sizeof(relptr));
-        index_meta_sections[i].data_relptr = relptr;
-        index_meta_sections[i].s_idx_bloc_size = geom_datatoh32(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 8, context);
-        index_meta_sections[i]._reserved = geom_datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 12, context);
-        index_meta_sections[i].s_index_size = geom_datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 14, context);
-        index_meta_sections[i]._abs_start = (size_t)((int64_t)struct_base + relptr);
+    if (header->off_merged_indices + (uint64_t)header->n_index_type * WOWS_INDEX_META_SIZE <= length) {
+        char *idx_meta_ptr = start + header->off_merged_indices;
+        for (int i = 0; i < (int)header->n_index_type; i++) {
+            size_t struct_base = (idx_meta_ptr + i * WOWS_INDEX_META_SIZE) - start;
+            // data_relptr is a signed 64-bit relative pointer from struct base to ENCD block
+            int64_t relptr;
+            uint64_t raw = geom_datatoh64(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 0, context);
+            memcpy(&relptr, &raw, sizeof(relptr));
+            index_meta_sections[i].data_relptr = relptr;
+            index_meta_sections[i].s_idx_bloc_size = geom_datatoh32(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 8, context);
+            index_meta_sections[i]._reserved = geom_datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 12, context);
+            index_meta_sections[i].s_index_size = geom_datatoh16(idx_meta_ptr, i * WOWS_INDEX_META_SIZE + 14, context);
+            index_meta_sections[i]._abs_start = (size_t)((int64_t)struct_base + relptr);
+        }
     }
 
     // Decode vertex ENCD blocks using meshoptimizer
