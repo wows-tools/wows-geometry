@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['damage_20and_20cross_20section_20geometry_0',['Damage and cross-section geometry',['../md__m_o_d_e_l.html#autotoc_md22',1,'']]],
-  ['data_1',['data',['../md__g_e_o_m_e_t_r_y.html#autotoc_md51',1,'Armor model data'],['../md__g_e_o_m_e_t_r_y.html#autotoc_md50',1,'Collision model data'],['../md__m_o_d_e_l.html#autotoc_md24',1,'GameParams.data']]],
-  ['data_20types_2',['Data types',['../group__wows__stitch__types.html',1,'']]],
-  ['data_5frelptr_3',['data_relptr',['../structwows__geometry__index__section__metadata.html#aaea164adae2be40c063e54f5d9105e90',1,'wows_geometry_index_section_metadata']]],
-  ['databases_20array_20base_20tt_200x60_20tt_20in_20body_20relptr_20base_20body_20base_4',['Databases array (base = &lt;tt&gt;0x60&lt;/tt&gt; in body; relptr base = body base)',['../md__m_o_d_e_l.html#autotoc_md32',1,'']]],
-  ['dds_20texture_20decoding_5',['DDS texture decoding',['../group__wows__stitch__dds.html',1,'']]],
-  ['debian_20ubuntu_6',['Linux (Debian / Ubuntu)',['../index.html#autotoc_md2',1,'']]],
-  ['debug_5flevel_7',['debug_level',['../struct_w_o_w_s___g_e_o_m_e_t_r_y___c_o_n_t_e_x_t.html#ae75c1ab19ff77896df24af10974f6b85',1,'WOWS_GEOMETRY_CONTEXT']]],
-  ['decode_8',['Vertex layout (after ENCD decode)',['../md__g_e_o_m_e_t_r_y.html#autotoc_md47',1,'']]],
-  ['decoding_9',['DDS texture decoding',['../group__wows__stitch__dds.html',1,'']]],
-  ['draw_20call_20mapping_20ids_10',['Draw-call mapping IDs',['../md__m_o_d_e_l.html#autotoc_md18',1,'']]],
-  ['draw_20call_20matching_11',['Draw-call matching',['../md__g_e_o_m_e_t_r_y.html#autotoc_md43',1,'']]]
+  ['call_20mapping_20ids_0',['Draw-call mapping IDs',['../md__m_o_d_e_l.html#autotoc_md22',1,'']]],
+  ['call_20matching_1',['Draw-call matching',['../md__g_e_o_m_e_t_r_y.html#autotoc_md47',1,'']]],
+  ['changelog_2',['Changelog',['../index.html#autotoc_md16',1,'']]],
+  ['cli_20single_20file_20inspector_20exporter_3',['wows-geometry-cli - single-file inspector / exporter',['../index.html#autotoc_md8',1,'']]],
+  ['codes_4',['Error codes',['../group__errors.html',1,'']]],
+  ['collision_20model_20data_5',['Collision model data',['../md__g_e_o_m_e_t_r_y.html#autotoc_md54',1,'']]],
+  ['contents_6',['contents',['../md__m_o_d_e_l.html#autotoc_md20',1,'Contents'],['../md__g_e_o_m_e_t_r_y.html#autotoc_md42',1,'Contents']]],
+  ['coordinate_20system_7',['Coordinate system',['../md__m_o_d_e_l.html#autotoc_md27',1,'']]],
+  ['correction_8',['correction',['../structwows__assets__bin__bb__t.html#a3177c10f425d10e48bf54639ce0e4127',1,'wows_assets_bin_bb_t']]],
+  ['corrections_9',['BlendBone corrections',['../group__assets__bb.html',1,'']]],
+  ['count_10',['count',['../structwows__assets__bin__hp__list__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'wows_assets_bin_hp_list_t::count'],['../structwows__assets__bin__bb__list__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'wows_assets_bin_bb_list_t::count'],['../structwows__assets__bin__lod__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'wows_assets_bin_lod_t::count'],['../structwows__assets__bin__propeller__list__t.html#a76d971a3c552bc58ba9f0d5fceae9806',1,'wows_assets_bin_propeller_list_t::count']]],
+  ['cross_20section_20geometry_11',['Damage and cross-section geometry',['../md__m_o_d_e_l.html#autotoc_md26',1,'']]]
 ];
