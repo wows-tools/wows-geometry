@@ -6,9 +6,14 @@
 [![Release](https://img.shields.io/github/v/release/wows-tools/wows-model-exporter)](https://github.com/wows-tools/wows-model-exporter/releases)
 [![.deb repository](https://img.shields.io/badge/.deb-repository-A81D33?logo=debian&logoColor=white)](https://github.com/wows-tools/wows-pkg)
 
-Vibe coded parser and glTF/GLB exporter for World of Warships ship 3D models.
+glTF/GLB exporter for World of Warships ship 3D models.
 
-File formats and organization: [MODEL.md](MODEL.md) (ship mesh pipeline — `GameParams`, `assets.bin`, LOD, textures) and [GEOMETRY.md](GEOMETRY.md) (`.geometry` binary layout).
+## 3D Model Formats
+
+General formats and organization is detailed here [MODEL.md](MODEL.md) (ship mesh pipeline — `GameParams`, `assets.bin`, LOD, textures).
+
+
+The `.geometry` (actual 3D mesh) is detailed here: [GEOMETRY.md](GEOMETRY.md).
 
 ## Build
 
@@ -121,6 +126,18 @@ wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -o kongo.glb
 export Kongo specific hull, no turrets, Level of Detail 2 (LOD is 0 to 4, with 0 being the highest level):
 ```sh
 wows-gltf-exporter -W /path/to/World\ of\ Warships/ -s Kongo_1942 -H HullB -t -L 2 -o kongo_hullb_lod2.glb
+```
+
+On Windows, assuming you installed WoWs through Steam, the equivalent commands should work:
+
+```ps
+# Note: don't add a trailing '\'
+
+# List ships
+.\wows-list-ships.exe -W 'C:\Program Files (x86)\Steam\steamapps\common\World of Warships'
+
+# Example model
+.\wows-gltf-exporter.exe -W 'C:\Program Files (x86)\Steam\steamapps\common\World of Warships' -s Kongo_1942 -o kongo.glb --verbose
 ```
 
 To visualize and inspect the model, you can load it in [babylonjs sandbox](https://sandbox.babylonjs.com/), or locally, you can use `blender` or `f3d`:
