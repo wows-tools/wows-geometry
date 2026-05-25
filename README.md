@@ -250,7 +250,7 @@ building-block functions used internally by `wows_stitch_export_ship` are also p
 `wows_stitch_merge_parts`, `wows_stitch_apply_textures`, and the `wows_assets_bin_*`
 helpers in `inc/wows-assets-bin.h`.
 
-# Unit Tests
+## Unit Tests
 
 ```sh
 sudo apt install libcunit1-dev
@@ -264,3 +264,13 @@ make
 make test
 make coverage
 ```
+
+## Changelog
+
+### 0.2.0
+
+* Windows Support & CI
+
+### 0.1.0
+
+* First Release

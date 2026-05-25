@@ -6,7 +6,7 @@ project(wows-model-exporter)
 
 # Project version (semantic versioning)
 set(wows-model-exporter_VERSION_MAJOR 0)
-set(wows-model-exporter_VERSION_MINOR 1)
+set(wows-model-exporter_VERSION_MINOR 2)
 set(wows-model-exporter_VERSION_PATCH 0)
 set(wows-model-exporter_VERSION
     ${wows-model-exporter_VERSION_MAJOR}.${wows-model-exporter_VERSION_MINOR}.${wows-model-exporter_VERSION_PATCH}
