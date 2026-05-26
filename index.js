@@ -19,7 +19,8 @@ var index =
     ] ],
     [ "Unit Tests", "index.html#autotoc_md15", null ],
     [ "Changelog", "index.html#autotoc_md16", [
-      [ "0.2.0", "index.html#autotoc_md17", null ],
-      [ "0.1.0", "index.html#autotoc_md18", null ]
+      [ "0.2.1", "index.html#autotoc_md17", null ],
+      [ "0.2.0", "index.html#autotoc_md18", null ],
+      [ "0.1.0", "index.html#autotoc_md19", null ]
     ] ]
 ];
