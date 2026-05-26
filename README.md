@@ -267,6 +267,10 @@ make coverage
 
 ## Changelog
 
+### 0.2.1
+
+* better bundling of deps in Linux release
+
 ### 0.2.0
 
 * Windows Support & CI
