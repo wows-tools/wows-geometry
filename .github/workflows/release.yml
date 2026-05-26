@@ -21,7 +21,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y cmake zlib1g-dev libpcre2-dev python3-dev \
-            libmeshoptimizer-dev libtinygltf-dev
+            libmeshoptimizer-dev libtinygltf-dev patchelf
 
       - name: Configure CMake
         run: cmake -DCMAKE_BUILD_TYPE=Release -DBUNDLE_WOWS_DEPACK=ON .
@@ -30,12 +30,7 @@ jobs:
         run: make
 
       - name: Package
-        run: |
-          mkdir -p dist
-          cp wows-geometry-cli wows-gltf-exporter wows-list-ships dist/
-          cp -P libwows-geometry.so* dist/ 2>/dev/null || true
-          cp LICENSE README.md dist/
-          tar -czf wows-model-exporter-linux-x86_64.tar.gz -C dist .
+        run: bash misc/linux-dist.sh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
